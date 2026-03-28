@@ -1,149 +1,162 @@
-# CargoLens — mi proyecto final (Full Stack, The Bridge)
+# CargoLens — Proyecto final Full Stack (The Bridge)
 
-No hay presentación oral aparte: **este README es la presentación del trabajo**. Lo escribo yo para que quien lo lea (profesor, tribunal o compañero que clone el repo) entienda qué hay detrás, cómo se ejecuta y por qué tomé las decisiones que tomé.
+## Documentación de entrega
 
-**CargoLens** es una web de **seguimiento de contenedores marítimos**: búsqueda pública de envíos, registro por empresa con **MongoDB + JWT**, integración con API tipo **Sinay/Safecube** cuando hay clave, **mapas Leaflet** y un **panel de staff** (clientes, import Excel, actividad, listas guardadas, etc.). Lo monté como monorepo `frontend/` + `backend/` porque quería un corte vertical real: de la base de datos al despliegue.
+Documento de apoyo para **tribunal y evaluadores del repositorio**: alcance del trabajo, decisiones técnicas, reproducción del entorno local y en producción, relación con el temario del máster y con la rúbrica de calificación.
 
 ---
 
-## Stack (lo que elegí y me funcionó)
+## Descripción del proyecto
 
-| Parte | Tecnología |
-|--------|------------|
+**CargoLens** es una aplicación web de **seguimiento de contenedores marítimos** que incluye:
+
+- Búsqueda pública de envíos y vista de detalle.
+- Registro y acceso por **workspace** (empresa) con **MongoDB** y autenticación **JWT**.
+- Integración opcional con API de operador (**Sinay/Safecube**) para tracking y buques.
+- **Mapas Leaflet** y panel de **staff** (clientes, importación Excel, actividad, listas guardadas, etc.).
+
+El código está organizado como **monorepo** (`frontend/` y `backend/`) para mantener un flujo completo desde la persistencia hasta el despliegue.
+
+---
+
+## Stack tecnológico
+
+| Capa | Tecnología |
+|------|------------|
 | Frontend | React 18, Vite, React Router, Leaflet, Axios |
 | Backend | Node.js, Express, Mongoose |
-| Auth | JWT (Bearer en `localStorage`) |
-| Datos | MongoDB |
+| Autenticación | JWT (Bearer en `localStorage`) |
+| Base de datos | MongoDB |
 
 ---
 
-## Qué apliqué del máster (y qué fui más allá)
+## Relación con el temario y decisiones de diseño
 
-En el programa vimos **Node, Express, REST, CORS, Mongo, Jest, React, hooks, contexto, deploy**. Aquí lo solté todo en el mismo producto: rutas REST bajo `/api`, CORS con origen configurable (me pegué con eso en producción hasta dejar validación de `CLIENT_ORIGIN`), modelos Mongoose con permisos **staff vs portal cliente**, cliente **Axios** centralizado y variables de entorno para que el front en **Cloudflare Pages** hable con el API en **Render** sin inventos raros.
+En el programa se trabajaron **Node.js, Express, APIs REST, CORS, MongoDB, pruebas, React (hooks, contexto, rutas) y despliegue**. El proyecto integra estos contenidos en un solo producto: API REST bajo `/api`, **CORS** con origen configurable y validación del valor de `CLIENT_ORIGIN` en servidor, modelos **Mongoose** con distinción **staff / portal cliente**, cliente **Axios** unificado y variables de entorno para el despliegue del frontend (**Cloudflare Pages**) frente al backend (**Render**). La persistencia usa **MongoDB** para envíos y listados de contenedores, con modelado y consultas sobre colecciones.
 
-El temario también tocó **SQL** a fondo; yo aposté por **MongoDB** en este proyecto porque encaja con documentos de envío y listas de contenedores, pero la idea de modelar bien los datos y no mezclar conceptos es la misma.
-
-Lo que me motivó a ir un poco “crack” por encima del mínimo: **i18n ES/EN**, **PWA** con `vite-plugin-pwa`, **paleta de comandos** (`Ctrl+K`), tema claro/oscuro, **GitHub Actions + SonarCloud**, un **smoke E2E con Playwright**, páginas de **changelog / privacidad** y detalles de UX (banner si la API no responde, impresión desde listas…). No son obligatorios en una rúbrica básica, pero son la prueba de que me importaba entregar algo **usable y defendible**.
+Como ampliación respecto al núcleo mínimo, el repositorio incorpora **internacionalización ES/EN**, **PWA** (`vite-plugin-pwa`), **paleta de comandos** (`Ctrl+K` / `⌘K`), tema claro/oscuro, **GitHub Actions** y **SonarCloud**, prueba **E2E** con **Playwright**, páginas de **changelog** y **privacidad**, y mejoras de UX (indicación de conectividad, impresión desde listas, etc.).
 
 ---
 
-## Cómo lo levantas en local
+## Instalación y ejecución en local
 
-**Requisitos:** Node 20 (lo uso en CI), Mongo accesible (local o Atlas).
+**Requisitos:** Node.js 20 (alineado con CI) y MongoDB accesible (local o Atlas).
 
 ### Backend (`backend/`)
 
-1. Copia `backend/.env.example` → `backend/.env` y rellena `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN` (en local yo uso `http://localhost:5173`).
-2. Si tienes clave de Sinay: `SAFECUBE_API_KEY` para tracking y buques con datos reales.
-3. `npm install` → `npm run dev`
+1. Copiar `backend/.env.example` a `backend/.env` y configurar `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN` (por ejemplo `http://localhost:5173` en desarrollo).
+2. Opcional: `SAFECUBE_API_KEY` para datos reales de tracking y buques (portal Sinay / Developers).
+3. Ejecutar `npm install` y `npm run dev`.
 
-La API queda en `http://localhost:4000`. Para ver que respira: `GET /health`.
+API por defecto: `http://localhost:4000`. Comprobación: `GET /health`.
 
 ### Frontend (`frontend/`)
 
-1. `npm install` → `npm run dev`
-2. En desarrollo Vite hace **proxy** de `/api` al backend. Si algo rasca, en un `.env` del front puedes poner `VITE_API_BASE_URL=http://localhost:4000/api`.
-3. En **producción** hace falta **`VITE_API_BASE_URL`** con la URL absoluta del API (yo uso el host de Render; el cliente normaliza y añade `/api` si solo pones el dominio).
+1. `npm install` y `npm run dev`.
+2. En desarrollo, Vite hace **proxy** de `/api` al backend. Si fuera necesario, definir `VITE_API_BASE_URL=http://localhost:4000/api` en un `.env` del frontend.
+3. En **producción**, el build requiere **`VITE_API_BASE_URL`** con la URL absoluta del API (el cliente acepta host con o sin sufijo `/api` según la implementación en `frontend/src/api/client.js`).
 
-### Scripts que uso a diario
+### Scripts principales
 
-| Dónde | Comando | Para qué |
-|--------|---------|----------|
-| `backend/` | `npm run dev` | API con `--watch` |
-| `backend/` | `npm start` | Producción local / Render |
-| `backend/` | `npm run seed:demo` | Usuario demo + datos (`scripts/seed-demo-user.js`) |
-| `backend/` | `npm test` / `npm run test:coverage` | Jest + LCOV para Sonar |
-| `frontend/` | `npm run dev` / `build` / `preview` | Vite |
-| `frontend/` | `npm test` / `npm run test:coverage` | Vitest |
-| `frontend/` | `npm run lint` / `lint:locales` | ESLint + claves i18n |
-| `frontend/` | `npm run test:e2e` | Playwright (con el dev server levantado) |
-
----
-
-## Endpoints del API (resumen)
-
-Todo el negocio va bajo **`/api`** salvo el health.
-
-| Método | Ruta | Auth | Qué hace |
-|--------|------|------|----------|
-| GET | `/health` | No | Estado + BD |
-| POST | `/api/auth/register` | No | Registro |
-| POST | `/api/auth/login` | No | JWT |
-| GET | `/api/auth/me` | Bearer | Perfil |
-| GET | `/api/track/search` | Opcional | Tracking por `q` |
-| GET | `/api/vessels/search` | No | Buques (pública; clave en servidor) |
-| GET | `/api/vessels/from-containers` | Bearer | Buques desde guardados |
-| GET/POST/PATCH/DELETE | `/api/containers` | Bearer / staff | CRUD + import |
-| GET | `/api/containers/overview-map` | Bearer | Mapa / resumen dashboard |
-| CRUD | `/api/clients` | Staff | Clientes |
-| GET | `/api/activity` | Staff | Actividad |
-
-Rate limit en `/api` — mirar `app.js`.
+| Ubicación | Comando | Uso |
+|-----------|---------|-----|
+| `backend/` | `npm run dev` | Servidor con recarga (`--watch`). |
+| `backend/` | `npm start` | Arranque sin watch (producción). |
+| `backend/` | `npm run seed:demo` | Usuario y datos de demostración. |
+| `backend/` | `npm test` / `npm run test:coverage` | Jest y cobertura (CI/Sonar). |
+| `frontend/` | `npm run dev` / `build` / `preview` | Ciclo Vite. |
+| `frontend/` | `npm test` / `npm run test:coverage` | Vitest. |
+| `frontend/` | `npm run lint` / `npm run lint:locales` | ESLint y coherencia i18n. |
+| `frontend/` | `npm run test:e2e` | Playwright (servidor de desarrollo en ejecución). |
 
 ---
 
-## Cuenta demo (para que pruebes sin registrarte otra vez)
+## Endpoints principales del API
 
-Dejé un script que crea empresa, usuario y contenedores de ejemplo:
+Las rutas de negocio utilizan el prefijo **`/api`**. El health check está en la raíz.
+
+| Método | Ruta | Autenticación | Descripción |
+|--------|------|----------------|-------------|
+| GET | `/health` | No | Estado del servicio y base de datos. |
+| POST | `/api/auth/register` | No | Registro. |
+| POST | `/api/auth/login` | No | Obtención de JWT. |
+| GET | `/api/auth/me` | Bearer | Perfil del usuario. |
+| GET | `/api/track/search` | Opcional | Búsqueda por número de contenedor (`q`). |
+| GET | `/api/vessels/search` | No | Búsqueda pública de buques (clave en servidor). |
+| GET | `/api/vessels/from-containers` | Bearer | Buques a partir de contenedores guardados. |
+| GET/POST/PATCH/DELETE | `/api/containers` | Bearer / staff | CRUD, importación. |
+| GET | `/api/containers/overview-map` | Bearer | Datos para mapa y resumen. |
+| CRUD | `/api/clients` | Staff | Clientes del workspace. |
+| GET | `/api/activity` | Staff | Actividad del workspace. |
+
+Sobre `/api` se aplica **rate limiting** (ver `backend/src/app.js`).
+
+---
+
+## Cuenta de demostración
+
+Los datos de prueba se generan con:
 
 ```bash
 cd backend && npm run seed:demo
 ```
 
-**Ojo:** si quieres el mismo usuario en **producción**, el `MONGODB_URI` con el que corres el seed tiene que ser **el mismo** cluster que usa el backend desplegado.
+Para que el mismo usuario exista en el entorno desplegado, el `MONGODB_URI` usado al ejecutar el seed debe corresponder al **mismo** clúster o base de datos que utiliza el backend en producción.
 
 | Campo | Valor |
-|--------|--------|
+|-------|--------|
 | Email | `demo@freightboard.local` |
 | Contraseña | `FreightDemo2026!` |
 
-Entrada: `/login`.
+Acceso: ruta `/login`.
 
 ---
 
-## Tracking: con API real o en modo demo
+## Modos de tracking
 
-Monté dos caminos en el backend:
+El backend distingue:
 
-1. **Con `SAFECUBE_API_KEY` en el servidor** → llamo a Sinay/Safecube y mapeo la respuesta; el front muestra datos “live” cuando el operador tiene información.
-2. **Sin clave** → **mock determinista** (`buildMockShipment`) para que la demo no dependa de claves ni de un contenedor real en el océano.
+1. **Con `SAFECUBE_API_KEY` configurada:** llamadas a la API de Sinay/Safecube y mapeo al modelo de la aplicación.
+2. **Sin clave:** respuesta **simulada determinista** (`buildMockShipment`) para permitir pruebas sin dependencia de claves ni de equipos reales.
 
-Para probar el mock sin líos uso **`ZZZZ0000000`**: siempre devuelve un envío simulado coherente y puedes repetir la búsqueda las veces que quieras sin gastar cuota de API externa. Si enseñas API real, el resultado ya depende del operador.
-
----
-
-## Despliegue (cómo lo tengo montado)
-
-- **API:** Node en **Render** con `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN` (URL exacta del front, sin `/` final) y opcionalmente `SAFECUBE_API_KEY`.
-- **Front:** estático en **Cloudflare Pages** con `VITE_API_BASE_URL` en el build.
-
-Si algo falla entre dominios, casi siempre es CORS o la URL del API mal puesta — lo dejé documentado arriba para no repetir el sufrimiento.
+Para el modo simulado se puede usar el número **`ZZZZ0000000`**; el resultado es reproducible y no consume cuota de API externa. Con API real, el resultado depende de la disponibilidad de datos del operador.
 
 ---
 
-## Repo, `.gitignore` y calidad
+## Despliegue
 
-Separé `frontend/` y `backend/`, ignoré **`.env` y `.env.*`** (menos `*.env.example`) para no subir secretos, y conecté **GitHub Actions** con tests + cobertura y **SonarCloud** (`sonar-project.properties`). El README que lees es parte de la entrega; el código habla del resto.
+- **Backend:** servicio Node (por ejemplo **Render**) con `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN` (origen exacto del frontend, sin barra final) y, opcionalmente, `SAFECUBE_API_KEY`.
+- **Frontend:** hosting estático (**Cloudflare Pages** u otro) con variable de build `VITE_API_BASE_URL`.
 
----
-
-## Cómo encaja esto con la rúbrica (lo que quiero que valoren)
-
-| Criterio | Dónde se nota |
-|----------|----------------|
-| **Backend** | REST, validaciones, status codes, JWT, rate limit, integración externa con manejo de errores |
-| **Frontend** | React estructurado, Context, hooks, rutas, UI consistente, i18n |
-| **Integración** | Axios, JWT en peticiones, feedback de carga/errores en los flujos principales |
-| **GitHub** | Monorepo ordenado, este README, scripts, endpoints, `.gitignore` |
-| **Despliegue** | Render + Pages con variables documentadas |
+Entre dominios distintos, los problemas habituales se resuelven verificando **CORS** y la **URL base del API** en el cliente.
 
 ---
 
-## Resumen honesto del alcance
+## Repositorio, seguridad y calidad
 
-Esto es un **proyecto de aprendizaje y demo serio**, no un SaaS enterprise con SOC2; aun así cubre **login → API → Mongo → front desplegado** y integración con API de terceros cuando hay clave.
+- Estructura **monorepo** con `frontend/` y `backend/`.
+- **`.gitignore`:** exclusión de `.env` y variantes; se versionan archivos `*.env.example`.
+- **CI:** GitHub Actions con instalación, tests y cobertura; análisis en **SonarCloud** (`sonar-project.properties`).
 
-## Estructura del repo
+---
+
+## Correspondencia con la rúbrica de evaluación
+
+| Criterio | Evidencia en el proyecto |
+|----------|----------------------------|
+| **Backend** | API REST, validaciones, códigos de estado HTTP, JWT, rate limiting, manejo de errores e integración con servicio externo cuando aplica. |
+| **Frontend (React)** | Componentes organizados, Context, hooks, enrutamiento, interfaz coherente, i18n. |
+| **Integración frontend–backend** | Cliente HTTP centralizado, token en peticiones, indicadores de carga y mensajes de error en flujos principales. |
+| **GitHub / repositorio** | Organización por carpetas, este README, scripts documentados, tabla de endpoints, `.gitignore`. |
+| **Despliegue** | Backend y frontend alojados por separado con variables de entorno descritas. |
+
+---
+
+## Alcance del trabajo
+
+El proyecto se enmarca como **aplicación de aprendizaje y demostración técnica**; no pretende equivaler a un producto enterprise en seguridad u observabilidad avanzada, pero sí cubre un **flujo vertical** completo: autenticación, persistencia, consumo de API de terceros opcional y despliegue.
+
+## Estructura del repositorio
 
 ```
 Final Project/
@@ -151,17 +164,17 @@ Final Project/
 ├── frontend/src/
 ├── frontend/e2e/
 ├── .github/workflows/
-└── README.md   ← estás aquí; para mí esto cuenta como la presentación
+└── README.md
 ```
 
-## Arquitectura (una línea)
+## Arquitectura lógica
 
 ```
 Browser (React) ──axios /api──► Express ──► MongoDB (Mongoose)
                      │
-                     └── Sinay/Safecube si hay SAFECUBE_API_KEY
+                     └── APIs Sinay/Safecube si existe SAFECUBE_API_KEY
 ```
 
 ---
 
-*Si clonas el repo y algo no arranca, revisa `.env` y que Mongo esté arriba. Suerte en la corrección.*
+*Documentación elaborada como memoria del proyecto final. Para incidencias en la reproducción del entorno, verificar variables en `.env` y conectividad con MongoDB.*
