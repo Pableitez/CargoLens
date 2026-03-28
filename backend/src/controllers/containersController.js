@@ -8,10 +8,6 @@ import { devError } from "../utils/devLog.js";
 
 const MAX_CLIENT_FILTER_LEN = 128;
 
-function escapeForRegex(s) {
-  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 /** Solo string hex de 24 chars; rechaza objetos (NoSQL injection). */
 function safeObjectIdString(value) {
   if (value == null || value === "") return null;
@@ -71,8 +67,11 @@ export async function listContainers(req, res) {
     if (mongoose.isValidObjectId(clientIdFilter)) {
       q.clientId = new mongoose.Types.ObjectId(clientIdFilter);
     } else if (clientFilter) {
-      const cf = clientFilter.slice(0, MAX_CLIENT_FILTER_LEN);
-      q.clientName = new RegExp(escapeForRegex(cf), "i");
+      const cf = clientFilter.slice(0, MAX_CLIENT_FILTER_LEN).toLowerCase();
+      // Subcadena case-insensitive sin RegExp (evita ReDoS / S2631).
+      q.$expr = {
+        $gte: [{ $indexOfCP: [{ $toLower: { $ifNull: ["$clientName", ""] } }, cf] }, 0],
+      };
     }
   }
 
