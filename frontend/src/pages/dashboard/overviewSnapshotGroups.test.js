@@ -36,7 +36,7 @@ describe("computeAccordionExpansionSet", () => {
       { clientName: "B", items: [] },
     ];
     const s = computeAccordionExpansionSet(groups, false);
-    expect([...s].sort()).toEqual(["A", "B"]);
+    expect(s).toEqual(new Set(["A", "B"]));
   });
 
   it("heavy: solo el primero", () => {
