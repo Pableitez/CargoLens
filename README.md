@@ -1,11 +1,5 @@
 # CargoLens — Proyecto final Full Stack (The Bridge)
 
-## Documentación de entrega
-
-Documento de apoyo para **tribunal y evaluadores del repositorio**: alcance del trabajo, decisiones técnicas, reproducción del entorno local y en producción, relación con el temario del máster y con la rúbrica de calificación.
-
----
-
 ## Descripción del proyecto
 
 **CargoLens** es una aplicación web de **seguimiento de contenedores marítimos** que incluye:
@@ -123,6 +117,25 @@ Para el modo simulado se puede usar el número **`ZZZZ0000000`**; el resultado e
 
 ---
 
+## Guía de prueba rápida (demo de uso)
+
+Secuencia orientativa para **reproducir el flujo** en local (ajustar URLs si se prueba el despliegue público).
+
+| Paso | Acción | Qué comprobar |
+|------|--------|----------------|
+| 1 | Tener **backend** y **frontend** en marcha (`npm run dev` en cada carpeta) y, si la BD está vacía, ejecutar `npm run seed:demo` en `backend/`. | El seed termina sin errores. |
+| 2 | Abrir `GET http://localhost:4000/health` en el navegador o con curl. | Respuesta JSON con `ok: true` y estado de BD. |
+| 3 | Abrir el front (`http://localhost:5173` por defecto). En la **portada** está el buscador de contenedor: introducir **`ZZZZ0000000`** y enviar. | Se muestra la vista de envío; sin `SAFECUBE_API_KEY`, datos **simulados** (aviso de demo si aplica). |
+| 4 | Ir a **`/login`**. Entrar con la **cuenta demo** (tabla de la sección anterior). | Tras el login, acceso al workspace autenticado. |
+| 5 | Navegar a **`/dashboard/overview`** (o dejar la redirección automática tras login). | Resumen, KPIs, mapa o listas según datos del seed. |
+| 6 | Desplegar el menú lateral y revisar, por ejemplo: **lista guardada** (`/dashboard/list`), **clientes** y **actividad** (rutas staff según rol). | Datos coherentes con el seed; operaciones CRUD donde corresponda. |
+| 7 | (Opcional) Abrir **`/vessels`** para la búsqueda pública de buques (depende de clave API en servidor). | Respuesta o mensaje de error controlado si falta clave o falla el proveedor. |
+| 8 | (Opcional) Pulsar **`Ctrl+K`** / **`⌘+K`** para la paleta de comandos y saltar a rutas o contenedores recientes. | Navegación rápida sin errores de consola relacionados con la app. |
+
+**E2E:** con el front en marcha, `npm run test:e2e` en `frontend/` ejecuta el smoke de Playwright (`frontend/e2e/`).
+
+---
+
 ## Despliegue
 
 - **Backend:** servicio Node (por ejemplo **Render**) con `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN` (origen exacto del frontend, sin barra final) y, opcionalmente, `SAFECUBE_API_KEY`.
@@ -158,12 +171,50 @@ El proyecto se enmarca como **aplicación de aprendizaje y demostración técnic
 
 ## Estructura del repositorio
 
+Vista ampliada de las carpetas relevantes (el árbol es orientativo; no lista todos los archivos).
+
 ```
 Final Project/
-├── backend/src/
-├── frontend/src/
-├── frontend/e2e/
-├── .github/workflows/
+├── .github/
+│   └── workflows/              # CI: instalación, tests + cobertura, Sonar
+├── scripts/
+│   └── prefix-lcov.mjs         # Ajuste de rutas LCOV para análisis en monorepo
+├── backend/
+│   ├── scripts/
+│   │   └── seed-demo-user.js   # Usuario y datos de demostración
+│   └── src/
+│       ├── config/             # Variables de entorno (p. ej. env.js)
+│       ├── controllers/        # Lógica HTTP por dominio
+│       ├── middleware/         # Auth JWT, etc.
+│       ├── models/             # Esquemas Mongoose (User, Company, Client, …)
+│       ├── routes/             # Montaje de routers bajo /api
+│       ├── services/
+│       │   ├── tracking/       # Safecube, mock, mapeos
+│       │   └── vessels/        # Sinay, AISHub, búsqueda de buques
+│       ├── utils/
+│       ├── app.js              # Factory Express (CORS, json, /api)
+│       ├── db.js               # Conexión MongoDB
+│       └── server.js           # Punto de entrada
+├── frontend/
+│   ├── e2e/                    # Pruebas Playwright
+│   ├── public/
+│   ├── scripts/                # Utilidades i18n (locales)
+│   └── src/
+│       ├── api/                # Clientes Axios (auth, containers, tracking, …)
+│       ├── components/         # UI reutilizable (mapas, sidebar, …)
+│       ├── config/             # Rutas y metadatos del sitio
+│       ├── constants/
+│       ├── contexts/           # Auth, tema, toasts, paleta de comandos, …
+│       ├── hooks/
+│       ├── i18n/               # Traducciones ES/EN
+│       ├── layouts/
+│       ├── map/                # Teselas / mapa
+│       ├── pages/              # Páginas y subcarpeta dashboard/
+│       ├── styles/
+│       ├── utils/
+│       ├── App.jsx
+│       └── main.jsx
+├── sonar-project.properties
 └── README.md
 ```
 
