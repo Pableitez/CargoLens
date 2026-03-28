@@ -1,4 +1,4 @@
-# CargoLens — Proyecto final Full Stack (The Bridge)
+# CargoLens — Proyecto final Full Stack 
 
 ## Descripción del proyecto 
 
