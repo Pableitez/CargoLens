@@ -1,4 +1,31 @@
 // Lectura y defaults de variables de entorno (JWT, Mongo, Sinay, AISHub).
+
+/**
+ * Valor para `cors({ origin })`. Si CLIENT_ORIGIN no es una URL http(s) válida
+ * (p. ej. se pegó un ID por error en Render), el navegador rechaza la cabecera;
+ * en ese caso hacemos fallback a `true` (reflejar el Origin de la petición) y avisamos en log.
+ */
+export function resolveCorsOrigin() {
+  const raw = String(process.env.CLIENT_ORIGIN ?? "").trim();
+  if (!raw) return true;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "http:" && u.protocol !== "https:") {
+      console.warn(
+        "[CORS] CLIENT_ORIGIN debe ser una URL http(s); se ignora y se usa CORS permisivo."
+      );
+      return true;
+    }
+    return raw;
+  } catch {
+    console.warn(
+      `[CORS] CLIENT_ORIGIN no es una URL válida (${raw.slice(0, 64)}…). ` +
+        "Corrígela en Render (p. ej. https://cargolens-cfh.pages.dev). Mientras tanto se usa CORS permisivo."
+    );
+    return true;
+  }
+}
+
 export function getEnv() {
   const nodeEnv = process.env.NODE_ENV ?? "development";
   let jwtSecret = process.env.JWT_SECRET ?? "";
