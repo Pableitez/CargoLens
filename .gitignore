@@ -1,10 +1,10 @@
 # Dependencies
 node_modules/
 
-# Env & local
+# Env & local — nunca subir secretos (Atlas, JWT, API keys)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Logs & OS
 *.log
