@@ -22,3 +22,4 @@ function patch(lcovPath, prefix) {
 
 patch(path.join(root, "frontend/coverage/lcov.info"), "frontend");
 patch(path.join(root, "backend/coverage/lcov.info"), "backend");
+ 
