@@ -1,6 +1,6 @@
 # CargoLens — Proyecto final Full Stack (The Bridge)
 
-## Descripción del proyecto
+## Descripción del proyecto 
 
 **CargoLens** es una aplicación web de **seguimiento de contenedores marítimos** que incluye:
 
