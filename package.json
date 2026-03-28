@@ -6,6 +6,11 @@
     "test:coverage": "npm run test:coverage --prefix frontend && npm run test:coverage --prefix backend",
     "sonar:prefix": "node scripts/prefix-lcov.mjs",
     "sonar:scan": "npx sonarqube-scanner",
-    "sonar": "npm run test:coverage && npm run sonar:prefix && npm run sonar:scan"
+    "sonar": "npm run test:coverage && npm run sonar:prefix && npm run sonar:scan",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.78.0"
   }
 }
