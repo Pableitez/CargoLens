@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Light background for browser tab only; app / manifest keep icon.svg -->
+  <rect width="48" height="48" rx="12" fill="#f1f5f9"/>
+  <circle cx="24" cy="24" r="16" stroke="url(#g)" stroke-width="3" stroke-dasharray="78 125" transform="rotate(-38 24 24)"/>
+  <circle cx="24" cy="24" r="11" stroke="url(#g)" stroke-width="2.5" stroke-dasharray="52 155" opacity="0.9" transform="rotate(18 24 24)"/>
+  <defs>
+    <linearGradient id="g" x1="6" y1="8" x2="42" y2="40">
+      <stop stop-color="#7dd3fc"/>
+      <stop offset="0.42" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#1e3a8a"/>
+    </linearGradient>
+  </defs>
+</svg>
