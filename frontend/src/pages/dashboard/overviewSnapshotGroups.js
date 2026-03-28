@@ -20,13 +20,17 @@ export function buildClientGroups(filtered, sortLocale) {
   }));
 }
 
+/** Conjunto de grupos abiertos al cargar: todos o solo el primero (vista “heavy”). */
+export function computeAccordionExpansionSet(groups, heavyAccordion) {
+  if (!heavyAccordion) {
+    return new Set(groups.map((g) => g.clientName));
+  }
+  return new Set(groups[0]?.clientName ? [groups[0].clientName] : []);
+}
+
 /** Acordeón: o todos abiertos o solo el primero según modo “heavy”. */
 export function useAccordionBootstrap(groups, heavyAccordion, groupNamesKey, setExpanded) {
   useLayoutEffect(() => {
-    if (!heavyAccordion) {
-      setExpanded(new Set(groups.map((g) => g.clientName)));
-      return;
-    }
-    setExpanded(new Set(groups[0]?.clientName ? [groups[0].clientName] : []));
+    setExpanded(computeAccordionExpansionSet(groups, heavyAccordion));
   }, [groupNamesKey, heavyAccordion, groups, setExpanded]);
 }

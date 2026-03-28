@@ -6,19 +6,9 @@ import { DashboardPageSkeleton } from "../../components/DashboardPageSkeleton.js
 import { useDashboardWorkspace } from "./DashboardWorkspaceContext.jsx";
 import { downloadSavedContainersCsv, formatShortDate } from "./dashboardUtils.js";
 import { useTranslation } from "../../i18n/LanguageContext.jsx";
+import { filterSavedListByKpi } from "./savedListKpiFilter.js";
 
 const PAGE_SIZE = 12;
-
-function filterSavedListByKpi(rows, scope, source) {
-  let out = rows;
-  if (scope === "assigned") out = out.filter((r) => r.clientId);
-  else if (scope === "unassigned") out = out.filter((r) => !r.clientId);
-  if (source === "manual") out = out.filter((r) => r.entrySource === "manual");
-  else if (source === "import") out = out.filter((r) => r.entrySource === "import");
-  else if (source === "seed") out = out.filter((r) => r.entrySource === "seed");
-  else if (source === "api") out = out.filter((r) => r.entrySource === "api");
-  return out;
-}
 
 function EditableNotesCell({ row, onPatch }) {
   const { t } = useTranslation();
