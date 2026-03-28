@@ -138,8 +138,10 @@ export function DashboardOverview() {
   }, []);
 
   const onTrackRecorded = useCallback(() => {
-    void reloadWorkspaceContainers();
-    void refreshOverviewMap();
+    Promise.all([
+      Promise.resolve(reloadWorkspaceContainers()),
+      Promise.resolve(refreshOverviewMap()),
+    ]).catch(() => {});
   }, [reloadWorkspaceContainers, refreshOverviewMap]);
 
   const removeSavedAndRefreshMap = useCallback(
@@ -257,7 +259,7 @@ export function DashboardOverview() {
     let cancelled = false;
     const showSpinner = !mapFetchedOnceRef.current;
     if (showSpinner) setMapLoading(true);
-    void (async () => {
+    const run = async () => {
       try {
         const data = await containersApi.fetchContainersOverviewMap();
         if (cancelled) return;
@@ -273,7 +275,8 @@ export function DashboardOverview() {
           mapFetchedOnceRef.current = true;
         }
       }
-    })();
+    };
+    run().catch(() => {});
     return () => {
       cancelled = true;
     };

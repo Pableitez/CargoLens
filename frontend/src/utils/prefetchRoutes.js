@@ -24,6 +24,6 @@ export function prefetchRoute(pathname) {
   const path = pathname.split("?")[0].replace(/\/$/, "") || "/";
   const load = loaders[path];
   if (load) {
-    void load().catch(() => {});
+    load().catch(() => {});
   }
 }

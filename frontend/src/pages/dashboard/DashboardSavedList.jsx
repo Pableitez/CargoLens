@@ -9,6 +9,17 @@ import { useTranslation } from "../../i18n/LanguageContext.jsx";
 
 const PAGE_SIZE = 12;
 
+function filterSavedListByKpi(rows, scope, source) {
+  let out = rows;
+  if (scope === "assigned") out = out.filter((r) => r.clientId);
+  else if (scope === "unassigned") out = out.filter((r) => !r.clientId);
+  if (source === "manual") out = out.filter((r) => r.entrySource === "manual");
+  else if (source === "import") out = out.filter((r) => r.entrySource === "import");
+  else if (source === "seed") out = out.filter((r) => r.entrySource === "seed");
+  else if (source === "api") out = out.filter((r) => r.entrySource === "api");
+  return out;
+}
+
 function EditableNotesCell({ row, onPatch }) {
   const { t } = useTranslation();
   const [v, setV] = useState(row.notes || "");
@@ -61,16 +72,10 @@ export function DashboardSavedList() {
     source === "seed" ||
     source === "api";
 
-  const listFiltered = useMemo(() => {
-    let rows = filteredItems;
-    if (scope === "assigned") rows = rows.filter((r) => r.clientId);
-    else if (scope === "unassigned") rows = rows.filter((r) => !r.clientId);
-    if (source === "manual") rows = rows.filter((r) => r.entrySource === "manual");
-    else if (source === "import") rows = rows.filter((r) => r.entrySource === "import");
-    else if (source === "seed") rows = rows.filter((r) => r.entrySource === "seed");
-    else if (source === "api") rows = rows.filter((r) => r.entrySource === "api");
-    return rows;
-  }, [filteredItems, scope, source]);
+  const listFiltered = useMemo(
+    () => filterSavedListByKpi(filteredItems, scope, source),
+    [filteredItems, scope, source]
+  );
 
   const filterDetailParts = useMemo(() => {
     const parts = [];
@@ -294,7 +299,7 @@ export function DashboardSavedList() {
                           value={row.clientId || ""}
                           onChange={(e) => {
                             const v = e.target.value;
-                            void handleUpdateContainer(row.id, { clientId: v === "" ? "" : v });
+                            handleUpdateContainer(row.id, { clientId: v === "" ? "" : v }).catch(() => {});
                           }}
                           aria-label={t("dashboardPage.list.clientFor", { cn: row.containerNumber })}
                         >
@@ -323,11 +328,11 @@ export function DashboardSavedList() {
                         <button
                           type="button"
                           className="btn btn--ghost btn--sm"
-                          onClick={() =>
-                            void handleUpdateContainer(row.id, {
+                          onClick={() => {
+                            handleUpdateContainer(row.id, {
                               lifecycleStatus: row.lifecycleStatus === "completed" ? "active" : "completed",
-                            })
-                          }
+                            }).catch(() => {});
+                          }}
                         >
                           {row.lifecycleStatus === "completed"
                             ? t("dashboardPage.list.reopenActive")

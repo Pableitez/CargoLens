@@ -57,11 +57,11 @@ export function DashboardWorkspaceProvider({ children }) {
   }, [isClientPortal]);
 
   useEffect(() => {
-    void load();
+    load().catch(() => {});
   }, [load]);
 
   useEffect(() => {
-    void loadClients();
+    loadClients().catch(() => {});
   }, [loadClients]);
 
   useEffect(() => {

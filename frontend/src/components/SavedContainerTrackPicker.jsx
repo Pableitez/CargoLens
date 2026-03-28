@@ -63,11 +63,11 @@ export function SavedContainerTrackPicker({ onPick, disabled }) {
     onPick(cn);
   }
 
-  const placeholder = loading
-    ? t(`${p}.placeholderLoading`)
-    : items.length
-      ? t(`${p}.placeholderSearch`, { count: items.length })
-      : t(`${p}.placeholderEmpty`);
+  const placeholder = useMemo(() => {
+    if (loading) return t(`${p}.placeholderLoading`);
+    if (items.length) return t(`${p}.placeholderSearch`, { count: items.length });
+    return t(`${p}.placeholderEmpty`);
+  }, [loading, items.length, t]);
 
   if (!user) return null;
 

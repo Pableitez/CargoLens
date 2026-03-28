@@ -5,9 +5,9 @@ import { isDbConnected } from "../db.js";
 import { Client } from "../models/Client.js";
 import { Company } from "../models/Company.js";
 import { User } from "../models/User.js";
-import { generateInviteCode } from "../utils/inviteCode.js";
 import { jsonError } from "../utils/jsonError.js";
 import { devError } from "../utils/devLog.js";
+import { resolveCompanyForRegistration } from "./authRegisterHelpers.js";
 
 const SALT_ROUNDS = 10;
 
@@ -81,45 +81,15 @@ export async function register(req, res) {
       return res.status(409).json({ error: "EMAIL_IN_USE", message: "Email already registered." });
     }
 
-    let company;
-    let clientId = null;
-
-    if (clientInviteCode) {
-      const client = await Client.findOne({ inviteCode: clientInviteCode });
-      if (!client) {
-        return res.status(400).json({
-          error: "INVALID_INVITE",
-          message: "Client invite code not found.",
-        });
-      }
-      company = await Company.findById(client.companyId);
-      if (!company) {
-        return res.status(400).json({ error: "INVALID_INVITE", message: "Client workspace invalid." });
-      }
-      clientId = client._id;
-    } else if (companyInviteCode) {
-      company = await Company.findOne({ inviteCode: companyInviteCode });
-      if (!company) {
-        return res.status(400).json({
-          error: "INVALID_INVITE",
-          message: "Company invite code not found.",
-        });
-      }
-    } else {
-      if (!companyName) {
-        return res.status(400).json({
-          error: "INVALID_INPUT",
-          message: "Company name is required when not using an invite code.",
-        });
-      }
-      let code = generateInviteCode();
-      for (let i = 0; i < 5; i += 1) {
-        const clash = await Company.findOne({ inviteCode: code });
-        if (!clash) break;
-        code = generateInviteCode();
-      }
-      company = await Company.create({ name: companyName, inviteCode: code });
+    const resolved = await resolveCompanyForRegistration({
+      clientInviteCode,
+      companyInviteCode,
+      companyName,
+    });
+    if (!resolved.ok) {
+      return res.status(resolved.status).json(resolved.body);
     }
+    const { company, clientId } = resolved;
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await User.create({

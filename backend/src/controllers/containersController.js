@@ -196,36 +196,13 @@ export async function updateContainer(req, res) {
     }
 
     if (hasClientId) {
-      const raw = req.body?.clientId;
-      if (raw === null || raw === "") {
-        doc.clientId = null;
-        doc.clientName = "";
-      } else {
-        const idStr = safeObjectIdString(raw);
-        if (!idStr) {
-          return res.status(400).json({ error: "INVALID_CLIENT", message: "Invalid client id." });
-        }
-        const client = await Client.findOne({
-          _id: new mongoose.Types.ObjectId(idStr),
-          companyId: new mongoose.Types.ObjectId(companyId),
-        }).lean();
-        if (!client) {
-          return res.status(400).json({ error: "INVALID_CLIENT", message: "Unknown client for this company." });
-        }
-        doc.clientId = client._id;
-        doc.clientName = client.name;
-      }
+      const r = await assignClientFromBody(doc, req.body?.clientId, companyId);
+      if (!r.ok) return res.status(r.status).json(r.body);
     }
 
     if (hasLifecycleStatus) {
-      const ls = String(req.body?.lifecycleStatus ?? "").trim();
-      if (ls !== "active" && ls !== "completed") {
-        return res.status(400).json({
-          error: "INVALID_INPUT",
-          message: "lifecycleStatus must be active or completed.",
-        });
-      }
-      doc.lifecycleStatus = ls;
+      const r = applyLifecycleFromBody(doc, req.body?.lifecycleStatus);
+      if (!r.ok) return res.status(r.status).json(r.body);
     }
 
     await doc.save();
@@ -309,6 +286,106 @@ function pickCell(row, ...keys) {
   return "";
 }
 
+async function assignClientFromBody(doc, raw, companyId) {
+  if (raw === null || raw === "") {
+    doc.clientId = null;
+    doc.clientName = "";
+    return { ok: true };
+  }
+  const idStr = safeObjectIdString(raw);
+  if (!idStr) {
+    return { ok: false, status: 400, body: { error: "INVALID_CLIENT", message: "Invalid client id." } };
+  }
+  const client = await Client.findOne({
+    _id: new mongoose.Types.ObjectId(idStr),
+    companyId: new mongoose.Types.ObjectId(companyId),
+  }).lean();
+  if (!client) {
+    return {
+      ok: false,
+      status: 400,
+      body: { error: "INVALID_CLIENT", message: "Unknown client for this company." },
+    };
+  }
+  doc.clientId = client._id;
+  doc.clientName = client.name;
+  return { ok: true };
+}
+
+function applyLifecycleFromBody(doc, raw) {
+  const ls = String(raw ?? "").trim();
+  if (ls !== "active" && ls !== "completed") {
+    return {
+      ok: false,
+      status: 400,
+      body: { error: "INVALID_INPUT", message: "lifecycleStatus must be active or completed." },
+    };
+  }
+  doc.lifecycleStatus = ls;
+  return { ok: true };
+}
+
+async function importOneDataRow(row, rowIndex, companyId, inviteToClient) {
+  const i = rowIndex;
+  const containerNumber = normalizeContainer(
+    pickCell(row, "container", "container_number", "container number", "contenedor", "number", "ctn")
+  );
+  if (!containerNumber || containerNumber.length < 4) {
+    const rowErrors = [];
+    if (containerNumber) rowErrors.push(`Row ${i + 2}: invalid container number`);
+    return { created: 0, skipped: 1, rowErrors };
+  }
+
+  const inviteRaw = pickCell(
+    row,
+    "client_invite",
+    "client invite",
+    "invite",
+    "client_code",
+    "client code",
+    "codigo_cliente"
+  );
+  const notes = pickCell(row, "notes", "note", "notas", "remarks");
+
+  let clientId = null;
+  let clientName = "";
+  if (inviteRaw) {
+    const code = inviteRaw.toUpperCase().replace(/\s+/g, "");
+    const client = inviteToClient.get(code);
+    if (!client) {
+      return {
+        created: 0,
+        skipped: 1,
+        rowErrors: [`Row ${i + 2}: unknown client invite "${inviteRaw}"`],
+      };
+    }
+    clientId = client._id;
+    clientName = client.name;
+  }
+
+  try {
+    await SavedContainer.create({
+      companyId: new mongoose.Types.ObjectId(companyId),
+      clientId,
+      containerNumber,
+      clientName,
+      notes,
+      entrySource: "import",
+    });
+    return { created: 1, skipped: 0, rowErrors: [] };
+  } catch (err) {
+    if (err.code === 11000) {
+      return {
+        created: 0,
+        skipped: 1,
+        rowErrors: [`Row ${i + 2}: duplicate container ${containerNumber}`],
+      };
+    }
+    devError("import row", i + 2, err);
+    return { created: 0, skipped: 1, rowErrors: [`Row ${i + 2}: could not save`] };
+  }
+}
+
 export async function importContainers(req, res) {
   if (!isDbConnected()) return dbUnavailable(res);
 
@@ -343,61 +420,10 @@ export async function importContainers(req, res) {
   const errors = [];
 
   for (let i = 0; i < rows.length; i += 1) {
-    const row = rows[i];
-    const containerNumber = normalizeContainer(
-      pickCell(row, "container", "container_number", "container number", "contenedor", "number", "ctn")
-    );
-    if (!containerNumber || containerNumber.length < 4) {
-      skipped += 1;
-      if (containerNumber) errors.push(`Row ${i + 2}: invalid container number`);
-      continue;
-    }
-
-    const inviteRaw = pickCell(
-      row,
-      "client_invite",
-      "client invite",
-      "invite",
-      "client_code",
-      "client code",
-      "codigo_cliente"
-    );
-    const notes = pickCell(row, "notes", "note", "notas", "remarks");
-
-    let clientId = null;
-    let clientName = "";
-    if (inviteRaw) {
-      const code = inviteRaw.toUpperCase().replace(/\s+/g, "");
-      const client = inviteToClient.get(code);
-      if (!client) {
-        errors.push(`Row ${i + 2}: unknown client invite "${inviteRaw}"`);
-        skipped += 1;
-        continue;
-      }
-      clientId = client._id;
-      clientName = client.name;
-    }
-
-    try {
-      await SavedContainer.create({
-        companyId: new mongoose.Types.ObjectId(companyId),
-        clientId,
-        containerNumber,
-        clientName,
-        notes,
-        entrySource: "import",
-      });
-      created += 1;
-    } catch (err) {
-      if (err.code === 11000) {
-        skipped += 1;
-        errors.push(`Row ${i + 2}: duplicate container ${containerNumber}`);
-      } else {
-        skipped += 1;
-        devError("import row", i + 2, err);
-        errors.push(`Row ${i + 2}: could not save`);
-      }
-    }
+    const out = await importOneDataRow(rows[i], i, companyId, inviteToClient);
+    created += out.created;
+    skipped += out.skipped;
+    for (const e of out.rowErrors) errors.push(e);
   }
 
   void logWorkspaceActivity({

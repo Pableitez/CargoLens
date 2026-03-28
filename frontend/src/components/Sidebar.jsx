@@ -142,35 +142,41 @@ function IconChevronSidebar() {
   );
 }
 
+function sidebarSectionsGuest(pathname) {
+  const s = new Set();
+  if (pathname === "/" || pathname === "/vessels") s.add("tracking");
+  if (pathname === "/" || pathname === "/login" || pathname === "/register") s.add("account");
+  return [...s];
+}
+
+function sidebarSectionsStaff(pathname, s) {
+  if (
+    pathname.startsWith("/dashboard/clients") ||
+    pathname.startsWith("/dashboard/add") ||
+    pathname.startsWith("/dashboard/import") ||
+    pathname.startsWith("/dashboard/list")
+  ) {
+    s.add("data");
+  }
+  if (pathname.startsWith("/dashboard/activity") || pathname.startsWith("/dashboard/attention")) {
+    s.add("monitor");
+  }
+  if (pathname.startsWith("/dashboard/settings")) {
+    s.add("admin");
+  }
+}
+
 // Qué acordeones abrir según la ruta (el resto queda como el usuario lo dejó).
 function getSidebarSectionsToExpand(pathname, { user, staff, isPortal }) {
+  if (!user) return sidebarSectionsGuest(pathname);
+
   const s = new Set();
-  if (!user) {
-    if (pathname === "/" || pathname === "/vessels") s.add("tracking");
-    if (pathname === "/" || pathname === "/login" || pathname === "/register") s.add("account");
-    return [...s];
-  }
   if (pathname === "/vessels" || pathname === "/") s.add("tracking");
   if (pathname === "/dashboard/overview" || pathname === "/dashboard") {
     s.add("tracking");
     s.add("workspace");
   }
-  if (staff) {
-    if (
-      pathname.startsWith("/dashboard/clients") ||
-      pathname.startsWith("/dashboard/add") ||
-      pathname.startsWith("/dashboard/import") ||
-      pathname.startsWith("/dashboard/list")
-    ) {
-      s.add("data");
-    }
-    if (pathname.startsWith("/dashboard/activity") || pathname.startsWith("/dashboard/attention")) {
-      s.add("monitor");
-    }
-    if (pathname.startsWith("/dashboard/settings")) {
-      s.add("admin");
-    }
-  }
+  if (staff) sidebarSectionsStaff(pathname, s);
   if (isPortal && pathname.startsWith("/dashboard/list")) {
     s.add("mylist");
   }

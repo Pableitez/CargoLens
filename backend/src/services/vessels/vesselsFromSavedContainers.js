@@ -41,6 +41,110 @@ function mergeLifecycleBreakdown(a, b) {
   };
 }
 
+function buildDemoVesselsFromRows(rows) {
+  return rows.map((r) => {
+    const seed = hashSeed(r.containerNumber);
+    const lat = 25 + (seed % 80) / 20;
+    const lng = -80 + (seed % 120) / 15;
+    const routePaths = [
+      [
+        [lat - 2, lng + 3],
+        [lat, lng],
+        [lat + 1.5, lng - 4],
+      ],
+    ];
+    return {
+      name: `Demo vessel (${r.containerNumber.slice(0, 4)}…)`,
+      imo: "",
+      mmsi: "",
+      flag: "",
+      vesselType: "",
+      latitude: lat,
+      longitude: lng,
+      speed: undefined,
+      lastUpdate: undefined,
+      containerNumbers: [r.containerNumber],
+      shipmentStatus: "DEMO",
+      positionSource: "mock",
+      routePaths,
+      lifecycleBreakdown: lifecycleBreakdownFromSavedRow(r),
+    };
+  });
+}
+
+async function mergeSavedRowIntoVessels(merged, row, safecubeApiKey) {
+  const cn = row.containerNumber;
+  try {
+    const carrier = carrierFromContainerNumber(cn);
+    const sealineGuess = carrier.id !== "unknown" ? cn.slice(0, 4) : undefined;
+    const detail = await fetchSafecubeShipmentWithSealineFallback(safecubeApiKey, cn, sealineGuess);
+    const built = buildOverviewFromDetail(detail);
+    const key = dedupKeyFromRow(cn, built);
+    const lat = built.position?.lat;
+    const lng = built.position?.lng;
+    const coord = normalizeLatLng(lat, lng);
+
+    const rowOut = {
+      name: built.vesselName && built.vesselName.trim() !== "" ? built.vesselName : "—",
+      imo: built.imo ?? "",
+      mmsi: built.mmsi ?? "",
+      flag: built.flag ?? "",
+      vesselType: "",
+      latitude: coord ? coord.lat : undefined,
+      longitude: coord ? coord.lng : undefined,
+      speed: undefined,
+      lastUpdate: undefined,
+      containerNumbers: [cn],
+      shipmentStatus: built.status ?? "—",
+      positionSource: coord ? "container_tracking" : "none",
+    };
+
+    const prev = merged.get(key);
+    if (!prev) {
+      merged.set(key, rowOut);
+      return;
+    }
+    const nums = [...new Set([...(prev.containerNumbers ?? []), cn])];
+    const plat = prev.latitude ?? rowOut.latitude;
+    const plng = prev.longitude ?? rowOut.longitude;
+    merged.set(key, {
+      ...prev,
+      name: prev.name === "—" && rowOut.name !== "—" ? rowOut.name : prev.name,
+      imo: prev.imo || rowOut.imo,
+      mmsi: prev.mmsi || rowOut.mmsi,
+      flag: prev.flag || rowOut.flag,
+      containerNumbers: nums,
+      latitude: plat,
+      longitude: plng,
+      shipmentStatus: prev.shipmentStatus || rowOut.shipmentStatus,
+      positionSource:
+        plat != null && plng != null
+          ? prev.latitude != null && prev.longitude != null
+            ? prev.positionSource
+            : rowOut.positionSource
+          : "none",
+    });
+  } catch {
+    const key = `err:${cn}`;
+    merged.set(key, {
+      name: "—",
+      imo: "",
+      mmsi: "",
+      flag: "",
+      vesselType: "",
+      latitude: undefined,
+      longitude: undefined,
+      speed: undefined,
+      lastUpdate: undefined,
+      containerNumbers: [cn],
+      shipmentStatus: "—",
+      positionSource: "none",
+      trackingError: true,
+      lifecycleBreakdown: lifecycleBreakdownFromSavedRow(row),
+    });
+  }
+}
+
 // Buques únicos inferidos del tracking de contenedores guardados (AIS/ruta si hay).
 export async function buildVesselRowsFromSavedContainers({ companyId, clientId }) {
   const q = { companyId: new mongoose.Types.ObjectId(companyId) };
@@ -57,35 +161,7 @@ export async function buildVesselRowsFromSavedContainers({ companyId, clientId }
   const { safecubeApiKey } = getEnv();
 
   if (!safecubeApiKey) {
-    const vessels = rows.map((r) => {
-      const seed = hashSeed(r.containerNumber);
-      const lat = 25 + (seed % 80) / 20;
-      const lng = -80 + (seed % 120) / 15;
-      // Ruta ilustrativa para mapa (misma familia que overview sin API).
-      const routePaths = [
-        [
-          [lat - 2, lng + 3],
-          [lat, lng],
-          [lat + 1.5, lng - 4],
-        ],
-      ];
-      return {
-        name: `Demo vessel (${r.containerNumber.slice(0, 4)}…)`,
-        imo: "",
-        mmsi: "",
-        flag: "",
-        vesselType: "",
-        latitude: lat,
-        longitude: lng,
-        speed: undefined,
-        lastUpdate: undefined,
-        containerNumbers: [r.containerNumber],
-        shipmentStatus: "DEMO",
-        positionSource: "mock",
-        routePaths,
-        lifecycleBreakdown: lifecycleBreakdownFromSavedRow(r),
-      };
-    });
+    const vessels = buildDemoVesselsFromRows(rows);
     return {
       mode: "mock",
       vessels,
@@ -96,77 +172,7 @@ export async function buildVesselRowsFromSavedContainers({ companyId, clientId }
   const merged = new Map();
 
   for (let i = 0; i < rows.length; i += 1) {
-    const row = rows[i];
-    const cn = row.containerNumber;
-    try {
-      const carrier = carrierFromContainerNumber(cn);
-      const sealineGuess = carrier.id !== "unknown" ? cn.slice(0, 4) : undefined;
-      const detail = await fetchSafecubeShipmentWithSealineFallback(safecubeApiKey, cn, sealineGuess);
-      const built = buildOverviewFromDetail(detail);
-      const key = dedupKeyFromRow(cn, built);
-      const lat = built.position?.lat;
-      const lng = built.position?.lng;
-      const coord = normalizeLatLng(lat, lng);
-
-      const rowOut = {
-        name: built.vesselName && built.vesselName.trim() !== "" ? built.vesselName : "—",
-        imo: built.imo ?? "",
-        mmsi: built.mmsi ?? "",
-        flag: built.flag ?? "",
-        vesselType: "",
-        latitude: coord ? coord.lat : undefined,
-        longitude: coord ? coord.lng : undefined,
-        speed: undefined,
-        lastUpdate: undefined,
-        containerNumbers: [cn],
-        shipmentStatus: built.status ?? "—",
-        positionSource: coord ? "container_tracking" : "none",
-      };
-
-      const prev = merged.get(key);
-      if (!prev) {
-        merged.set(key, rowOut);
-      } else {
-        const nums = [...new Set([...(prev.containerNumbers ?? []), cn])];
-        const lat = prev.latitude ?? rowOut.latitude;
-        const lng = prev.longitude ?? rowOut.longitude;
-        merged.set(key, {
-          ...prev,
-          name: prev.name === "—" && rowOut.name !== "—" ? rowOut.name : prev.name,
-          imo: prev.imo || rowOut.imo,
-          mmsi: prev.mmsi || rowOut.mmsi,
-          flag: prev.flag || rowOut.flag,
-          containerNumbers: nums,
-          latitude: lat,
-          longitude: lng,
-          shipmentStatus: prev.shipmentStatus || rowOut.shipmentStatus,
-          positionSource:
-            lat != null && lng != null
-              ? prev.latitude != null && prev.longitude != null
-                ? prev.positionSource
-                : rowOut.positionSource
-              : "none",
-        });
-      }
-    } catch {
-      const key = `err:${cn}`;
-      merged.set(key, {
-        name: "—",
-        imo: "",
-        mmsi: "",
-        flag: "",
-        vesselType: "",
-        latitude: undefined,
-        longitude: undefined,
-        speed: undefined,
-        lastUpdate: undefined,
-        containerNumbers: [cn],
-        shipmentStatus: "—",
-        positionSource: "none",
-        trackingError: true,
-        lifecycleBreakdown: lifecycleBreakdownFromSavedRow(row),
-      });
-    }
+    await mergeSavedRowIntoVessels(merged, rows[i], safecubeApiKey);
     if (i < rows.length - 1) await delay(BETWEEN_MS);
   }
 

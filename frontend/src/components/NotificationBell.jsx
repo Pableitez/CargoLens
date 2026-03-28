@@ -37,9 +37,9 @@ export function NotificationBell() {
   const wrapRef = useRef(null);
 
   const unreadCount = useMemo(() => {
-    void seenRev;
+    const gate = seenRev >= 0;
     const t0 = getLastSeenMs();
-    return items.filter((r) => new Date(r.createdAt).getTime() > t0).length;
+    return items.filter((r) => gate && new Date(r.createdAt).getTime() > t0).length;
   }, [items, seenRev]);
 
   useEffect(() => {

@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { colorForContainer } from "../utils/overviewColors.js";
 import { UNASSIGNED_FILTER } from "../pages/dashboard/overviewClientFilter.js";
 import { DASHBOARD_OVERVIEW_PATH } from "../config/paths.js";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
+import {
+  buildClientGroups,
+  clientKey,
+  useAccordionBootstrap,
+} from "../pages/dashboard/overviewSnapshotGroups.js";
 
 const HEAVY_OVERVIEW_CLIENTS = 4;
 const HEAVY_OVERVIEW_ITEMS = 14;
@@ -27,11 +32,6 @@ function sortByEtaThenCn(a, b) {
   const tb = b.etaAt ? new Date(b.etaAt).getTime() : Number.POSITIVE_INFINITY;
   if (ta !== tb) return ta - tb;
   return String(a.containerNumber ?? "").localeCompare(String(b.containerNumber ?? ""));
-}
-
-function clientKey(item) {
-  const n = (item.clientName || "").trim();
-  return n || "Unassigned";
 }
 
 function earliestEtaIso(items) {
@@ -168,7 +168,9 @@ function ContainerRow({ it, isClientPortal, onRemoveSaved }) {
           <button
             type="button"
             className="btn btn--ghost btn--sm overview-card__cta-remove"
-            onClick={() => void onRemoveSaved(it.savedContainerId)}
+            onClick={() => {
+              onRemoveSaved(it.savedContainerId);
+            }}
           >
             {t("overviewSnapshot.removeFromSaved")}
           </button>
@@ -468,61 +470,25 @@ export function OverviewSnapshotCards({
     return list;
   }, [completedNonApiItems, globalQuery, tSearch, isClientNameSearchMode]);
 
-  const groups = useMemo(() => {
-    const map = new Map();
-    for (const it of globalFiltered) {
-      const k = clientKey(it);
-      if (!map.has(k)) map.set(k, []);
-      map.get(k).push(it);
-    }
-    const keys = [...map.keys()].sort((a, b) => a.localeCompare(b, sortLocale));
-    return keys.map((clientName) => ({
-      clientName,
-      items: map.get(clientName),
-    }));
-  }, [globalFiltered, sortLocale]);
+  const groups = useMemo(
+    () => buildClientGroups(globalFiltered, sortLocale),
+    [globalFiltered, sortLocale]
+  );
 
-  const historyGroups = useMemo(() => {
-    const map = new Map();
-    for (const it of historyFiltered) {
-      const k = clientKey(it);
-      if (!map.has(k)) map.set(k, []);
-      map.get(k).push(it);
-    }
-    const keys = [...map.keys()].sort((a, b) => a.localeCompare(b, sortLocale));
-    return keys.map((clientName) => ({
-      clientName,
-      items: map.get(clientName),
-    }));
-  }, [historyFiltered, sortLocale]);
+  const historyGroups = useMemo(
+    () => buildClientGroups(historyFiltered, sortLocale),
+    [historyFiltered, sortLocale]
+  );
 
-  const nonApiActiveGroups = useMemo(() => {
-    const map = new Map();
-    for (const it of nonApiActiveFiltered) {
-      const k = clientKey(it);
-      if (!map.has(k)) map.set(k, []);
-      map.get(k).push(it);
-    }
-    const keys = [...map.keys()].sort((a, b) => a.localeCompare(b, sortLocale));
-    return keys.map((clientName) => ({
-      clientName,
-      items: map.get(clientName),
-    }));
-  }, [nonApiActiveFiltered, sortLocale]);
+  const nonApiActiveGroups = useMemo(
+    () => buildClientGroups(nonApiActiveFiltered, sortLocale),
+    [nonApiActiveFiltered, sortLocale]
+  );
 
-  const completedNonApiGroups = useMemo(() => {
-    const map = new Map();
-    for (const it of completedNonApiFiltered) {
-      const k = clientKey(it);
-      if (!map.has(k)) map.set(k, []);
-      map.get(k).push(it);
-    }
-    const keys = [...map.keys()].sort((a, b) => a.localeCompare(b, sortLocale));
-    return keys.map((clientName) => ({
-      clientName,
-      items: map.get(clientName),
-    }));
-  }, [completedNonApiFiltered, sortLocale]);
+  const completedNonApiGroups = useMemo(
+    () => buildClientGroups(completedNonApiFiltered, sortLocale),
+    [completedNonApiFiltered, sortLocale]
+  );
 
   const groupNamesKey = groups.map((g) => g.clientName).join("\0");
   const groupNamesKeyHistory = historyGroups.map((g) => g.clientName).join("\0");
@@ -565,41 +531,20 @@ export function OverviewSnapshotCards({
     return () => window.clearTimeout(scrollTimer);
   }, [snapshotTab]);
 
-  useLayoutEffect(() => {
-    if (!heavyAccordion) {
-      setExpandedGroups(new Set(groups.map((g) => g.clientName)));
-      return;
-    }
-    setExpandedGroups(new Set(groups[0]?.clientName ? [groups[0].clientName] : []));
-  }, [groupNamesKey, heavyAccordion, groups]);
-
-  useLayoutEffect(() => {
-    if (!heavyAccordionHistory) {
-      setExpandedHistoryGroups(new Set(historyGroups.map((g) => g.clientName)));
-      return;
-    }
-    setExpandedHistoryGroups(new Set(historyGroups[0]?.clientName ? [historyGroups[0].clientName] : []));
-  }, [groupNamesKeyHistory, heavyAccordionHistory, historyGroups]);
-
-  useLayoutEffect(() => {
-    if (!heavyAccordionNonApiActive) {
-      setExpandedNonApiActiveGroups(new Set(nonApiActiveGroups.map((g) => g.clientName)));
-      return;
-    }
-    setExpandedNonApiActiveGroups(
-      new Set(nonApiActiveGroups[0]?.clientName ? [nonApiActiveGroups[0].clientName] : [])
-    );
-  }, [groupNamesKeyNonApiActive, heavyAccordionNonApiActive, nonApiActiveGroups]);
-
-  useLayoutEffect(() => {
-    if (!heavyAccordionCompletedNonApi) {
-      setExpandedCompletedNonApiGroups(new Set(completedNonApiGroups.map((g) => g.clientName)));
-      return;
-    }
-    setExpandedCompletedNonApiGroups(
-      new Set(completedNonApiGroups[0]?.clientName ? [completedNonApiGroups[0].clientName] : [])
-    );
-  }, [groupNamesKeyCompletedNonApi, heavyAccordionCompletedNonApi, completedNonApiGroups]);
+  useAccordionBootstrap(groups, heavyAccordion, groupNamesKey, setExpandedGroups);
+  useAccordionBootstrap(historyGroups, heavyAccordionHistory, groupNamesKeyHistory, setExpandedHistoryGroups);
+  useAccordionBootstrap(
+    nonApiActiveGroups,
+    heavyAccordionNonApiActive,
+    groupNamesKeyNonApiActive,
+    setExpandedNonApiActiveGroups
+  );
+  useAccordionBootstrap(
+    completedNonApiGroups,
+    heavyAccordionCompletedNonApi,
+    groupNamesKeyCompletedNonApi,
+    setExpandedCompletedNonApiGroups
+  );
 
   const toggleGroup = useCallback((name) => {
     setExpandedGroups((prev) => {

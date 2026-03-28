@@ -51,7 +51,7 @@ export function TrackContainerView({
     if (overviewEmbed) return;
     const q = searchParams.get("q");
     if (q && q.trim().length >= 4) {
-      void search(q.trim());
+      search(q.trim()).catch(() => {});
     } else {
       clear();
     }

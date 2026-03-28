@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
+    refresh().catch(() => {});
   }, [refresh]);
 
   const login = useCallback(async (body) => {

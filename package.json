@@ -1,0 +1,11 @@
+{
+  "name": "cargolens",
+  "private": true,
+  "description": "Scripts raíz (Sonar, etc.); apps en frontend/ y backend/",
+  "scripts": {
+    "test:coverage": "npm run test:coverage --prefix frontend && npm run test:coverage --prefix backend",
+    "sonar:prefix": "node scripts/prefix-lcov.mjs",
+    "sonar:scan": "npx sonarqube-scanner",
+    "sonar": "npm run test:coverage && npm run sonar:prefix && npm run sonar:scan"
+  }
+}

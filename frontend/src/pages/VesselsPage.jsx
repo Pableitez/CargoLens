@@ -11,6 +11,41 @@ import { useTranslation } from "../i18n/LanguageContext.jsx";
 
 const VESSELS_PAGE_SIZE = 10;
 
+function vesselResultsSourceLabel(data) {
+  if (!data) return null;
+  if (data.source === "containers" && data.mode === "live") return "From saved containers · Sinay tracking";
+  if (data.source === "containers" && data.mode === "mock") {
+    return "Demo · from saved containers (add API key for live)";
+  }
+  if (data.source === "safecube") return "Live · Sinay";
+  if (data.source === "mock") return "Demo · add API key for live";
+  return null;
+}
+
+function vesselResultsMapDataSource(data) {
+  if (!data) return null;
+  if (data.source === "containers") return data.mode === "mock" ? "mock" : "safecube";
+  if (data.source === "safecube") return "safecube";
+  if (data.source === "mock") return "mock";
+  return null;
+}
+
+function vesselNoCoordsFootnote(data) {
+  if (data?.source === "containers") {
+    return "No map position yet: tracking may not include AIS for these shipments, or the line has not published coordinates.";
+  }
+  if (data?.source === "safecube" && data?.aishubEnrichment) {
+    return "No AIS position for the first result’s MMSI (AISHub). The ship may be outside community coverage, or wait 1+ minute between searches (AISHub rate limit).";
+  }
+  if (data?.source === "safecube" && data?.intelEnrichment) {
+    return "Sinay Vessels Intelligence returned no coordinates. Set AISHUB_USERNAME in backend/.env for a free AIS fallback, or confirm your Sinay plan.";
+  }
+  if (data?.source === "safecube" && !data?.intelEnrichment && !data?.aishubEnrichment) {
+    return "No positions on the map: set SAFECUBE_VESSEL_INTEL_ENRICH=true and/or AISHUB_USERNAME (see backend .env.example).";
+  }
+  return "No coordinates in these results—the map needs AIS latitude/longitude from the API.";
+}
+
 function VesselSavedListCell({ breakdown, t }) {
   if (!breakdown) return "—";
   const a = breakdown.active ?? 0;
@@ -34,6 +69,74 @@ function VesselSavedListCell({ breakdown, t }) {
       <span className="vessel-saved-list-badge vessel-saved-list-badge--active">{t("vesselsPage.savedLineActive", { count: a })}</span>
       <span className="vessel-saved-list-badge vessel-saved-list-badge--completed">{t("vesselsPage.savedLineCompleted", { count: c })}</span>
     </>
+  );
+}
+
+function VesselResultTableRow({
+  v,
+  globalIndex,
+  selectedVesselIndex,
+  setSelectedVesselIndex,
+  showContainersCol,
+  showStatusCol,
+  showLifecycleCol,
+  vesselExtraCols,
+  t,
+}) {
+  const canMap = isValidLatLng(v.latitude ?? v.lat, v.longitude ?? v.lng ?? v.lon);
+  const selected = selectedVesselIndex === globalIndex;
+  const toggle = () =>
+    setSelectedVesselIndex((prev) => (prev === globalIndex ? null : globalIndex));
+
+  return (
+    <tr
+      className={
+        selected
+          ? "dash-table__row dash-table__row--selectable dash-table__row--selected"
+          : "dash-table__row dash-table__row--selectable"
+      }
+      onClick={toggle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggle();
+        }
+      }}
+      tabIndex={0}
+      aria-selected={selected}
+      aria-label={canMap ? `${v.name || "Vessel"} — show on map` : `${v.name || "Vessel"} — no map position`}
+    >
+      <td>{v.name}</td>
+      {showContainersCol ? (
+        <td className="dash-table__mono dash-table__wrap">
+          {v.containerNumbers?.length ? v.containerNumbers.join(", ") : "—"}
+        </td>
+      ) : null}
+      {showStatusCol ? (
+        <td className="dash-table__date">
+          {v.trackingError ? "No tracking" : v.shipmentStatus ?? "—"}
+        </td>
+      ) : null}
+      {showLifecycleCol ? (
+        <td className="vessel-saved-list-td">
+          <VesselSavedListCell breakdown={v.lifecycleBreakdown} t={t} />
+        </td>
+      ) : null}
+      <td className="dash-table__mono">{v.imo || "—"}</td>
+      <td className="dash-table__mono">{v.mmsi || "—"}</td>
+      <td>{v.flag || "—"}</td>
+      {vesselExtraCols.type ? <td>{v.vesselType || "—"}</td> : null}
+      {vesselExtraCols.speed ? (
+        <td className="dash-table__mono">
+          {v.speed != null && v.speed !== "" ? `${Number(v.speed).toFixed(1)} kn` : "—"}
+        </td>
+      ) : null}
+      {vesselExtraCols.lastUpdate ? (
+        <td className="dash-table__date">
+          {v.lastUpdate != null && v.lastUpdate !== "" ? String(v.lastUpdate) : "—"}
+        </td>
+      ) : null}
+    </tr>
   );
 }
 
@@ -109,27 +212,9 @@ export function VesselsPage() {
     }
   }
 
-  const sourceLabel =
-    data?.source === "containers" && data?.mode === "live"
-      ? "From saved containers · Sinay tracking"
-      : data?.source === "containers" && data?.mode === "mock"
-        ? "Demo · from saved containers (add API key for live)"
-        : data?.source === "safecube"
-          ? "Live · Sinay"
-          : data?.source === "mock"
-            ? "Demo · add API key for live"
-            : null;
+  const sourceLabel = vesselResultsSourceLabel(data);
 
-  const mapDataSource =
-    data?.source === "containers"
-      ? data?.mode === "mock"
-        ? "mock"
-        : "safecube"
-      : data?.source === "safecube"
-        ? "safecube"
-        : data?.source === "mock"
-          ? "mock"
-          : null;
+  const mapDataSource = vesselResultsMapDataSource(data);
 
   const hasRows = data?.vessels?.length > 0;
   const showEmpty = data && !hasRows && !error;
@@ -243,60 +328,20 @@ export function VesselsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pagedVessels.map((v, i) => {
-                    const globalIndex = pageStart + i;
-                    const canMap = isValidLatLng(v.latitude ?? v.lat, v.longitude ?? v.lng ?? v.lon);
-                    const selected = selectedVesselIndex === globalIndex;
-                    return (
-                    <tr
-                      key={`${(v.containerNumbers ?? []).join("-")}-${v.imo}-${v.mmsi}-${globalIndex}`}
-                      className={
-                        selected ? "dash-table__row dash-table__row--selectable dash-table__row--selected" : "dash-table__row dash-table__row--selectable"
-                      }
-                      onClick={() => setSelectedVesselIndex((prev) => (prev === globalIndex ? null : globalIndex))}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setSelectedVesselIndex((prev) => (prev === globalIndex ? null : globalIndex));
-                        }
-                      }}
-                      tabIndex={0}
-                      aria-selected={selected}
-                      aria-label={canMap ? `${v.name || "Vessel"} — show on map` : `${v.name || "Vessel"} — no map position`}
-                    >
-                      <td>{v.name}</td>
-                      {showContainersCol ? (
-                        <td className="dash-table__mono dash-table__wrap">
-                          {v.containerNumbers?.length ? v.containerNumbers.join(", ") : "—"}
-                        </td>
-                      ) : null}
-                      {showStatusCol ? (
-                        <td className="dash-table__date">
-                          {v.trackingError ? "No tracking" : v.shipmentStatus ?? "—"}
-                        </td>
-                      ) : null}
-                      {showLifecycleCol ? (
-                        <td className="vessel-saved-list-td">
-                          <VesselSavedListCell breakdown={v.lifecycleBreakdown} t={t} />
-                        </td>
-                      ) : null}
-                      <td className="dash-table__mono">{v.imo || "—"}</td>
-                      <td className="dash-table__mono">{v.mmsi || "—"}</td>
-                      <td>{v.flag || "—"}</td>
-                      {vesselExtraCols.type ? <td>{v.vesselType || "—"}</td> : null}
-                      {vesselExtraCols.speed ? (
-                        <td className="dash-table__mono">
-                          {v.speed != null && v.speed !== "" ? `${Number(v.speed).toFixed(1)} kn` : "—"}
-                        </td>
-                      ) : null}
-                      {vesselExtraCols.lastUpdate ? (
-                        <td className="dash-table__date">
-                          {v.lastUpdate != null && v.lastUpdate !== "" ? String(v.lastUpdate) : "—"}
-                        </td>
-                      ) : null}
-                    </tr>
-                    );
-                  })}
+                  {pagedVessels.map((v, i) => (
+                    <VesselResultTableRow
+                      key={`${(v.containerNumbers ?? []).join("-")}-${v.imo}-${v.mmsi}-${pageStart + i}`}
+                      v={v}
+                      globalIndex={pageStart + i}
+                      selectedVesselIndex={selectedVesselIndex}
+                      setSelectedVesselIndex={setSelectedVesselIndex}
+                      showContainersCol={showContainersCol}
+                      showStatusCol={showStatusCol}
+                      showLifecycleCol={showLifecycleCol}
+                      vesselExtraCols={vesselExtraCols}
+                      t={t}
+                    />
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -328,19 +373,7 @@ export function VesselsPage() {
               </nav>
             ) : null}
             <VesselSearchMap vessels={data.vessels} selectedVesselIndex={selectedVesselIndex} />
-            {!anyVesselCoords && (
-              <p className="vessel-results-map__no-ais">
-                {data?.source === "containers"
-                  ? "No map position yet: tracking may not include AIS for these shipments, or the line has not published coordinates."
-                  : data?.source === "safecube" && data?.aishubEnrichment
-                    ? "No AIS position for the first result’s MMSI (AISHub). The ship may be outside community coverage, or wait 1+ minute between searches (AISHub rate limit)."
-                    : data?.source === "safecube" && data?.intelEnrichment
-                      ? "Sinay Vessels Intelligence returned no coordinates. Set AISHUB_USERNAME in backend/.env for a free AIS fallback, or confirm your Sinay plan."
-                      : data?.source === "safecube" && !data?.intelEnrichment && !data?.aishubEnrichment
-                        ? "No positions on the map: set SAFECUBE_VESSEL_INTEL_ENRICH=true and/or AISHUB_USERNAME (see backend .env.example)."
-                        : "No coordinates in these results—the map needs AIS latitude/longitude from the API."}
-              </p>
-            )}
+            {!anyVesselCoords && <p className="vessel-results-map__no-ais">{vesselNoCoordsFootnote(data)}</p>}
           </div>
         )}
 

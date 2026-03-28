@@ -6,6 +6,12 @@ import { Sidebar } from "../components/Sidebar.jsx";
 import { appName, developerCredit } from "../config/siteMeta.js";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 
+function topbarDataSourceLine(dataSource, t) {
+  if (dataSource === "safecube") return t("mainLayout.liveSinay");
+  if (dataSource === "mock") return t("mainLayout.demoNoKey");
+  return null;
+}
+
 /**
  * Barra superior: solo texto (título o nombre+tagline). El logo va en la sidebar y en el pie — evita duplicar el mismo símbolo.
  */
@@ -18,12 +24,7 @@ export function MainLayout({ children, dataSource, title, subtitle, topbarExtra 
     setSidebarOpen(false);
   }, [location.pathname, location.hash]);
 
-  const sourceLine =
-    dataSource === "safecube"
-      ? t("mainLayout.liveSinay")
-      : dataSource === "mock"
-        ? t("mainLayout.demoNoKey")
-        : null;
+  const sourceLine = topbarDataSourceLine(dataSource, t);
 
   const hasPageTitle = Boolean(title);
 
