@@ -6,6 +6,21 @@ import { SavedContainer } from "../models/SavedContainer.js";
 import { logWorkspaceActivity } from "../services/workspaceActivityLog.js";
 import { devError } from "../utils/devLog.js";
 
+const MAX_CLIENT_FILTER_LEN = 128;
+
+function escapeForRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Solo string hex de 24 chars; rechaza objetos (NoSQL injection). */
+function safeObjectIdString(value) {
+  if (value == null || value === "") return null;
+  if (typeof value !== "string") return null;
+  const s = value.trim();
+  if (s.length !== 24 || !/^[a-fA-F0-9]{24}$/.test(s)) return null;
+  return mongoose.Types.ObjectId.isValid(s) ? s : null;
+}
+
 function normalizeContainer(raw) {
   return String(raw ?? "")
     .trim()
@@ -88,10 +103,10 @@ export async function createContainer(req, res) {
   let clientId = null;
   let clientName = String(req.body?.clientName ?? "").trim();
 
-  const rawClientId = req.body?.clientId;
-  if (rawClientId && mongoose.isValidObjectId(rawClientId)) {
+  const clientIdStr = safeObjectIdString(req.body?.clientId);
+  if (clientIdStr) {
     const client = await Client.findOne({
-      _id: rawClientId,
+      _id: new mongoose.Types.ObjectId(clientIdStr),
       companyId: new mongoose.Types.ObjectId(companyId),
     }).lean();
     if (!client) {
@@ -186,9 +201,13 @@ export async function updateContainer(req, res) {
       if (raw === null || raw === "") {
         doc.clientId = null;
         doc.clientName = "";
-      } else if (mongoose.isValidObjectId(raw)) {
+      } else {
+        const idStr = safeObjectIdString(raw);
+        if (!idStr) {
+          return res.status(400).json({ error: "INVALID_CLIENT", message: "Invalid client id." });
+        }
         const client = await Client.findOne({
-          _id: raw,
+          _id: new mongoose.Types.ObjectId(idStr),
           companyId: new mongoose.Types.ObjectId(companyId),
         }).lean();
         if (!client) {
@@ -196,8 +215,6 @@ export async function updateContainer(req, res) {
         }
         doc.clientId = client._id;
         doc.clientName = client.name;
-      } else {
-        return res.status(400).json({ error: "INVALID_CLIENT", message: "Invalid client id." });
       }
     }
 
