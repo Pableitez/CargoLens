@@ -170,7 +170,7 @@ export default {
     "loginLead2Link": "busca un contenedor",
     "loginLead2After": "sin registrarte.",
     "email": "Correo electrónico",
-    "password": "Contraseña",
+    "passwordLabel": "Contraseña",
     "signingIn": "Entrando…",
     "signIn": "Entrar",
     "noAccount": "¿No tienes cuenta?",

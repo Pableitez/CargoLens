@@ -170,7 +170,7 @@ export default {
     "loginLead2Link": "track a container",
     "loginLead2After": "without signing in.",
     "email": "Email",
-    "password": "Password",
+    "passwordLabel": "Password",
     "signingIn": "Signing in…",
     "signIn": "Sign in",
     "noAccount": "No account?",

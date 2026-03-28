@@ -61,7 +61,7 @@ export function LoginPage() {
             </div>
             <div className="field">
               <label className="field__label" htmlFor="login-password">
-                {t("auth.password")}
+                {t("auth.passwordLabel")}
               </label>
               <input
                 id="login-password"

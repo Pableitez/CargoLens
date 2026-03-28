@@ -4,6 +4,7 @@ import { isDbConnected } from "../db.js";
 import { Client } from "../models/Client.js";
 import { SavedContainer } from "../models/SavedContainer.js";
 import { logWorkspaceActivity } from "../services/workspaceActivityLog.js";
+import { devError } from "../utils/devLog.js";
 
 function normalizeContainer(raw) {
   return String(raw ?? "")
@@ -55,7 +56,8 @@ export async function listContainers(req, res) {
     if (mongoose.isValidObjectId(clientIdFilter)) {
       q.clientId = new mongoose.Types.ObjectId(clientIdFilter);
     } else if (clientFilter) {
-      q.clientName = new RegExp(clientFilter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      const cf = clientFilter.slice(0, MAX_CLIENT_FILTER_LEN);
+      q.clientName = new RegExp(escapeForRegex(cf), "i");
     }
   }
 
@@ -376,7 +378,8 @@ export async function importContainers(req, res) {
         errors.push(`Row ${i + 2}: duplicate container ${containerNumber}`);
       } else {
         skipped += 1;
-        errors.push(`Row ${i + 2}: ${err.message}`);
+        devError("import row", i + 2, err);
+        errors.push(`Row ${i + 2}: could not save`);
       }
     }
   }

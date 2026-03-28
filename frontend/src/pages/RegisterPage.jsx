@@ -78,7 +78,7 @@ export function RegisterPage() {
             </div>
             <div className="field">
               <label className="field__label" htmlFor="reg-password">
-                {t("auth.password")} <span className="field__hint">{t("auth.passwordHint")}</span>
+                {t("auth.passwordLabel")} <span className="field__hint">{t("auth.passwordHint")}</span>
               </label>
               <input
                 id="reg-password"
