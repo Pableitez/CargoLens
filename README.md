@@ -117,22 +117,26 @@ Para el modo simulado se puede usar el número **`ZZZZ0000000`**; el resultado e
 
 ---
 
-## Guía de prueba rápida (demo de uso)
+## Guía de prueba en la web (usuario)
 
-Secuencia orientativa para **reproducir el flujo** en local (ajustar URLs si se prueba el despliegue público).
+Pasos pensados para **quien prueba la aplicación solo con el navegador**, sin clonar el repositorio ni levantar servidores en local. Sustituye la URL de ejemplo por la del despliegue real (p. ej. Cloudflare Pages) o, si se usa entorno de desarrollo, por `http://localhost:5173`.
 
-| Paso | Acción | Qué comprobar |
-|------|--------|----------------|
-| 1 | Tener **backend** y **frontend** en marcha (`npm run dev` en cada carpeta) y, si la BD está vacía, ejecutar `npm run seed:demo` en `backend/`. | El seed termina sin errores. |
-| 2 | Abrir `GET http://localhost:4000/health` en el navegador o con curl. | Respuesta JSON con `ok: true` y estado de BD. |
-| 3 | Abrir el front (`http://localhost:5173` por defecto). En la **portada** está el buscador de contenedor: introducir **`ZZZZ0000000`** y enviar. | Se muestra la vista de envío; sin `SAFECUBE_API_KEY`, datos **simulados** (aviso de demo si aplica). |
-| 4 | Ir a **`/login`**. Entrar con la **cuenta demo** (tabla de la sección anterior). | Tras el login, acceso al workspace autenticado. |
-| 5 | Navegar a **`/dashboard/overview`** (o dejar la redirección automática tras login). | Resumen, KPIs, mapa o listas según datos del seed. |
-| 6 | Desplegar el menú lateral y revisar, por ejemplo: **lista guardada** (`/dashboard/list`), **clientes** y **actividad** (rutas staff según rol). | Datos coherentes con el seed; operaciones CRUD donde corresponda. |
-| 7 | (Opcional) Abrir **`/vessels`** para la búsqueda pública de buques (depende de clave API en servidor). | Respuesta o mensaje de error controlado si falta clave o falla el proveedor. |
-| 8 | (Opcional) Pulsar **`Ctrl+K`** / **`⌘+K`** para la paleta de comandos y saltar a rutas o contenedores recientes. | Navegación rápida sin errores de consola relacionados con la app. |
+| Paso | Qué hacer en el navegador | Qué deberías ver |
+|------|---------------------------|------------------|
+| 1 | Abrir la **URL base** de la aplicación (página de inicio). | La portada con el buscador de contenedor. |
+| 2 | En el buscador, escribir **`ZZZZ0000000`** y confirmar la búsqueda (botón o Enter). | Vista de seguimiento del envío. Si el servidor no usa API de operador, datos de **demostración** (aviso de simulación si la UI lo indica). |
+| 3 | Ir a **Iniciar sesión** / **`/login`** (enlace en la cabecera o menú, o añadiendo `/login` a la URL). | Formulario de email y contraseña. |
+| 4 | Entrar con la **cuenta demo** (email y contraseña de la tabla de la sección «Cuenta de demostración»). | Redirección al **panel** (dashboard) del workspace. |
+| 5 | Revisar el **resumen** (overview): KPIs, tarjetas o mapa según los datos cargados. | Contenido coherente con el workspace (p. ej. contenedores de prueba si el entorno tiene seed aplicado). |
+| 6 | Usar el **menú lateral**: **Lista guardada**, **Clientes**, **Actividad** (según permisos de staff). | Listados y acciones sin errores de carga visibles. |
+| 7 | (Opcional) Abrir **`/vessels`** desde el menú o escribiendo la ruta en la barra de direcciones. | Búsqueda de buques; si el backend no tiene clave de API, mensaje o estado vacío controlado. |
+| 8 | (Opcional) Pulsar **`Ctrl+K`** (Windows/Linux) o **`⌘+K`** (Mac) para la **paleta de comandos** y saltar a una ruta o contenedor. | Lista de acciones y navegación rápida. |
 
-**E2E:** con el front en marcha, `npm run test:e2e` en `frontend/` ejecuta el smoke de Playwright (`frontend/e2e/`).
+**Nota:** si la cuenta demo no existe en la base de datos del servidor, el login fallará hasta que un administrador ejecute el seed en ese entorno (ver sección «Cuenta de demostración»).
+
+### Solo para desarrollo (opcional)
+
+Comprobación técnica local: `GET /health` del API, ejecución de `npm run seed:demo` en `backend/`, y tests E2E con `npm run test:e2e` en `frontend/` (requiere el servidor de desarrollo en marcha). Detalle en las secciones de instalación y scripts.
 
 ---
 
