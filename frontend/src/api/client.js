@@ -3,6 +3,24 @@ import axios from "axios";
 const TOKEN_KEY = "freightboard_token";
 
 /**
+ * Si solo se pone el host (p. ej. https://cargolens.onrender.com), añade /api porque
+ * Express monta las rutas bajo /api. Si ya incluye path (…/api o …/api/v1), se respeta.
+ */
+function normalizeApiBaseURL(url) {
+  const trimmed = String(url).trim().replace(/\/$/, "");
+  try {
+    const u = new URL(trimmed);
+    const path = u.pathname.replace(/\/$/, "") || "";
+    if (path === "" || path === "/") {
+      return `${u.origin}/api`;
+    }
+    return trimmed;
+  } catch {
+    return trimmed;
+  }
+}
+
+/**
  * En desarrollo: proxy Vite sirve /api → backend local.
  * En producción: debe ser URL absoluta del API (Render, etc.). Si falta, /api relativo
  * apunta al dominio del front (Cloudflare Pages) y devuelve 405 en POST.
@@ -10,7 +28,7 @@ const TOKEN_KEY = "freightboard_token";
 function resolveApiBaseURL() {
   const raw = import.meta.env.VITE_API_BASE_URL;
   if (raw != null && String(raw).trim() !== "") {
-    return String(raw).replace(/\/$/, "");
+    return normalizeApiBaseURL(raw);
   }
   if (import.meta.env.DEV) {
     return "/api";
