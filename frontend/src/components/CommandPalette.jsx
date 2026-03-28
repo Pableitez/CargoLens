@@ -147,6 +147,7 @@ export function CommandPalette() {
   );
 
   const onKeyDownList = (e) => {
+    if (flat.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActive((i) => Math.min(flat.length - 1, i + 1));
@@ -162,18 +163,14 @@ export function CommandPalette() {
   if (!open) return null;
 
   return (
-    <div
-      className="command-palette-backdrop"
-      role="presentation"
-      onClick={close}
-      onKeyDown={onKeyDownList}
-    >
+    <div className="command-palette-backdrop" role="presentation" onClick={close}>
       <div
         className="command-palette"
         role="dialog"
         aria-modal="true"
         aria-label={t("commandPalette.title")}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={onKeyDownList}
       >
         <input
           ref={inputRef}
@@ -182,7 +179,6 @@ export function CommandPalette() {
           placeholder={t("commandPalette.placeholder")}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          onKeyDown={onKeyDownList}
           autoComplete="off"
           spellCheck={false}
         />
