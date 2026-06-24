@@ -11,7 +11,7 @@ export function DashboardImport() {
     <section className="panel panel--dash-form" aria-labelledby="import-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.import.topbar") },
         ]}
       />
@@ -48,7 +48,13 @@ export function DashboardImport() {
       <div className="import-row">
         <label className={`btn btn--ghost import-file-label${importing ? " import-file-label--busy" : ""}`}>
           {importing ? t("dashboard.importing") : t("dashboardPage.import.chooseFile")}
-          <input type="file" accept=".xlsx,.xls" className="sr-only" onChange={handleImportFile} disabled={importing} />
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            className="sr-only"
+            onChange={handleImportFile}
+            disabled={importing}
+          />
         </label>
         <button type="button" className="btn btn--ghost" onClick={downloadCsvTemplate}>
           {t("dashboardPage.import.csvTemplate")}

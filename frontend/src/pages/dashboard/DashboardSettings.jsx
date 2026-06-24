@@ -28,7 +28,7 @@ export function DashboardSettings() {
     <section className="panel panel--dash-form" aria-labelledby="settings-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.settings.topbar") },
         ]}
       />

@@ -41,7 +41,7 @@ export function DashboardAttention() {
     <section className="panel panel--dash-form" aria-labelledby="attention-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.attention.topbar") },
         ]}
       />
@@ -90,7 +90,9 @@ export function DashboardAttention() {
                     >
                       {it.containerNumber}
                     </Link>
-                    <span className="attention-failed__msg">{it.error ?? t("dashboardPage.attention.noData")}</span>
+                    <span className="attention-failed__msg">
+                      {it.error ?? t("dashboardPage.attention.noData")}
+                    </span>
                   </li>
                 ))}
               </ul>

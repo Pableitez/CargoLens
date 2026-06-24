@@ -188,7 +188,7 @@ function getSidebarSectionsToExpand(pathname, { user, staff, isPortal }) {
 
   const s = new Set();
   if (pathname === "/vessels" || pathname === "/") s.add("tracking");
-  if (pathname === "/dashboard/overview" || pathname === "/dashboard") {
+  if (pathname === "/dashboard/home" || pathname === "/dashboard/overview" || pathname === "/dashboard") {
     s.add("tracking");
     s.add("workspace");
   }
@@ -330,11 +330,11 @@ export function Sidebar({ onNavigate }) {
               onToggle={() => toggleSection("workspace")}
             >
               <NavLink
-                to="/dashboard/overview"
+                to="/dashboard/home"
                 end
                 className={({ isActive }) => `sidebar__link${isActive ? " sidebar__link--active" : ""}`}
                 onClick={handleNav}
-                onMouseEnter={() => handlePrefetch("/dashboard/overview")}
+                onMouseEnter={() => handlePrefetch("/dashboard/home")}
               >
                 <IconGrid className="sidebar__icon" />
                 <span>{user.isClientPortal ? t("sidebar.myShipments") : t("sidebar.overview")}</span>

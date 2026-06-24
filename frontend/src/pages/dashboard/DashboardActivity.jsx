@@ -51,7 +51,7 @@ export function DashboardActivity() {
     <section className="panel panel--dash-form" aria-labelledby="activity-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.activity.topbar") },
         ]}
       />
@@ -101,20 +101,16 @@ export function DashboardActivity() {
                 const whenIso = parseValidDateIso(row.createdAt);
                 const whenText = formatDateTimeWithZone(row.createdAt, dateLocale);
                 return (
-                <tr key={row.id}>
-                  <td className="dash-table__date">
-                    {whenIso ? (
-                      <time dateTime={whenIso}>{whenText}</time>
-                    ) : (
-                      whenText
-                    )}
-                  </td>
-                  <td>
-                    <span className="activity-badge">{actionLabel(row.action, t)}</span>
-                  </td>
-                  <td>{row.summary}</td>
-                  <td className="dash-table__muted">{row.actorEmail ?? "—"}</td>
-                </tr>
+                  <tr key={row.id}>
+                    <td className="dash-table__date">
+                      {whenIso ? <time dateTime={whenIso}>{whenText}</time> : whenText}
+                    </td>
+                    <td>
+                      <span className="activity-badge">{actionLabel(row.action, t)}</span>
+                    </td>
+                    <td>{row.summary}</td>
+                    <td className="dash-table__muted">{row.actorEmail ?? "—"}</td>
+                  </tr>
                 );
               })}
             </tbody>

@@ -25,7 +25,7 @@ export function DashboardClients() {
     <section className="panel panel--dash-form" aria-labelledby="clients-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.clients.topbar") },
         ]}
       />
@@ -144,7 +144,11 @@ export function DashboardClients() {
                         >
                           {t("dashboardPage.clients.edit")}
                         </button>
-                        <button type="button" className="btn btn--danger btn--sm" onClick={() => handleDeleteClient(c.id)}>
+                        <button
+                          type="button"
+                          className="btn btn--danger btn--sm"
+                          onClick={() => handleDeleteClient(c.id)}
+                        >
                           {t("dashboardPage.clients.remove")}
                         </button>
                       </div>

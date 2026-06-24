@@ -35,7 +35,7 @@ export function DashboardShipments() {
     <section className="panel panel--dash-form" aria-labelledby="shipments-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("modules.nav.home"), to: "/dashboard/home" },
           { label: t("workspace.section.shipments.topbar") },
         ]}
       />
@@ -44,6 +44,9 @@ export function DashboardShipments() {
           {t("shipmentsPage.title")}
         </h2>
         <div className="dash-form__actions">
+          <Link to="/dashboard/operations" className="btn btn--ghost">
+            {t("modules.operations.indexTitle")}
+          </Link>
           <Link to="/dashboard/shipments/import" className="btn btn--ghost">
             {t("shipmentsPage.importExcel")}
           </Link>

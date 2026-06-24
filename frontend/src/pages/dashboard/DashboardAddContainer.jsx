@@ -11,7 +11,7 @@ export function DashboardAddContainer() {
     <section className="panel panel--dash-form" aria-labelledby="add-container-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("dashboardPage.addContainer.breadcrumbAdd") },
         ]}
       />

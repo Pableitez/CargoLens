@@ -43,7 +43,7 @@ export function RegisterPage() {
         body.companyName = companyName.trim();
       }
       await register(body);
-      navigate("/dashboard/overview", { replace: true });
+      navigate("/dashboard/home", { replace: true });
     } catch (err) {
       setError(messageFromApiErrorOrKey(err, t, "auth.registerFailed"));
     } finally {

@@ -9,6 +9,7 @@ import { StaffRoute } from "./pages/dashboard/StaffRoute.jsx";
 import { I18nDocumentHead } from "./components/I18nDocumentHead.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { RouteFallback } from "./components/RouteFallback.jsx";
+import { MODULE_PLACEHOLDER_ROUTES } from "./modules/shared/modulePages.tsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx").then((m) => ({ default: m.HomePage })));
 const LoginPage = lazy(() => import("./pages/LoginPage.jsx").then((m) => ({ default: m.LoginPage })));
@@ -74,6 +75,42 @@ const DashboardShipmentsImport = lazy(() =>
 const PublicShipmentPage = lazy(() =>
   import("./pages/PublicShipmentPage.tsx").then((m) => ({ default: m.PublicShipmentPage }))
 );
+const DashboardCasesHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardCasesHub }))
+);
+const DashboardTrackingHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardTrackingHub }))
+);
+const DashboardOperationalFinanceHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardOperationalFinanceHub }))
+);
+const DashboardTasksHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardTasksHub }))
+);
+const OperationsIndexPage = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.OperationsIndexPage }))
+);
+const DashboardExportHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardExportHub }))
+);
+const DashboardTransportHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardTransportHub }))
+);
+const DashboardWarehouseHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardWarehouseHub }))
+);
+const DashboardImportHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardImportHub }))
+);
+const DashboardDocumentsHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardDocumentsHub }))
+);
+const DashboardInsightsHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardInsightsHub }))
+);
+const ModulePlaceholderByRoute = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.ModulePlaceholderByRoute }))
+);
 
 function AppRoutes() {
   return (
@@ -96,8 +133,101 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="overview" replace />} />
-        <Route path="overview" element={<DashboardOverview />} />
+        <Route index element={<Navigate to="home" replace />} />
+        <Route path="home" element={<DashboardOverview />} />
+        <Route path="overview" element={<Navigate to={DASHBOARD_OVERVIEW_PATH} replace />} />
+        <Route
+          path="cases"
+          element={
+            <StaffRoute>
+              <DashboardCasesHub />
+            </StaffRoute>
+          }
+        />
+        <Route path="tracking" element={<DashboardTrackingHub />} />
+        <Route
+          path="operational-finance"
+          element={
+            <StaffRoute>
+              <DashboardOperationalFinanceHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="tasks"
+          element={
+            <StaffRoute>
+              <DashboardTasksHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations"
+          element={
+            <StaffRoute>
+              <OperationsIndexPage />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/export"
+          element={
+            <StaffRoute>
+              <DashboardExportHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/transport"
+          element={
+            <StaffRoute>
+              <DashboardTransportHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/warehouse"
+          element={
+            <StaffRoute>
+              <DashboardWarehouseHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/import"
+          element={
+            <StaffRoute>
+              <DashboardImportHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="documents"
+          element={
+            <StaffRoute>
+              <DashboardDocumentsHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="insights"
+          element={
+            <StaffRoute>
+              <DashboardInsightsHub />
+            </StaffRoute>
+          }
+        />
+        {MODULE_PLACEHOLDER_ROUTES.map(({ path, titleKey, parent }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <StaffRoute>
+                <ModulePlaceholderByRoute titleKey={titleKey} parent={parent} />
+              </StaffRoute>
+            }
+          />
+        ))}
         <Route
           path="shipments"
           element={

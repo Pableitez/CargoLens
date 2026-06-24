@@ -188,7 +188,7 @@ export function DashboardShipmentDetail() {
     <section className="panel panel--dash-form" aria-labelledby="shipment-detail-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.shipments.topbar"), to: "/dashboard/shipments" },
           { label: pageTitle },
         ]}

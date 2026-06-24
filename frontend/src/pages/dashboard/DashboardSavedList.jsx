@@ -107,14 +107,15 @@ export function DashboardSavedList() {
     <section className="dash__table-section" aria-labelledby="list-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.list.headline") },
         ]}
       />
       {isClientPortal && user?.clientInviteCode && (
         <div className="panel__callout panel__callout--mb" role="note">
-          <span className="panel__callout-label">{t("dashboardPage.list.teamInvite")}</span> {t("dashboardPage.list.teamInviteBody")}{" "}
-          <strong>{user?.clientName}</strong>: <code className="dash__code">{user.clientInviteCode}</code>
+          <span className="panel__callout-label">{t("dashboardPage.list.teamInvite")}</span>{" "}
+          {t("dashboardPage.list.teamInviteBody")} <strong>{user?.clientName}</strong>:{" "}
+          <code className="dash__code">{user.clientInviteCode}</code>
         </div>
       )}
       <div className="dash__table-head dash__table-head--row">
@@ -257,7 +258,10 @@ export function DashboardSavedList() {
                 {pagedRows.map((row) => (
                   <tr key={row.id}>
                     <td>
-                      <Link className="dash-link" to={`${DASHBOARD_OVERVIEW_PATH}?q=${encodeURIComponent(row.containerNumber)}`}>
+                      <Link
+                        className="dash-link"
+                        to={`${DASHBOARD_OVERVIEW_PATH}?q=${encodeURIComponent(row.containerNumber)}`}
+                      >
                         {row.containerNumber}
                       </Link>
                     </td>
@@ -306,7 +310,10 @@ export function DashboardSavedList() {
                     </td>
                     <td className="dash-table__notes">
                       {!isClientPortal ? (
-                        <EditableNotesCell row={row} onPatch={(patch) => void handleUpdateContainer(row.id, patch)} />
+                        <EditableNotesCell
+                          row={row}
+                          onPatch={(patch) => void handleUpdateContainer(row.id, patch)}
+                        />
                       ) : (
                         row.notes || "—"
                       )}
@@ -332,7 +339,11 @@ export function DashboardSavedList() {
                     )}
                     {!isClientPortal && (
                       <td>
-                        <button type="button" className="btn btn--danger btn--sm" onClick={() => handleDelete(row.id)}>
+                        <button
+                          type="button"
+                          className="btn btn--danger btn--sm"
+                          onClick={() => handleDelete(row.id)}
+                        >
                           {t("dashboardPage.list.remove")}
                         </button>
                       </td>
@@ -343,7 +354,11 @@ export function DashboardSavedList() {
             </table>
           </div>
           {pageCount > 1 && (
-            <div className="dash-pagination" role="navigation" aria-label={t("dashboardPage.list.paginationAria")}>
+            <div
+              className="dash-pagination"
+              role="navigation"
+              aria-label={t("dashboardPage.list.paginationAria")}
+            >
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
@@ -353,7 +368,11 @@ export function DashboardSavedList() {
                 {t("dashboardPage.list.prev")}
               </button>
               <span className="dash-pagination__meta">
-                {t("dashboardPage.list.pageMeta", { page: page + 1, total: pageCount, rows: listFiltered.length })}
+                {t("dashboardPage.list.pageMeta", {
+                  page: page + 1,
+                  total: pageCount,
+                  rows: listFiltered.length,
+                })}
               </span>
               <button
                 type="button"

@@ -10,6 +10,7 @@ const loaders = {
   "/how-it-works/track": () => import("../pages/HowItWorksPage.jsx"),
   "/changelog": () => import("../pages/ChangelogPage.jsx"),
   "/dashboard": () => import("../pages/dashboard/DashboardLayout.jsx"),
+  "/dashboard/home": () => import("../pages/dashboard/DashboardOverview.jsx"),
   "/dashboard/overview": () => import("../pages/dashboard/DashboardOverview.jsx"),
   "/dashboard/clients": () => import("../pages/dashboard/DashboardClients.jsx"),
   "/dashboard/add": () => import("../pages/dashboard/DashboardAddContainer.jsx"),
