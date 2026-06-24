@@ -1,0 +1,74 @@
+/* ——— Form fields (shared) ——— */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.field--grow {
+  flex: 1;
+  min-width: 180px;
+}
+
+.field--filter {
+  margin-bottom: 0.75rem;
+  max-width: 420px;
+}
+
+.field__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.field__req {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.field__hint {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: rgba(148, 163, 184, 0.85);
+  font-size: 0.68rem;
+}
+
+.field__input {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--field-input-border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.field__input::placeholder {
+  color: rgba(148, 163, 184, 0.55);
+}
+
+.field__input:hover:not(:disabled) {
+  border-color: rgba(71, 85, 105, 0.95);
+}
+
+.field__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.field__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.field__input--filter {
+  max-width: 100%;
+}

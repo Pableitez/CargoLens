@@ -19,6 +19,15 @@ const loaders = {
   "/dashboard/activity": () => import("../pages/dashboard/DashboardActivity.jsx"),
   "/dashboard/attention": () => import("../pages/dashboard/DashboardAttention.jsx"),
   "/dashboard/settings": () => import("../pages/dashboard/DashboardSettings.jsx"),
+  "/dashboard/shipments": () => import("../features/shipments/DashboardShipments.tsx"),
+  "/dashboard/cases": () => import("../modules/shared/modulePages.tsx"),
+  "/dashboard/tracking": () => import("../modules/shared/modulePages.tsx"),
+  "/dashboard/documents": () => import("../modules/shared/modulePages.tsx"),
+  "/dashboard/insights": () => import("../modules/shared/modulePages.tsx"),
+  "/dashboard/operations": () => import("../modules/shared/modulePages.tsx"),
+  "/dashboard/operations/export": () => import("../modules/shared/modulePages.tsx"),
+  "/dashboard/operational-finance": () => import("../modules/shared/modulePages.tsx"),
+  "/dashboard/tasks": () => import("../modules/shared/modulePages.tsx"),
 };
 
 export function prefetchRoute(pathname) {

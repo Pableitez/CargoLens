@@ -82,6 +82,7 @@ export default {
     tracking: {
       title: "Tracking",
       lead: "Container visibility, saved lists, and vessel map.",
+      search: "Search",
       overview: "Overview & map",
       savedList: "Saved list",
       coverage: "Coverage check",
@@ -93,6 +94,9 @@ export default {
       addContainer: "Add container",
       importContainers: "Import containers (Excel)",
       activity: "Activity feed",
+    },
+    sidebar: {
+      groupPlatform: "Platform",
     },
   },
 };

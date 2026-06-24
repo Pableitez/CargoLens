@@ -1,12 +1,15 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { BrandMark } from "./BrandMark.jsx";
 import { ThemeToggle } from "./ThemeToggle.jsx";
 import { appName } from "../config/siteMeta.js";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
-import { DASHBOARD_OVERVIEW_PATH } from "../config/paths.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { prefetchRoute } from "../utils/prefetchRoutes.js";
+import { getSidebarOpenInitial } from "./sidebarModuleConfig.js";
+import { SidebarModuleNav } from "./SidebarModuleNav.jsx";
+import { isDesktopSidebarFlyout, useFlyoutPanelStyle } from "./sidebarFlyout.js";
 
 // Iniciales del avatar (empresa/cliente o parte local del email).
 function getSidebarInitials(displayName, email) {
@@ -158,84 +161,53 @@ function IconChevronSidebar() {
   );
 }
 
-function sidebarSectionsGuest(pathname) {
-  const s = new Set();
-  if (pathname === "/" || pathname === "/vessels") s.add("tracking");
-  if (pathname === "/" || pathname === "/login" || pathname === "/register") s.add("account");
-  return [...s];
-}
+const SIDEBAR_OPEN_INITIAL = getSidebarOpenInitial();
 
-function sidebarSectionsStaff(pathname, s) {
-  if (
-    pathname.startsWith("/dashboard/clients") ||
-    pathname.startsWith("/dashboard/add") ||
-    pathname.startsWith("/dashboard/import") ||
-    pathname.startsWith("/dashboard/list")
-  ) {
-    s.add("data");
-  }
-  if (pathname.startsWith("/dashboard/activity") || pathname.startsWith("/dashboard/attention")) {
-    s.add("monitor");
-  }
-  if (pathname.startsWith("/dashboard/settings")) {
-    s.add("admin");
-  }
-}
-
-// Qué acordeones abrir según la ruta (el resto queda como el usuario lo dejó).
-function getSidebarSectionsToExpand(pathname, { user, staff, isPortal }) {
-  if (!user) return sidebarSectionsGuest(pathname);
-
-  const s = new Set();
-  if (pathname === "/vessels" || pathname === "/") s.add("tracking");
-  if (pathname === "/dashboard/home" || pathname === "/dashboard/overview" || pathname === "/dashboard") {
-    s.add("tracking");
-    s.add("workspace");
-  }
-  if (staff) sidebarSectionsStaff(pathname, s);
-  if (isPortal && pathname.startsWith("/dashboard/list")) {
-    s.add("mylist");
-  }
-  return [...s];
-}
-
-const SIDEBAR_OPEN_INITIAL = {
-  tracking: false,
-  workspace: false,
-  data: false,
-  monitor: false,
-  admin: false,
-  account: false,
-  mylist: false,
-};
-
-function SidebarNavSection({ sectionId, label, open, onToggle, children }) {
+function SidebarNavSection({ sectionId, label, open, onToggle, children, flyout = true }) {
+  const headRef = useRef(null);
   const panelId = `sidebar-section-${sectionId}`;
-  return (
-    <div className="sidebar__section">
-      <button
-        type="button"
-        id={`${panelId}-btn`}
-        className="sidebar__section-head"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={onToggle}
-      >
-        <span className="sidebar__label sidebar__label--toggle">{label}</span>
-        <span className={`sidebar__chevron${open ? " sidebar__chevron--open" : ""}`} aria-hidden>
-          <IconChevronSidebar />
-        </span>
-      </button>
-      <div
-        id={panelId}
-        role="region"
-        aria-labelledby={`${panelId}-btn`}
-        className="sidebar__section-panel"
-        hidden={!open}
-      >
-        <div className="sidebar__section-links">{children}</div>
-      </div>
+  const flyoutStyle = useFlyoutPanelStyle(open, flyout, headRef);
+  const fixedFlyout = flyout && open && flyoutStyle;
+
+  const panel = (
+    <div
+      id={panelId}
+      role="region"
+      aria-labelledby={`${panelId}-btn`}
+      className={`sidebar__section-panel${flyout ? " sidebar__section-panel--flyout" : ""}${fixedFlyout ? " sidebar__section-panel--fixed" : ""}`}
+      style={fixedFlyout ? flyoutStyle : undefined}
+      hidden={!open}
+    >
+      <div className="sidebar__section-links">{children}</div>
     </div>
+  );
+
+  return (
+    <>
+      <div
+        className={`sidebar__section${flyout ? " sidebar__section--flyout" : ""}${open && flyout ? " sidebar__section--flyout-open" : ""}`}
+      >
+        <button
+          ref={headRef}
+          type="button"
+          id={`${panelId}-btn`}
+          className="sidebar__section-head"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={onToggle}
+        >
+          <span className="sidebar__label sidebar__label--toggle">{label}</span>
+          <span
+            className={`sidebar__chevron${flyout ? " sidebar__chevron--flyout" : ""}${open ? " sidebar__chevron--open" : ""}`}
+            aria-hidden
+          >
+            <IconChevronSidebar />
+          </span>
+        </button>
+        {!fixedFlyout ? panel : null}
+      </div>
+      {fixedFlyout ? createPortal(panel, document.body) : null}
+    </>
   );
 }
 
@@ -250,18 +222,20 @@ export function Sidebar({ onNavigate }) {
   const [openGroups, setOpenGroups] = useState(() => ({ ...SIDEBAR_OPEN_INITIAL }));
 
   useLayoutEffect(() => {
-    const keys = getSidebarSectionsToExpand(pathname, { user, staff, isPortal });
-    setOpenGroups((prev) => {
-      const next = { ...prev };
-      keys.forEach((k) => {
-        next[k] = true;
-      });
-      return next;
-    });
+    setOpenGroups(getSidebarOpenInitial());
   }, [pathname, user, staff, isPortal]);
 
   function toggleSection(id) {
-    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+    setOpenGroups((prev) => {
+      const opening = !prev[id];
+      const next = { ...prev, [id]: opening };
+      if (opening) {
+        for (const key of Object.keys(next)) {
+          if (key !== id) next[key] = false;
+        }
+      }
+      return next;
+    });
   }
   const sidebarDisplayName = user
     ? user.isClientPortal
@@ -270,303 +244,157 @@ export function Sidebar({ onNavigate }) {
     : "";
 
   function handleNav() {
+    closeFlyouts();
     onNavigate?.();
   }
 
-  const navCls = ({ isActive }) => `sidebar__link${isActive ? " sidebar__link--active" : ""}`;
+  const navCls = ({ isActive }) =>
+    `shell-nav-menu__item sidebar__link${isActive ? " shell-nav-menu__item--active sidebar__link--active" : ""}`;
 
   function handlePrefetch(to) {
     prefetchRoute(to);
   }
 
+  function closeFlyouts() {
+    setOpenGroups(getSidebarOpenInitial());
+  }
+
+  const showFlyoutBackdrop = isDesktopSidebarFlyout() && Object.values(openGroups).some(Boolean);
+
   return (
-    <div className="sidebar__inner">
-      <div className="sidebar__brand">
-        <Link to="/" className="sidebar__logo-link" onClick={handleNav}>
-          <span className="sidebar__logo-mark" aria-hidden>
-            <BrandMark size={40} />
-          </span>
-          <div>
-            <span className="sidebar__logo-title">{appName}</span>
-            <span className="sidebar__logo-sub">{t("brand.tagline")}</span>
-          </div>
-        </Link>
-      </div>
-
-      <nav className="sidebar__nav" aria-label={t("sidebar.ariaPrimary")}>
-        <SidebarNavSection
-          sectionId="tracking"
-          label={t("sidebar.groupTracking")}
-          open={openGroups.tracking}
-          onToggle={() => toggleSection("tracking")}
-        >
-          <NavLink
-            to={user ? DASHBOARD_OVERVIEW_PATH : "/"}
-            end={!user}
-            className={navCls}
-            onClick={handleNav}
-            onMouseEnter={() => handlePrefetch(user ? DASHBOARD_OVERVIEW_PATH : "/")}
-          >
-            <IconTrack className="sidebar__icon" />
-            <span>{t("sidebar.search")}</span>
-          </NavLink>
-          <NavLink
-            to="/vessels"
-            className={navCls}
-            onClick={handleNav}
-            onMouseEnter={() => handlePrefetch("/vessels")}
-          >
-            <IconShip className="sidebar__icon" />
-            <span>{t("sidebar.vessels")}</span>
-          </NavLink>
-        </SidebarNavSection>
-
-        {user && (
-          <>
-            <SidebarNavSection
-              sectionId="workspace"
-              label={t("sidebar.groupWorkspace")}
-              open={openGroups.workspace}
-              onToggle={() => toggleSection("workspace")}
-            >
-              <NavLink
-                to="/dashboard/home"
-                end
-                className={({ isActive }) => `sidebar__link${isActive ? " sidebar__link--active" : ""}`}
-                onClick={handleNav}
-                onMouseEnter={() => handlePrefetch("/dashboard/home")}
-              >
-                <IconGrid className="sidebar__icon" />
-                <span>{user.isClientPortal ? t("sidebar.myShipments") : t("sidebar.overview")}</span>
-              </NavLink>
-              {staff && (
-                <NavLink
-                  to="/dashboard/shipments"
-                  className={({ isActive }) => `sidebar__link${isActive ? " sidebar__link--active" : ""}`}
-                  onClick={handleNav}
-                  onMouseEnter={() => handlePrefetch("/dashboard/shipments")}
-                >
-                  <IconShip className="sidebar__icon" />
-                  <span>{t("sidebar.shipments")}</span>
-                </NavLink>
-              )}
-            </SidebarNavSection>
-            {staff && (
-              <>
-                <SidebarNavSection
-                  sectionId="data"
-                  label={t("sidebar.groupData")}
-                  open={openGroups.data}
-                  onToggle={() => toggleSection("data")}
-                >
-                  <NavLink
-                    to="/dashboard/clients"
-                    className={({ isActive }) =>
-                      `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                    }
-                    onClick={handleNav}
-                    onMouseEnter={() => handlePrefetch("/dashboard/clients")}
-                  >
-                    <IconUsers className="sidebar__icon" />
-                    <span>{t("sidebar.clientsInvites")}</span>
-                  </NavLink>
-                  <NavLink
-                    to="/dashboard/add"
-                    className={({ isActive }) =>
-                      `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                    }
-                    onClick={handleNav}
-                    onMouseEnter={() => handlePrefetch("/dashboard/add")}
-                  >
-                    <IconPlusBox className="sidebar__icon" />
-                    <span>{t("sidebar.addContainer")}</span>
-                  </NavLink>
-                  <NavLink
-                    to="/dashboard/import"
-                    className={({ isActive }) =>
-                      `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                    }
-                    onClick={handleNav}
-                    onMouseEnter={() => handlePrefetch("/dashboard/import")}
-                  >
-                    <IconUpload className="sidebar__icon" />
-                    <span>{t("sidebar.importExcel")}</span>
-                  </NavLink>
-                  <NavLink
-                    to="/dashboard/list"
-                    className={({ isActive }) =>
-                      `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                    }
-                    onClick={handleNav}
-                    onMouseEnter={() => handlePrefetch("/dashboard/list")}
-                  >
-                    <IconList className="sidebar__icon" />
-                    <span>{t("sidebar.list")}</span>
-                  </NavLink>
-                </SidebarNavSection>
-                <SidebarNavSection
-                  sectionId="monitor"
-                  label={t("sidebar.groupMonitor")}
-                  open={openGroups.monitor}
-                  onToggle={() => toggleSection("monitor")}
-                >
-                  <NavLink
-                    to="/dashboard/activity"
-                    className={({ isActive }) =>
-                      `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                    }
-                    onClick={handleNav}
-                    onMouseEnter={() => handlePrefetch("/dashboard/activity")}
-                  >
-                    <IconClock className="sidebar__icon" />
-                    <span>{t("sidebar.activity")}</span>
-                  </NavLink>
-                  <NavLink
-                    to="/dashboard/attention"
-                    className={({ isActive }) =>
-                      `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                    }
-                    onClick={handleNav}
-                    onMouseEnter={() => handlePrefetch("/dashboard/attention")}
-                  >
-                    <IconAlert className="sidebar__icon" />
-                    <span>{t("sidebar.coverage")}</span>
-                  </NavLink>
-                </SidebarNavSection>
-                <SidebarNavSection
-                  sectionId="admin"
-                  label={t("sidebar.groupAdmin")}
-                  open={openGroups.admin}
-                  onToggle={() => toggleSection("admin")}
-                >
-                  <NavLink
-                    to="/dashboard/settings"
-                    className={({ isActive }) =>
-                      `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                    }
-                    onClick={handleNav}
-                    onMouseEnter={() => handlePrefetch("/dashboard/settings")}
-                  >
-                    <IconGear className="sidebar__icon" />
-                    <span>{t("sidebar.team")}</span>
-                  </NavLink>
-                </SidebarNavSection>
-              </>
-            )}
-            {user.isClientPortal && (
-              <SidebarNavSection
-                sectionId="mylist"
-                label={t("sidebar.groupMyList")}
-                open={openGroups.mylist}
-                onToggle={() => toggleSection("mylist")}
-              >
-                <NavLink
-                  to="/dashboard/list"
-                  className={({ isActive }) =>
-                    `sidebar__link sidebar__link--sub${isActive ? " sidebar__link--active" : ""}`
-                  }
-                  onClick={handleNav}
-                  onMouseEnter={() => handlePrefetch("/dashboard/list")}
-                >
-                  <IconList className="sidebar__icon" />
-                  <span>{t("sidebar.shipmentList")}</span>
-                </NavLink>
-              </SidebarNavSection>
-            )}
-          </>
-        )}
-
-        {!user && (
-          <SidebarNavSection
-            sectionId="account"
-            label={t("sidebar.groupAccount")}
-            open={openGroups.account}
-            onToggle={() => toggleSection("account")}
-          >
-            {loading && <span className="sidebar__muted">{t("sidebar.loading")}</span>}
-            {!loading && (
-              <>
-                <NavLink
-                  to="/login"
-                  className={navCls}
-                  onClick={handleNav}
-                  onMouseEnter={() => handlePrefetch("/login")}
-                >
-                  <span className="sidebar__icon sidebar__icon--text">→</span>
-                  <span>{t("sidebar.login")}</span>
-                </NavLink>
-                <NavLink
-                  to="/register"
-                  className={({ isActive }) =>
-                    `sidebar__link sidebar__link--cta${isActive ? " sidebar__link--active" : ""}`
-                  }
-                  onClick={handleNav}
-                  onMouseEnter={() => handlePrefetch("/register")}
-                >
-                  <span className="sidebar__icon sidebar__icon--text">+</span>
-                  <span>{t("sidebar.createAccount")}</span>
-                </NavLink>
-              </>
-            )}
-          </SidebarNavSection>
-        )}
-      </nav>
-
-      <div className="sidebar__bottom">
-        <div className="sidebar__prefs" role="group" aria-label={t("sidebar.prefsAria")}>
-          <div className="sidebar__pref-col">
-            <span className="sidebar__appearance-label">{t("language.label")}</span>
-            <div className="sidebar__lang-seg" role="group" aria-label={t("language.label")}>
-              <button
-                type="button"
-                className={`sidebar__lang-btn${locale === "en" ? " sidebar__lang-btn--active" : ""}`}
-                onClick={() => setLocale("en")}
-                aria-pressed={locale === "en"}
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                className={`sidebar__lang-btn${locale === "es" ? " sidebar__lang-btn--active" : ""}`}
-                onClick={() => setLocale("es")}
-                aria-pressed={locale === "es"}
-              >
-                ES
-              </button>
-            </div>
-          </div>
-          <div className="sidebar__pref-col sidebar__pref-col--theme">
-            <span className="sidebar__appearance-label">{t("sidebar.theme")}</span>
-            <ThemeToggle className="sidebar__theme-toggle" />
-          </div>
-        </div>
-        {user && (
-          <div className="sidebar__user">
-            <div className="sidebar__user-panel">
-              <span className="sidebar__user-label">{t("sidebar.groupAccount")}</span>
-              <div className="sidebar__user-card">
-                <div className="sidebar__user-avatar" aria-hidden>
-                  {getSidebarInitials(sidebarDisplayName, user.email)}
-                </div>
-                <div className="sidebar__user-text">
-                  <span className="sidebar__user-title">{sidebarDisplayName}</span>
-                  <span className="sr-only">{user.email}</span>
-                </div>
-              </div>
-            </div>
+    <>
+      {showFlyoutBackdrop
+        ? createPortal(
             <button
               type="button"
-              className="sidebar__logout"
-              onClick={() => {
-                logout();
-                handleNav();
-              }}
+              className="sidebar-flyout-backdrop"
+              aria-label={t("mainLayout.closeMenu")}
+              onClick={closeFlyouts}
+            />,
+            document.body
+          )
+        : null}
+      <div className="sidebar__inner">
+        <div className="sidebar__brand">
+          <Link to="/" className="sidebar__logo-link" onClick={handleNav}>
+            <span className="sidebar__logo-mark" aria-hidden>
+              <BrandMark size={40} />
+            </span>
+            <div>
+              <span className="sidebar__logo-title">{appName}</span>
+              <span className="sidebar__logo-sub">{t("brand.tagline")}</span>
+            </div>
+          </Link>
+        </div>
+
+        <nav className="sidebar__nav" aria-label={t("sidebar.ariaPrimary")}>
+          {user && (
+            <>
+              <SidebarModuleNav
+                staff={staff}
+                navCls={navCls}
+                handleNav={handleNav}
+                handlePrefetch={handlePrefetch}
+                t={t}
+                SidebarNavSection={SidebarNavSection}
+                openGroups={openGroups}
+                toggleSection={toggleSection}
+              />
+            </>
+          )}
+
+          {!user && (
+            <SidebarNavSection
+              sectionId="account"
+              label={t("sidebar.groupAccount")}
+              open={openGroups.account}
+              onToggle={() => toggleSection("account")}
             >
-              {t("sidebar.logout")}
-            </button>
+              {loading && <span className="sidebar__muted">{t("sidebar.loading")}</span>}
+              {!loading && (
+                <>
+                  <NavLink
+                    to="/login"
+                    className={navCls}
+                    onClick={handleNav}
+                    onMouseEnter={() => handlePrefetch("/login")}
+                  >
+                    <span className="sidebar__icon sidebar__icon--text">→</span>
+                    <span>{t("sidebar.login")}</span>
+                  </NavLink>
+                  <NavLink
+                    to="/register"
+                    className={({ isActive }) =>
+                      `sidebar__link sidebar__link--cta${isActive ? " sidebar__link--active" : ""}`
+                    }
+                    onClick={handleNav}
+                    onMouseEnter={() => handlePrefetch("/register")}
+                  >
+                    <span className="sidebar__icon sidebar__icon--text">+</span>
+                    <span>{t("sidebar.createAccount")}</span>
+                  </NavLink>
+                </>
+              )}
+            </SidebarNavSection>
+          )}
+        </nav>
+
+        <div className="sidebar__bottom">
+          <div className="sidebar__prefs" role="group" aria-label={t("sidebar.prefsAria")}>
+            <div className="sidebar__pref-col">
+              <span className="sidebar__appearance-label">{t("language.label")}</span>
+              <div className="sidebar__lang-seg" role="group" aria-label={t("language.label")}>
+                <button
+                  type="button"
+                  className={`sidebar__lang-btn${locale === "en" ? " sidebar__lang-btn--active" : ""}`}
+                  onClick={() => setLocale("en")}
+                  aria-pressed={locale === "en"}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  className={`sidebar__lang-btn${locale === "es" ? " sidebar__lang-btn--active" : ""}`}
+                  onClick={() => setLocale("es")}
+                  aria-pressed={locale === "es"}
+                >
+                  ES
+                </button>
+              </div>
+            </div>
+            <div className="sidebar__pref-col sidebar__pref-col--theme">
+              <span className="sidebar__appearance-label">{t("sidebar.theme")}</span>
+              <ThemeToggle className="sidebar__theme-toggle" />
+            </div>
           </div>
-        )}
+          {user && (
+            <div className="sidebar__user">
+              <div className="sidebar__user-panel">
+                <span className="sidebar__user-label">{t("sidebar.groupAccount")}</span>
+                <div className="sidebar__user-card">
+                  <div className="sidebar__user-avatar" aria-hidden>
+                    {getSidebarInitials(sidebarDisplayName, user.email)}
+                  </div>
+                  <div className="sidebar__user-text">
+                    <span className="sidebar__user-title">{sidebarDisplayName}</span>
+                    <span className="sr-only">{user.email}</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="sidebar__logout"
+                onClick={() => {
+                  logout();
+                  handleNav();
+                }}
+              >
+                {t("sidebar.logout")}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

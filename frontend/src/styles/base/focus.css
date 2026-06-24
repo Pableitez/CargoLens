@@ -1,0 +1,39 @@
+::selection {
+  background: var(--selection-bg);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: none;
+}
+
+button:focus-visible:not(:disabled),
+.btn:focus-visible:not(:disabled),
+[role="button"]:focus-visible {
+  box-shadow: var(--ring);
+}
+
+a:focus-visible:not(.btn) {
+  outline: none;
+  border-radius: 6px;
+  box-shadow: var(--ring);
+}
+
+.nav a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+@keyframes overview-kpi-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

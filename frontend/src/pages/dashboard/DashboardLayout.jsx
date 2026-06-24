@@ -1,12 +1,11 @@
 import { useMemo } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { NotificationBell } from "../../components/NotificationBell.jsx";
 import { OnboardingBanner } from "../../components/OnboardingBanner.jsx";
 import { useTranslation } from "../../i18n/LanguageContext.jsx";
 import { MainLayout } from "../../layouts/MainLayout.jsx";
 import { DashboardWorkspaceProvider, useDashboardWorkspace } from "./DashboardWorkspaceContext.jsx";
 import { getWorkspaceTitles } from "./workspaceConfig.js";
-import { WorkspaceNav } from "./WorkspaceNav.jsx";
 
 function DashboardShell() {
   const { t } = useTranslation();
@@ -18,8 +17,7 @@ function DashboardShell() {
   );
 
   // Empresa y email van en sidebar; contexto extra solo en portal cliente.
-  const showPortalContext =
-    isClientPortal && (user?.companyName || user?.clientName);
+  const showPortalContext = isClientPortal && (user?.companyName || user?.clientName);
 
   const topbarExtra = user ? (
     <>
@@ -52,11 +50,6 @@ function DashboardShell() {
             </p>
           </header>
         ) : null}
-
-        <WorkspaceNav isClientPortal={isClientPortal} />
-        <p className="dash__help-link">
-          <Link to="/how-it-works/workspace">{t("mainLayout.howItWorks")}</Link>
-        </p>
 
         {error && (
           <div className="alert alert--error" role="alert">

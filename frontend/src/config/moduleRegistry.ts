@@ -29,7 +29,6 @@ export const PLATFORM_NAV: NavModuleDef[] = [
   { id: "home", route: "/dashboard/home", i18nKey: "modules.nav.home", end: true },
   { id: "cases", route: "/dashboard/cases", i18nKey: "modules.nav.cases", staffOnly: true },
   { id: "shipments", route: "/dashboard/shipments", i18nKey: "modules.nav.shipments", staffOnly: true },
-  { id: "tracking", route: "/dashboard/tracking", i18nKey: "modules.nav.tracking" },
   {
     id: "operationalFinance",
     route: "/dashboard/operational-finance",
@@ -214,10 +213,25 @@ export const INSIGHTS_MODULE: ModuleGroupDef = {
 };
 
 export const TRACKING_LINKS: SubmoduleDef[] = [
-  { id: "overview", route: "/dashboard/home", i18nKey: "modules.tracking.overview", implemented: true },
   { id: "savedList", route: "/dashboard/list", i18nKey: "modules.tracking.savedList", implemented: true },
   { id: "coverage", route: "/dashboard/attention", i18nKey: "modules.tracking.coverage", implemented: true },
   { id: "vessels", route: "/vessels", i18nKey: "modules.tracking.vessels", implemented: true },
+];
+
+/** Tracking en la topbar (derecha) — no en sidebar ni workspace-nav. */
+export const GUEST_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
+  { id: "search", route: "/", i18nKey: "modules.tracking.search", implemented: true },
+  { id: "vessels", route: "/vessels", i18nKey: "modules.tracking.vessels", implemented: true },
+];
+
+export const CLIENT_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
+  { id: "search", route: "/dashboard/home", i18nKey: "modules.tracking.search", implemented: true },
+  { id: "savedList", route: "/dashboard/list", i18nKey: "modules.tracking.savedList", implemented: true },
+];
+
+export const STAFF_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
+  { id: "search", route: "/dashboard/home", i18nKey: "modules.tracking.search", implemented: true },
+  ...TRACKING_LINKS,
 ];
 
 export function getStaffPlatformNav(): NavModuleDef[] {

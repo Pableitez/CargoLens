@@ -82,6 +82,7 @@ export default {
     tracking: {
       title: "Tracking",
       lead: "Visibilidad de contenedores, listas guardadas y mapa de buques.",
+      search: "Buscar",
       overview: "Resumen y mapa",
       savedList: "Lista guardada",
       coverage: "Cobertura",
@@ -93,6 +94,9 @@ export default {
       addContainer: "Añadir contenedor",
       importContainers: "Importar contenedores (Excel)",
       activity: "Actividad",
+    },
+    sidebar: {
+      groupPlatform: "Plataforma",
     },
   },
 };

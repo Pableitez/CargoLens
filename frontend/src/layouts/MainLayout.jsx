@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ApiStatusBanner } from "../components/ApiStatusBanner.jsx";
 import { BrandMark } from "../components/BrandMark.jsx";
 import { Sidebar } from "../components/Sidebar.jsx";
+import { TrackingTopbarNav } from "../components/TrackingTopbarNav.jsx";
 import { appName, developerCredit } from "../config/siteMeta.js";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 
@@ -15,7 +16,7 @@ function topbarDataSourceLine(dataSource, t) {
 /**
  * Barra superior: solo texto (título o nombre+tagline). El logo va en la sidebar y en el pie — evita duplicar el mismo símbolo.
  */
-export function MainLayout({ children, dataSource, title, subtitle, topbarExtra }) {
+export function MainLayout({ children, dataSource, title, subtitle, topbarExtra, topbarNav }) {
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
@@ -69,20 +70,20 @@ export function MainLayout({ children, dataSource, title, subtitle, topbarExtra 
                 <p className="footer__brand-tag">{t("brand.tagline")}</p>
               </div>
             )}
-            {topbarExtra || sourceLine ? (
-              <div className="topbar__right">
-                {topbarExtra ? <div className="topbar__extras no-print">{topbarExtra}</div> : null}
-                {sourceLine ? (
-                  <span
-                    className="topbar__pill"
-                    role="status"
-                    data-mode={dataSource === "safecube" ? "live" : "demo"}
-                  >
-                    {sourceLine}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
+            {topbarNav ? <div className="topbar__nav">{topbarNav}</div> : null}
+            <div className="topbar__right">
+              <TrackingTopbarNav />
+              {topbarExtra ? <div className="topbar__extras no-print">{topbarExtra}</div> : null}
+              {sourceLine ? (
+                <span
+                  className="topbar__pill"
+                  role="status"
+                  data-mode={dataSource === "safecube" ? "live" : "demo"}
+                >
+                  {sourceLine}
+                </span>
+              ) : null}
+            </div>
           </div>
         </header>
 
