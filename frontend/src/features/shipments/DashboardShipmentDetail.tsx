@@ -7,8 +7,9 @@ import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import { useDashboardWorkspace } from "../../pages/dashboard/DashboardWorkspaceContext.jsx";
 import type { DashboardWorkspaceClients } from "../../pages/dashboard/dashboardWorkspaceTypes";
+import { ShipmentTimeline } from "./ShipmentTimeline";
 import { shipmentStatusLabel } from "./shipmentUtils";
-import { SHIPMENT_STATUS_OPTIONS, type Shipment, type ShipmentFormState } from "./types";
+import { SHIPMENT_STATUS_OPTIONS, type ShipmentEvent, type Shipment, type ShipmentFormState } from "./types";
 
 const EMPTY_FORM: ShipmentFormState = {
   reference: "",
@@ -42,6 +43,9 @@ export function DashboardShipmentDetail() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [events, setEvents] = useState<ShipmentEvent[]>([]);
+  const [eventMessage, setEventMessage] = useState("");
+  const [addingEvent, setAddingEvent] = useState(false);
   const [error, setError] = useState("");
 
   const pageTitle = useMemo(
@@ -54,7 +58,7 @@ export function DashboardShipmentDetail() {
     setLoading(true);
     setError("");
     try {
-      const item = await shipmentsApi.fetchShipment(id);
+      const { item, events: timeline } = await shipmentsApi.fetchShipment(id);
       setForm({
         reference: item.reference,
         origin: item.origin,
@@ -69,6 +73,7 @@ export function DashboardShipmentDetail() {
       setContainers(
         item.containers.map((c) => ({ containerNumber: c.containerNumber, notes: c.notes ?? "" }))
       );
+      setEvents(timeline);
     } catch (err) {
       setError(messageFromApiErrorOrKey(err, t, "shipmentsPage.loadFailed"));
     } finally {
@@ -138,6 +143,28 @@ export function DashboardShipmentDetail() {
         message: messageFromApiErrorOrKey(err, t, "shipmentsPage.shareFailed"),
         variant: "error",
       });
+    }
+  }
+
+  async function handleAddEvent(e: FormEvent) {
+    e.preventDefault();
+    if (!id || isNew || !eventMessage.trim()) return;
+    setAddingEvent(true);
+    try {
+      const event = await shipmentsApi.createShipmentEvent(id, {
+        kind: "note",
+        message: eventMessage.trim(),
+      });
+      setEvents((prev) => [event, ...prev]);
+      setEventMessage("");
+      showToast({ message: t("shipmentsPage.eventAdded"), variant: "success" });
+    } catch (err) {
+      showToast({
+        message: messageFromApiErrorOrKey(err, t, "shipmentsPage.eventFailed"),
+        variant: "error",
+      });
+    } finally {
+      setAddingEvent(false);
     }
   }
 
@@ -354,6 +381,32 @@ export function DashboardShipmentDetail() {
           </button>
         </div>
       </form>
+
+      {!isNew && (
+        <div className="panel__subpanel">
+          <h3 className="panel__subhead">{t("shipmentsPage.timelineTitle")}</h3>
+          <form className="dash-form dash-form--inline" onSubmit={handleAddEvent}>
+            <div className="field field--grow">
+              <label className="field__label" htmlFor="shipment-event-message">
+                {t("shipmentsPage.addEventLabel")}
+              </label>
+              <input
+                id="shipment-event-message"
+                className="field__input"
+                value={eventMessage}
+                onChange={(e) => setEventMessage(e.target.value)}
+                placeholder={t("shipmentsPage.addEventPlaceholder")}
+              />
+            </div>
+            <div className="dash-form__actions">
+              <button type="submit" className="btn btn--secondary" disabled={addingEvent}>
+                {addingEvent ? t("shipmentsPage.addingEvent") : t("shipmentsPage.addEvent")}
+              </button>
+            </div>
+          </form>
+          <ShipmentTimeline events={events} emptyLabel={t("shipmentsPage.timelineEmpty")} />
+        </div>
+      )}
     </section>
   );
 }

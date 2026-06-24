@@ -66,6 +66,11 @@ const DashboardShipmentDetail = lazy(() =>
     default: m.DashboardShipmentDetail,
   }))
 );
+const DashboardShipmentsImport = lazy(() =>
+  import("./features/shipments/DashboardShipmentsImport.tsx").then((m) => ({
+    default: m.DashboardShipmentsImport,
+  }))
+);
 const PublicShipmentPage = lazy(() =>
   import("./pages/PublicShipmentPage.tsx").then((m) => ({ default: m.PublicShipmentPage }))
 );
@@ -98,6 +103,14 @@ function AppRoutes() {
           element={
             <StaffRoute>
               <DashboardShipments />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="shipments/import"
+          element={
+            <StaffRoute>
+              <DashboardShipmentsImport />
             </StaffRoute>
           }
         />

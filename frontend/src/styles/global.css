@@ -7099,6 +7099,65 @@ a.overview-kpi-strip__card--link:focus-visible {
   }
 }
 
+.shipment-timeline {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  border-left: 2px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+}
+
+.shipment-timeline__item {
+  position: relative;
+  margin: 0 0 1rem 1rem;
+  padding-left: 0.75rem;
+}
+
+.shipment-timeline__item::before {
+  content: "";
+  position: absolute;
+  left: -1.35rem;
+  top: 0.35rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--accent, #5b9fd4);
+}
+
+.shipment-timeline__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.shipment-timeline__kind {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.shipment-timeline__message {
+  margin: 0.25rem 0 0;
+}
+
+.shipment-timeline__actor {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.panel__subpanel {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.import-errors {
+  margin: 0.75rem 0;
+  padding-left: 1.1rem;
+}
+
 .panel__head-row {
   display: flex;
   align-items: center;

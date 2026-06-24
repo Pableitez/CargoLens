@@ -24,7 +24,7 @@ export function serializeShipment(doc, { includeShareLinks = false } = {}) {
   return item;
 }
 
-export function serializePublicShipment(doc, companyName = "") {
+export function serializePublicShipment(doc, companyName = "", events = []) {
   return {
     reference: doc.reference,
     origin: doc.origin ?? "",
@@ -37,6 +37,7 @@ export function serializePublicShipment(doc, companyName = "") {
     })),
     companyName: companyName || undefined,
     updatedAt: doc.updatedAt,
+    events,
   };
 }
 

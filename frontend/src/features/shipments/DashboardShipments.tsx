@@ -43,9 +43,14 @@ export function DashboardShipments() {
         <h2 id="shipments-heading" className="panel__title panel__title--section">
           {t("shipmentsPage.title")}
         </h2>
-        <Link to="/dashboard/shipments/new" className="btn btn--primary">
-          {t("shipmentsPage.newShipment")}
-        </Link>
+        <div className="dash-form__actions">
+          <Link to="/dashboard/shipments/import" className="btn btn--ghost">
+            {t("shipmentsPage.importExcel")}
+          </Link>
+          <Link to="/dashboard/shipments/new" className="btn btn--primary">
+            {t("shipmentsPage.newShipment")}
+          </Link>
+        </div>
       </div>
       <p className="panel__lead">{t("shipmentsPage.lead")}</p>
 

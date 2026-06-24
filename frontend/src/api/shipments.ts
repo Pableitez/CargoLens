@@ -1,14 +1,21 @@
 import { api } from "./client.js";
-import type { PublicShipment, ShareLinkResult, Shipment } from "../features/shipments/types";
+import type {
+  PublicShipment,
+  ShareLinkResult,
+  Shipment,
+  ShipmentEvent,
+  ShipmentImportPreview,
+  ShipmentImportResult,
+} from "../features/shipments/types";
 
 export async function fetchShipments(params: { status?: string } = {}): Promise<Shipment[]> {
   const { data } = await api.get<{ items: Shipment[] }>("/shipments", { params });
   return data.items;
 }
 
-export async function fetchShipment(id: string): Promise<Shipment> {
-  const { data } = await api.get<{ item: Shipment }>(`/shipments/${id}`);
-  return data.item;
+export async function fetchShipment(id: string): Promise<{ item: Shipment; events: ShipmentEvent[] }> {
+  const { data } = await api.get<{ item: Shipment; events: ShipmentEvent[] }>(`/shipments/${id}`);
+  return data;
 }
 
 export async function createShipment(body: Record<string, unknown>): Promise<Shipment> {
@@ -32,5 +39,27 @@ export async function createShareLink(id: string, expiresInDays = 30): Promise<S
 
 export async function fetchPublicShipment(token: string): Promise<PublicShipment> {
   const { data } = await api.get<{ item: PublicShipment }>(`/public/shipments/${token}`);
+  return data.item;
+}
+
+export async function previewShipmentImport(file: File): Promise<ShipmentImportPreview> {
+  const body = new FormData();
+  body.append("file", file);
+  const { data } = await api.post<ShipmentImportPreview>("/shipments/import/preview", body);
+  return data;
+}
+
+export async function importShipmentsExcel(file: File): Promise<ShipmentImportResult> {
+  const body = new FormData();
+  body.append("file", file);
+  const { data } = await api.post<ShipmentImportResult>("/shipments/import", body);
+  return data;
+}
+
+export async function createShipmentEvent(
+  id: string,
+  payload: { kind: "note" | "milestone"; message: string; visibleToClient?: boolean }
+): Promise<ShipmentEvent> {
+  const { data } = await api.post<{ item: ShipmentEvent }>(`/shipments/${id}/events`, payload);
   return data.item;
 }

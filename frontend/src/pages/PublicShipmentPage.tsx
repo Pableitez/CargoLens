@@ -4,6 +4,7 @@ import * as shipmentsApi from "../api/shipments";
 import { BrandMark } from "../components/BrandMark.jsx";
 import { appName } from "../config/siteMeta.js";
 import { useAppTranslation } from "../i18n/useAppTranslation";
+import { ShipmentTimeline } from "../features/shipments/ShipmentTimeline";
 import { formatShipmentDate, shipmentStatusLabel } from "../features/shipments/shipmentUtils";
 import type { PublicShipment } from "../features/shipments/types";
 
@@ -77,6 +78,13 @@ export function PublicShipmentPage() {
                     </li>
                   ))}
                 </ul>
+              </>
+            )}
+
+            {(item.events?.length ?? 0) > 0 && (
+              <>
+                <h2 className="panel__subhead">{t("publicShipment.timeline")}</h2>
+                <ShipmentTimeline events={item.events ?? []} emptyLabel={t("publicShipment.timelineEmpty")} />
               </>
             )}
           </>

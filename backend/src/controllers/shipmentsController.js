@@ -5,6 +5,16 @@ import { Client } from "../models/Client.js";
 import { Shipment } from "../models/Shipment.js";
 import { ShipmentShareLink } from "../models/ShipmentShareLink.js";
 import {
+  logShipmentChanges,
+  logShipmentEvent,
+  listShipmentEvents,
+} from "../services/shipments/shipmentEvents.js";
+import {
+  buildClientInviteMap,
+  importShipmentRows,
+  previewShipmentImportRows,
+} from "../services/shipments/shipmentImport.js";
+import {
   serializePublicShipment,
   serializeShareLink,
   serializeShipment,
@@ -13,6 +23,7 @@ import { generateShareToken, hashShareToken } from "../services/shipments/shareT
 import { validateShipmentInput } from "../services/shipments/shipmentValidation.js";
 import { logWorkspaceActivity } from "../services/workspaceActivityLog.js";
 import { devError } from "../utils/devLog.js";
+import { readWorkbookRows } from "../utils/spreadsheet.js";
 
 function dbUnavailable(res) {
   return res.status(503).json({
@@ -86,7 +97,8 @@ export async function getShipment(req, res) {
     if (!row) {
       return res.status(404).json({ error: "NOT_FOUND", message: "Shipment not found." });
     }
-    return res.json({ item: serializeShipment(row) });
+    const events = await listShipmentEvents(row._id);
+    return res.json({ item: serializeShipment(row), events });
   } catch (err) {
     devError(err);
     return res.status(500).json({ error: "SERVER_ERROR", message: "Failed to load shipment." });
@@ -117,6 +129,15 @@ export async function createShipment(req, res) {
       notes: data.notes ?? "",
       clientId: data.clientId ?? null,
       containers: data.containers ?? [],
+    });
+
+    await logShipmentEvent({
+      shipmentId: doc._id,
+      companyId: req.user.companyId,
+      kind: "created",
+      message: `Shipment created (${doc.reference})`,
+      actorUserId: req.user.userId,
+      actorEmail: req.user.email,
     });
 
     void logWorkspaceActivity({
@@ -167,10 +188,21 @@ export async function updateShipment(req, res) {
       return res.status(404).json({ error: "NOT_FOUND", message: "Shipment not found." });
     }
 
+    const before = shipment.toObject();
+
     for (const [key, value] of Object.entries(data)) {
       shipment[key] = value;
     }
     await shipment.save();
+
+    await logShipmentChanges({
+      shipmentId: shipment._id,
+      companyId: req.user.companyId,
+      before,
+      after: shipment.toObject(),
+      actorUserId: req.user.userId,
+      actorEmail: req.user.email,
+    });
 
     void logWorkspaceActivity({
       companyId: req.user.companyId,
@@ -212,6 +244,8 @@ export async function deleteShipment(req, res) {
     }
 
     await ShipmentShareLink.deleteMany({ shipmentId: shipment._id });
+    const { ShipmentEvent } = await import("../models/ShipmentEvent.js");
+    await ShipmentEvent.deleteMany({ shipmentId: shipment._id });
 
     void logWorkspaceActivity({
       companyId: req.user.companyId,
@@ -338,12 +372,136 @@ export async function getPublicShipment(req, res) {
 
     const { Company } = await import("../models/Company.js");
     const company = await Company.findById(link.companyId).lean();
+    const events = await listShipmentEvents(shipment._id, { clientVisibleOnly: true });
 
     return res.json({
-      item: serializePublicShipment(shipment, company?.name ?? ""),
+      item: serializePublicShipment(shipment, company?.name ?? "", events),
     });
   } catch (err) {
     devError(err);
     return res.status(500).json({ error: "SERVER_ERROR", message: "Failed to load shared shipment." });
   }
+}
+
+function readImportFile(req, res) {
+  if (!req.file?.buffer) {
+    res.status(400).json({
+      error: "INVALID_INPUT",
+      message: "Upload an Excel file (.xlsx or .xls).",
+    });
+    return null;
+  }
+  try {
+    return readWorkbookRows(req.file.buffer);
+  } catch {
+    res.status(400).json({ error: "INVALID_FILE", message: "Could not read Excel file." });
+    return null;
+  }
+}
+
+export async function previewImportShipments(req, res) {
+  if (!isDbConnected()) return dbUnavailable(res);
+
+  const parsed = readImportFile(req, res);
+  if (!parsed) return;
+  const { sheetName, rows } = parsed;
+
+  if (!rows.length) {
+    return res.status(400).json({ error: "EMPTY", message: "The sheet has no data rows." });
+  }
+
+  const result = previewShipmentImportRows(rows);
+  return res.json({ ok: true, sheet: sheetName, ...result });
+}
+
+export async function importShipments(req, res) {
+  if (!isDbConnected()) return dbUnavailable(res);
+
+  const parsed = readImportFile(req, res);
+  if (!parsed) return;
+  const { sheetName, rows } = parsed;
+
+  if (!rows.length) {
+    return res.status(400).json({ error: "EMPTY", message: "The sheet has no data rows." });
+  }
+
+  const companyId = req.user.companyId;
+  const inviteToClient = await buildClientInviteMap(companyId);
+  const { created, skipped, errors } = await importShipmentRows(rows, companyId, inviteToClient, req.user);
+
+  void logWorkspaceActivity({
+    companyId,
+    userId: req.user.userId,
+    actorEmail: req.user.email,
+    action: "shipment.import",
+    summary: `Shipment import · ${created} added, ${skipped} skipped (${sheetName})`,
+    meta: { created, skipped, sheet: sheetName, rowsTotal: rows.length },
+  });
+
+  return res.json({
+    ok: true,
+    sheet: sheetName,
+    rowsTotal: rows.length,
+    created,
+    skipped,
+    errors,
+  });
+}
+
+export async function listShipmentEventsHandler(req, res) {
+  if (!isDbConnected()) return dbUnavailable(res);
+
+  const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ error: "INVALID_ID", message: "Invalid shipment id." });
+  }
+
+  const shipment = await Shipment.findOne({
+    _id: id,
+    companyId: companyObjectId(req.user.companyId),
+  }).lean();
+  if (!shipment) {
+    return res.status(404).json({ error: "NOT_FOUND", message: "Shipment not found." });
+  }
+
+  const events = await listShipmentEvents(id);
+  return res.json({ items: events });
+}
+
+export async function createShipmentEventHandler(req, res) {
+  if (!isDbConnected()) return dbUnavailable(res);
+
+  const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ error: "INVALID_ID", message: "Invalid shipment id." });
+  }
+
+  const kind = String(req.body?.kind ?? "note").trim();
+  const message = String(req.body?.message ?? "").trim();
+  if (!message) {
+    return res.status(400).json({ error: "INVALID_INPUT", message: "Message is required." });
+  }
+  if (kind !== "note" && kind !== "milestone") {
+    return res.status(400).json({ error: "INVALID_INPUT", message: "kind must be note or milestone." });
+  }
+
+  const shipment = await Shipment.findOne({
+    _id: id,
+    companyId: companyObjectId(req.user.companyId),
+  }).lean();
+  if (!shipment) {
+    return res.status(404).json({ error: "NOT_FOUND", message: "Shipment not found." });
+  }
+
+  const event = await logShipmentEvent({
+    shipmentId: shipment._id,
+    companyId: req.user.companyId,
+    kind,
+    message,
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    visibleToClient: req.body?.visibleToClient !== false,
+  });
+
+  return res.status(201).json({ item: event });
 }

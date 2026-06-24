@@ -1,3 +1,35 @@
+export type ShipmentEventKind = "created" | "status_change" | "eta_change" | "note" | "milestone" | "import";
+
+export type ShipmentEvent = {
+  id: string;
+  kind: ShipmentEventKind;
+  message: string;
+  actorEmail: string;
+  visibleToClient: boolean;
+  meta: Record<string, unknown> | null;
+  occurredAt: string;
+  createdAt: string;
+};
+
+export type ShipmentImportPreview = {
+  ok: boolean;
+  sheet: string;
+  rowsTotal: number;
+  valid: number;
+  invalid: number;
+  preview: Array<{ rowNumber: number; reference: string; errors: string[]; valid: boolean }>;
+  errors: string[];
+};
+
+export type ShipmentImportResult = {
+  ok: boolean;
+  sheet: string;
+  rowsTotal: number;
+  created: number;
+  skipped: number;
+  errors: string[];
+};
+
 export type ShipmentStatus = "draft" | "booked" | "in_transit" | "at_port" | "delivered" | "cancelled";
 
 export type ShipmentContainer = {
@@ -30,6 +62,7 @@ export type PublicShipment = {
   containers: Pick<ShipmentContainer, "containerNumber">[];
   companyName?: string;
   updatedAt: string;
+  events?: ShipmentEvent[];
 };
 
 export type ShareLinkResult = {
