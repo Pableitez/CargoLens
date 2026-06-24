@@ -23,11 +23,18 @@ export type NavModuleDef = {
   i18nKey: string;
   staffOnly?: boolean;
   end?: boolean;
+  implemented?: boolean;
 };
 
 export const PLATFORM_NAV: NavModuleDef[] = [
   { id: "home", route: "/dashboard/home", i18nKey: "modules.nav.home", end: true },
-  { id: "cases", route: "/dashboard/cases", i18nKey: "modules.nav.cases", staffOnly: true },
+  {
+    id: "cases",
+    route: "/dashboard/cases",
+    i18nKey: "modules.nav.cases",
+    staffOnly: true,
+    implemented: true,
+  },
   { id: "shipments", route: "/dashboard/shipments", i18nKey: "modules.nav.shipments", staffOnly: true },
   {
     id: "operationalFinance",

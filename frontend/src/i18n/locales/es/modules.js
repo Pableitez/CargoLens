@@ -21,7 +21,7 @@ export default {
     },
     cases: {
       title: "Expedientes",
-      lead: "Los expedientes agruparán embarques, documentos y tareas por cliente.",
+      lead: "Agrupa embarques, notas e hitos por cliente o operación.",
     },
     operationalFinance: {
       title: "Finanzas operativas",

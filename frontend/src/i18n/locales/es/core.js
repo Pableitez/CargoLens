@@ -143,6 +143,10 @@ export default {
         topbar: "Embarques",
         headline: "Embarques",
       },
+      cases: {
+        topbar: "Expedientes",
+        headline: "Expedientes",
+      },
       add: {
         topbar: "Añadir",
         headline: "Añadir contenedor",

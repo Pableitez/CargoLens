@@ -143,6 +143,10 @@ export default {
         topbar: "Shipments",
         headline: "Shipments",
       },
+      cases: {
+        topbar: "Cases",
+        headline: "Cases",
+      },
       add: {
         topbar: "Add",
         headline: "Add container",

@@ -90,4 +90,4 @@ Ruta base: `/dashboard/insights`
 
 ## Estado de implementación
 
-Ver `implemented: true` en `frontend/src/config/moduleRegistry.ts`. Hoy: **shipments** (parcial), **tracking** (parcial vía overview/list/vessels), **settings**, **home** (overview).
+Ver `implemented: true` en `frontend/src/config/moduleRegistry.ts`. Hoy: **cases** (CRUD + timeline + vínculo embarques), **shipments** (parcial), **tracking** (parcial vía overview/list/vessels), **settings**, **home** (overview).

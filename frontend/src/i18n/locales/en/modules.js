@@ -21,7 +21,7 @@ export default {
     },
     cases: {
       title: "Cases",
-      lead: "Case files will group shipments, documents, and tasks per customer engagement.",
+      lead: "Group shipments, notes, and milestones per customer engagement.",
     },
     operationalFinance: {
       title: "Operational finance",

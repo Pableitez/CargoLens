@@ -75,8 +75,13 @@ const DashboardShipmentsImport = lazy(() =>
 const PublicShipmentPage = lazy(() =>
   import("./pages/PublicShipmentPage.tsx").then((m) => ({ default: m.PublicShipmentPage }))
 );
-const DashboardCasesHub = lazy(() =>
-  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardCasesHub }))
+const DashboardCases = lazy(() =>
+  import("./features/cases/DashboardCases.tsx").then((m) => ({ default: m.DashboardCases }))
+);
+const DashboardCaseDetail = lazy(() =>
+  import("./features/cases/DashboardCaseDetail.tsx").then((m) => ({
+    default: m.DashboardCaseDetail,
+  }))
 );
 const DashboardTrackingHub = lazy(() =>
   import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardTrackingHub }))
@@ -140,7 +145,15 @@ function AppRoutes() {
           path="cases"
           element={
             <StaffRoute>
-              <DashboardCasesHub />
+              <DashboardCases />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="cases/:id"
+          element={
+            <StaffRoute>
+              <DashboardCaseDetail />
             </StaffRoute>
           }
         />

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { activityRouter } from "./activity.routes.js";
 import { authRouter } from "./auth.routes.js";
+import { casesRouter } from "./cases.routes.js";
 import { clientsRouter } from "./clients.routes.js";
 import { containersRouter } from "./containers.routes.js";
 import { publicShipmentsRouter, shipmentsRouter } from "./shipments.routes.js";
@@ -17,5 +18,6 @@ apiRouter.use("/public", publicShipmentsRouter);
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/containers", containersRouter);
 apiRouter.use("/clients", clientsRouter);
+apiRouter.use("/cases", casesRouter);
 apiRouter.use("/shipments", shipmentsRouter);
 apiRouter.use("/activity", activityRouter);
