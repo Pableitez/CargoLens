@@ -2,6 +2,7 @@ import {
   DOCUMENTS_MODULE,
   INSIGHTS_MODULE,
   OPERATIONS_MODULES,
+  STAFF_WORKSPACE_TOOL_LINKS,
   TRACKING_LINKS,
   type ModuleGroupDef,
 } from "../../config/moduleRegistry";
@@ -28,13 +29,6 @@ export function DashboardTasksHub() {
   return <ModuleHubPage titleKey="modules.tasks.title" leadKey="modules.tasks.lead" submodules={[]} />;
 }
 
-const STAFF_TRACKING_LEGACY = [
-  { id: "clients", route: "/dashboard/clients", i18nKey: "modules.legacy.clients" },
-  { id: "add", route: "/dashboard/add", i18nKey: "modules.legacy.addContainer" },
-  { id: "import", route: "/dashboard/import", i18nKey: "modules.legacy.importContainers" },
-  { id: "activity", route: "/dashboard/activity", i18nKey: "modules.legacy.activity" },
-] as const;
-
 export function DashboardTrackingHub() {
   const { isClientPortal } = useDashboardWorkspace();
   return (
@@ -42,7 +36,7 @@ export function DashboardTrackingHub() {
       titleKey="modules.tracking.title"
       leadKey="modules.tracking.lead"
       submodules={TRACKING_LINKS}
-      legacyLinks={isClientPortal ? undefined : [...STAFF_TRACKING_LEGACY]}
+      extraLinks={isClientPortal ? undefined : STAFF_WORKSPACE_TOOL_LINKS}
     />
   );
 }

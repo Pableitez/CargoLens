@@ -1,18 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
-import { useTranslation } from "../i18n/LanguageContext.jsx";
-import { SIDEBAR_LEGACY_LINKS } from "./sidebarModuleConfig.js";
 import {
   CLIENT_TRACKING_TOPBAR_LINKS,
   GUEST_TRACKING_TOPBAR_LINKS,
   STAFF_TRACKING_TOPBAR_LINKS,
+  STAFF_WORKSPACE_TOOL_LINKS,
 } from "../config/moduleRegistry.ts";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { useTranslation } from "../i18n/LanguageContext.jsx";
 import { prefetchRoute } from "../utils/prefetchRoutes.js";
-
-const STAFF_TRACKING_LEGACY = SIDEBAR_LEGACY_LINKS.filter((link) =>
-  ["clients", "add", "import", "activity"].includes(link.id)
-);
 
 function matchNavRoute(pathname, route, { end = false } = {}) {
   if (route === "/") return pathname === "/";
@@ -20,9 +16,9 @@ function matchNavRoute(pathname, route, { end = false } = {}) {
   return pathname === route || pathname.startsWith(`${route}/`);
 }
 
-function isTrackingRoute(pathname, links, legacyLinks) {
+function isTrackingRoute(pathname, links, workspaceTools) {
   if (pathname.startsWith("/dashboard/tracking") || pathname.startsWith("/track")) return true;
-  const all = [...links, ...legacyLinks];
+  const all = [...links, ...workspaceTools];
   return all.some((item) => {
     const end = item.id === "search" && item.route === "/";
     return matchNavRoute(pathname, item.route, { end });
@@ -57,8 +53,8 @@ export function TrackingTopbarNav() {
   const rootRef = useRef(null);
 
   const links = resolveTrackingLinks(user);
-  const legacyLinks = user && !user.isClientPortal ? STAFF_TRACKING_LEGACY : [];
-  const trackingActive = isTrackingRoute(pathname, links, legacyLinks);
+  const workspaceTools = user && !user.isClientPortal ? STAFF_WORKSPACE_TOOL_LINKS : [];
+  const trackingActive = isTrackingRoute(pathname, links, workspaceTools);
 
   useEffect(() => {
     setOpen(false);
@@ -110,13 +106,13 @@ export function TrackingTopbarNav() {
               {t(item.i18nKey)}
             </NavLink>
           ))}
-          {legacyLinks.length > 0 ? (
+          {workspaceTools.length > 0 ? (
             <>
               <div className="shell-nav-menu__divider topbar-tracking__menu-divider" role="separator" />
               <p className="shell-nav-menu__heading topbar-tracking__menu-heading">
-                {t("modules.legacy.title")}
+                {t("modules.workspaceTools.title")}
               </p>
-              {legacyLinks.map((item) => (
+              {workspaceTools.map((item) => (
                 <NavLink
                   key={item.id}
                   to={item.route}

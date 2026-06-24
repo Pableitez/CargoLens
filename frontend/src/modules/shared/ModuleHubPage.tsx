@@ -6,10 +6,10 @@ type ModuleHubPageProps = {
   titleKey: string;
   leadKey: string;
   submodules: SubmoduleDef[];
-  legacyLinks?: SubmoduleDef[];
+  extraLinks?: SubmoduleDef[];
 };
 
-export function ModuleHubPage({ titleKey, leadKey, submodules, legacyLinks }: ModuleHubPageProps) {
+export function ModuleHubPage({ titleKey, leadKey, submodules, extraLinks }: ModuleHubPageProps) {
   const { t } = useAppTranslation();
 
   return (
@@ -36,11 +36,11 @@ export function ModuleHubPage({ titleKey, leadKey, submodules, legacyLinks }: Mo
         ))}
       </ul>
 
-      {legacyLinks?.length ? (
-        <div className="module-hub-legacy">
-          <h2 className="module-hub-legacy__title">{t("modules.legacy.title")}</h2>
+      {extraLinks?.length ? (
+        <div className="module-hub-tools">
+          <h2 className="module-hub-tools__title">{t("modules.workspaceTools.title")}</h2>
           <ul className="module-hub-grid module-hub-grid--compact">
-            {legacyLinks.map((item) => (
+            {extraLinks.map((item) => (
               <li key={item.id} className="module-hub-card module-hub-card--muted">
                 <Link to={item.route} className="module-hub-card__link">
                   <span className="module-hub-card__title">{t(item.i18nKey)}</span>

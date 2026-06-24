@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DASHBOARD_OVERVIEW_PATH } from "../config/paths.js";
+import { STAFF_WORKSPACE_TOOL_LINKS } from "../config/moduleRegistry.ts";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useCommandPalette } from "../contexts/CommandPaletteContext.jsx";
 import { getWorkspaceNavClient, getWorkspaceNavStaff } from "../pages/dashboard/workspaceConfig.js";
@@ -46,7 +47,16 @@ export function CommandPalette() {
       to: row.to,
       kw: row.to.replace(/\//g, " "),
     }));
-    return [...dashItems, ...pub.filter((p) => p.id !== "l" && p.id !== "r")];
+    const toolItems =
+      !isClient && user
+        ? STAFF_WORKSPACE_TOOL_LINKS.map((row, i) => ({
+            id: `t${i}`,
+            label: t(row.i18nKey),
+            to: row.route,
+            kw: `${row.id} ${row.route.replace(/\//g, " ")}`,
+          }))
+        : [];
+    return [...dashItems, ...toolItems, ...pub.filter((p) => p.id !== "l" && p.id !== "r")];
   }, [t, user, isClient]);
 
   const recentPaths = useMemo(() => getRecentRoutes().slice(0, 10), []);
@@ -96,7 +106,9 @@ export function CommandPalette() {
     };
     const sections = [
       { title: t("commandPalette.sectionNav"), items: navItems },
-      ...(containerItems.length ? [{ title: t("commandPalette.sectionContainers"), items: containerItems }] : []),
+      ...(containerItems.length
+        ? [{ title: t("commandPalette.sectionContainers"), items: containerItems }]
+        : []),
       ...(recentItems.length ? [{ title: t("commandPalette.sectionRecent"), items: recentItems }] : []),
     ];
     const rows = [];
@@ -199,7 +211,9 @@ export function CommandPalette() {
                       onClick={() => go(row.to)}
                     >
                       <span className="command-palette__item-label">{row.label}</span>
-                      {row.sublabel ? <span className="command-palette__item-sub">{row.sublabel}</span> : null}
+                      {row.sublabel ? (
+                        <span className="command-palette__item-sub">{row.sublabel}</span>
+                      ) : null}
                     </button>
                     <button
                       type="button"

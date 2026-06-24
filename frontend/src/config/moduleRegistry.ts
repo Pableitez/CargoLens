@@ -218,6 +218,29 @@ export const TRACKING_LINKS: SubmoduleDef[] = [
   { id: "vessels", route: "/vessels", i18nKey: "modules.tracking.vessels", implemented: true },
 ];
 
+/** Staff-only container workspace (clients, add, import, activity) — Tracking dropdown + hub. */
+export const STAFF_WORKSPACE_TOOL_LINKS: SubmoduleDef[] = [
+  {
+    id: "clients",
+    route: "/dashboard/clients",
+    i18nKey: "modules.workspaceTools.clients",
+    implemented: true,
+  },
+  { id: "add", route: "/dashboard/add", i18nKey: "modules.workspaceTools.addContainer", implemented: true },
+  {
+    id: "import",
+    route: "/dashboard/import",
+    i18nKey: "modules.workspaceTools.importContainers",
+    implemented: true,
+  },
+  {
+    id: "activity",
+    route: "/dashboard/activity",
+    i18nKey: "modules.workspaceTools.activity",
+    implemented: true,
+  },
+];
+
 /** Tracking en la topbar (derecha) — no en sidebar ni workspace-nav. */
 export const GUEST_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
   { id: "search", route: "/", i18nKey: "modules.tracking.search", implemented: true },

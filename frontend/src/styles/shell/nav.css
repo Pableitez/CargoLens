@@ -1,6 +1,5 @@
 /* ——— Shell navigation (topbar + dropdowns + sidebar flyouts) ——— */
-.shell-nav-pill,
-.workspace-nav__link {
+.shell-nav-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -30,16 +29,14 @@ button.shell-nav-pill {
   -webkit-appearance: none;
 }
 
-.shell-nav-pill:hover,
-.workspace-nav__link:hover {
+.shell-nav-pill:hover {
   color: var(--text);
   background: var(--shell-nav-pill-hover-bg);
   border-color: var(--shell-nav-pill-hover-border);
 }
 
 .shell-nav-pill--active,
-.shell-nav-pill[aria-expanded="true"],
-.workspace-nav__link--active {
+.shell-nav-pill[aria-expanded="true"] {
   color: var(--shell-nav-pill-active-color);
   background: var(--shell-nav-pill-active-bg);
   border-color: var(--shell-nav-pill-active-border);
@@ -47,8 +44,7 @@ button.shell-nav-pill {
 }
 
 [data-theme="light"] .shell-nav-pill--active,
-[data-theme="light"] .shell-nav-pill[aria-expanded="true"],
-[data-theme="light"] .workspace-nav__link--active {
+[data-theme="light"] .shell-nav-pill[aria-expanded="true"] {
   box-shadow: var(--shell-nav-pill-active-shadow);
 }
 
@@ -121,18 +117,4 @@ button.shell-nav-pill {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--shell-nav-menu-heading);
-}
-
-/* Dashboard: quick jump between workspace sections */
-.workspace-nav {
-  margin: 0 0 1rem;
-  padding-bottom: 0.65rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.workspace-nav__scroll {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
 }

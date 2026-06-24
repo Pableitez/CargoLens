@@ -625,13 +625,13 @@ a.overview-kpi-strip__card--link:focus-visible {
   color: var(--accent, #2563eb);
 }
 
-.module-hub-legacy {
+.module-hub-tools {
   margin-top: 1.75rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--ui-line);
 }
 
-.module-hub-legacy__title {
+.module-hub-tools__title {
   margin: 0 0 0.35rem;
   font-size: 0.92rem;
   font-weight: 650;

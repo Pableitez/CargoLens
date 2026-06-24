@@ -2,7 +2,6 @@ import { NavLink } from "react-router-dom";
 import {
   getSidebarDocumentsGroup,
   getSidebarInsightsGroup,
-  getSidebarLegacyLinks,
   getSidebarOperationGroups,
   getSidebarPlatformNav,
 } from "./sidebarModuleConfig.js";
@@ -37,7 +36,6 @@ export function SidebarModuleNav({
   const operationGroups = getSidebarOperationGroups(staff);
   const documentsGroup = getSidebarDocumentsGroup(staff);
   const insightsGroup = getSidebarInsightsGroup(staff);
-  const legacyLinks = getSidebarLegacyLinks(staff);
 
   return (
     <>
@@ -97,29 +95,6 @@ export function SidebarModuleNav({
           onToggle={() => toggleSection("insights")}
         >
           <SubmoduleLinks group={insightsGroup} handleNav={handleNav} handlePrefetch={handlePrefetch} t={t} />
-        </SidebarNavSection>
-      ) : null}
-
-      {legacyLinks.length > 0 ? (
-        <SidebarNavSection
-          sectionId="legacy"
-          label={t("modules.legacy.title")}
-          open={openGroups.legacy}
-          onToggle={() => toggleSection("legacy")}
-        >
-          {legacyLinks.map((link) => (
-            <NavLink
-              key={link.id}
-              to={link.route}
-              className={({ isActive }) =>
-                `shell-nav-menu__item sidebar__link sidebar__link--sub${isActive ? " shell-nav-menu__item--active sidebar__link--active" : ""}`
-              }
-              onClick={handleNav}
-              onMouseEnter={() => handlePrefetch(link.route)}
-            >
-              <span>{t(link.i18nKey)}</span>
-            </NavLink>
-          ))}
         </SidebarNavSection>
       ) : null}
     </>

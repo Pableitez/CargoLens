@@ -88,8 +88,8 @@ export default {
       coverage: "Coverage check",
       vessels: "Vessel map",
     },
-    legacy: {
-      title: "Legacy workspace tools",
+    workspaceTools: {
+      title: "Container workspace",
       clients: "Clients",
       addContainer: "Add container",
       importContainers: "Import containers (Excel)",

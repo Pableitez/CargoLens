@@ -88,8 +88,8 @@ export default {
       coverage: "Cobertura",
       vessels: "Mapa de buques",
     },
-    legacy: {
-      title: "Herramientas heredadas",
+    workspaceTools: {
+      title: "Operativa de contenedores",
       clients: "Clientes",
       addContainer: "Añadir contenedor",
       importContainers: "Importar contenedores (Excel)",

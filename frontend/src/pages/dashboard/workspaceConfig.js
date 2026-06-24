@@ -101,7 +101,7 @@ export function getWorkspaceTitles(pathname, isClientPortal, t) {
   }
 
   /** @type {Record<string, string>} */
-  const legacyKeys = {
+  const workspaceToolTitleKeys = {
     clients: "workspace.section.clients.topbar",
     add: "workspace.section.add.topbar",
     import: "workspace.section.import.topbar",
@@ -111,8 +111,8 @@ export function getWorkspaceTitles(pathname, isClientPortal, t) {
     settings: "workspace.section.settings.topbar",
   };
   const segment = getDashboardSegment(pathname);
-  const legacyKey = legacyKeys[segment];
-  if (legacyKey) return titleFromKey(t, legacyKey);
+  const toolTitleKey = workspaceToolTitleKeys[segment];
+  if (toolTitleKey) return titleFromKey(t, toolTitleKey);
 
   return titleFromKey(t, "workspace.section.fallback.topbar");
 }
