@@ -23,7 +23,11 @@ import { generateShareToken, hashShareToken } from "../services/shipments/shareT
 import { validateShipmentInput } from "../services/shipments/shipmentValidation.js";
 import { logWorkspaceActivity } from "../services/workspaceActivityLog.js";
 import { devError } from "../utils/devLog.js";
-import { readWorkbookRows } from "../utils/spreadsheet.js";
+import { readExcelRows, isExcelFilename } from "../utils/spreadsheet.js";
+import {
+  buildShipmentImportTemplateBuffer,
+  SHIPMENT_IMPORT_TEMPLATE_FILENAME,
+} from "../services/shipments/shipmentImportTemplate.js";
 
 function dbUnavailable(res) {
   return res.status(503).json({
@@ -391,11 +395,31 @@ function readImportFile(req, res) {
     });
     return null;
   }
+  const filename = String(req.file.originalname ?? "");
+  if (!isExcelFilename(filename)) {
+    res.status(400).json({
+      error: "INVALID_INPUT",
+      message: "Only Excel files (.xlsx or .xls) are supported.",
+    });
+    return null;
+  }
   try {
-    return readWorkbookRows(req.file.buffer);
+    return readExcelRows(req.file.buffer);
   } catch {
     res.status(400).json({ error: "INVALID_FILE", message: "Could not read Excel file." });
     return null;
+  }
+}
+
+export function downloadShipmentImportTemplate(_req, res) {
+  try {
+    const buffer = buildShipmentImportTemplateBuffer();
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="${SHIPMENT_IMPORT_TEMPLATE_FILENAME}"`);
+    return res.send(buffer);
+  } catch (err) {
+    devError(err);
+    return res.status(500).json({ error: "SERVER_ERROR", message: "Could not build import template." });
   }
 }
 

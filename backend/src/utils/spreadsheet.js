@@ -21,10 +21,63 @@ export function pickCell(row, ...keys) {
   return "";
 }
 
-export function readWorkbookRows(buffer) {
-  const workbook = XLSX.read(buffer, { type: "buffer" });
-  const sheetName = workbook.SheetNames[0];
+export function detectCsvDelimiter(firstLine) {
+  const commas = (firstLine.match(/,/g) ?? []).length;
+  const semicolons = (firstLine.match(/;/g) ?? []).length;
+  return semicolons > commas ? ";" : ",";
+}
+
+function rowsFromWorkbook(workbook, sheetNameFallback = "data") {
+  const sheetName = workbook.SheetNames[0] ?? sheetNameFallback;
   const sheet = workbook.Sheets[sheetName];
+  if (!sheet) {
+    return { sheetName: sheetNameFallback, rows: [] };
+  }
   const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
   return { sheetName, rows };
+}
+
+export function readCsvRows(buffer) {
+  const text = buffer.toString("utf8").replace(/^\uFEFF/, "");
+  const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
+  const FS = detectCsvDelimiter(firstLine);
+  const workbook = XLSX.read(text, { type: "string", FS });
+  const parsed = rowsFromWorkbook(workbook, "csv");
+  return { ...parsed, sheetName: "csv" };
+}
+
+export function readExcelRows(buffer) {
+  const workbook = XLSX.read(buffer, { type: "buffer" });
+  return rowsFromWorkbook(workbook);
+}
+
+export function isCsvFilename(filename = "") {
+  return String(filename).trim().toLowerCase().endsWith(".csv");
+}
+
+export function isExcelFilename(filename = "") {
+  return /\.(xlsx|xls)$/i.test(String(filename).trim());
+}
+
+/** Lee filas desde CSV (preferido) o Excel legacy. */
+export function readSpreadsheetRows(buffer, filename = "") {
+  if (isCsvFilename(filename)) {
+    return readCsvRows(buffer);
+  }
+  if (isExcelFilename(filename)) {
+    return readExcelRows(buffer);
+  }
+  // Sin extensión clara: intentar CSV (texto) y si falla, Excel binario.
+  try {
+    const asCsv = readCsvRows(buffer);
+    if (asCsv.rows.length > 0) return asCsv;
+  } catch {
+    // fallback abajo
+  }
+  return readExcelRows(buffer);
+}
+
+/** @deprecated Usar readSpreadsheetRows */
+export function readWorkbookRows(buffer) {
+  return readExcelRows(buffer);
 }

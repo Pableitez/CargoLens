@@ -49,7 +49,7 @@ export async function previewShipmentImport(file: File): Promise<ShipmentImportP
   return data;
 }
 
-export async function importShipmentsExcel(file: File): Promise<ShipmentImportResult> {
+export async function importShipmentsFile(file: File): Promise<ShipmentImportResult> {
   const body = new FormData();
   body.append("file", file);
   const { data } = await api.post<ShipmentImportResult>("/shipments/import", body);

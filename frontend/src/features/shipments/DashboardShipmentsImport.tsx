@@ -4,6 +4,7 @@ import * as shipmentsApi from "../../api/shipments";
 import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
+import { downloadShipmentsXlsxTemplate } from "./shipmentImportUtils";
 import type { ShipmentImportPreview } from "./types";
 
 export function DashboardShipmentsImport() {
@@ -12,7 +13,20 @@ export function DashboardShipmentsImport() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [error, setError] = useState("");
+
+  async function handleDownloadTemplate() {
+    setDownloadingTemplate(true);
+    setError("");
+    try {
+      await downloadShipmentsXlsxTemplate();
+    } catch {
+      setError(t("shipmentsImport.templateFailed"));
+    } finally {
+      setDownloadingTemplate(false);
+    }
+  }
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -39,7 +53,7 @@ export function DashboardShipmentsImport() {
     setBusy(true);
     setError("");
     try {
-      const data = await shipmentsApi.importShipmentsExcel(selectedFile);
+      const data = await shipmentsApi.importShipmentsFile(selectedFile);
       setImportResult(
         t("shipmentsImport.result", {
           created: data.created,
@@ -59,7 +73,7 @@ export function DashboardShipmentsImport() {
     <section className="panel panel--dash-form" aria-labelledby="shipments-import-heading">
       <PageBreadcrumb
         items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/overview" },
+          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
           { label: t("workspace.section.shipments.topbar"), to: "/dashboard/shipments" },
           { label: t("shipmentsImport.title") },
         ]}
@@ -96,6 +110,14 @@ export function DashboardShipmentsImport() {
           {busy ? t("shipmentsImport.busy") : t("shipmentsImport.chooseFile")}
           <input type="file" accept=".xlsx,.xls" className="sr-only" onChange={handleFile} disabled={busy} />
         </label>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => handleDownloadTemplate()}
+          disabled={downloadingTemplate || busy}
+        >
+          {downloadingTemplate ? t("shipmentsImport.busy") : t("shipmentsImport.xlsxTemplate")}
+        </button>
         <Link to="/dashboard/shipments" className="btn btn--ghost">
           {t("shipmentsImport.back")}
         </Link>

@@ -7,6 +7,7 @@ import {
   deleteShipment,
   getPublicShipment,
   getShipment,
+  downloadShipmentImportTemplate,
   importShipments,
   listShipmentEventsHandler,
   listShipments,
@@ -25,6 +26,7 @@ export const shipmentsRouter = Router();
 export const publicShipmentsRouter = Router();
 
 shipmentsRouter.use(requireAuth);
+shipmentsRouter.get("/import/template", requireStaff, downloadShipmentImportTemplate);
 shipmentsRouter.post("/import/preview", requireStaff, upload.single("file"), previewImportShipments);
 shipmentsRouter.post("/import", requireStaff, upload.single("file"), importShipments);
 shipmentsRouter.get("/", listShipments);
