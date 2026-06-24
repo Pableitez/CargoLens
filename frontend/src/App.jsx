@@ -12,7 +12,9 @@ import { RouteFallback } from "./components/RouteFallback.jsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx").then((m) => ({ default: m.HomePage })));
 const LoginPage = lazy(() => import("./pages/LoginPage.jsx").then((m) => ({ default: m.LoginPage })));
-const RegisterPage = lazy(() => import("./pages/RegisterPage.jsx").then((m) => ({ default: m.RegisterPage })));
+const RegisterPage = lazy(() =>
+  import("./pages/RegisterPage.jsx").then((m) => ({ default: m.RegisterPage }))
+);
 const VesselsPage = lazy(() => import("./pages/VesselsPage.jsx").then((m) => ({ default: m.VesselsPage })));
 const PrivacyPolicyPage = lazy(() =>
   import("./pages/PrivacyPolicyPage.jsx").then((m) => ({ default: m.PrivacyPolicyPage }))
@@ -47,9 +49,26 @@ const DashboardAttention = lazy(() =>
 const DashboardSettings = lazy(() =>
   import("./pages/dashboard/DashboardSettings.jsx").then((m) => ({ default: m.DashboardSettings }))
 );
-const NotFoundPage = lazy(() => import("./pages/NotFoundPage.jsx").then((m) => ({ default: m.NotFoundPage })));
-const HowItWorksPage = lazy(() => import("./pages/HowItWorksPage.jsx").then((m) => ({ default: m.HowItWorksPage })));
-const ChangelogPage = lazy(() => import("./pages/ChangelogPage.jsx").then((m) => ({ default: m.ChangelogPage })));
+const NotFoundPage = lazy(() =>
+  import("./pages/NotFoundPage.jsx").then((m) => ({ default: m.NotFoundPage }))
+);
+const HowItWorksPage = lazy(() =>
+  import("./pages/HowItWorksPage.jsx").then((m) => ({ default: m.HowItWorksPage }))
+);
+const ChangelogPage = lazy(() =>
+  import("./pages/ChangelogPage.jsx").then((m) => ({ default: m.ChangelogPage }))
+);
+const DashboardShipments = lazy(() =>
+  import("./features/shipments/DashboardShipments.tsx").then((m) => ({ default: m.DashboardShipments }))
+);
+const DashboardShipmentDetail = lazy(() =>
+  import("./features/shipments/DashboardShipmentDetail.tsx").then((m) => ({
+    default: m.DashboardShipmentDetail,
+  }))
+);
+const PublicShipmentPage = lazy(() =>
+  import("./pages/PublicShipmentPage.tsx").then((m) => ({ default: m.PublicShipmentPage }))
+);
 
 function AppRoutes() {
   return (
@@ -61,6 +80,7 @@ function AppRoutes() {
       <Route path="/how-it-works" element={<Navigate to="/how-it-works/track" replace />} />
       <Route path="/how-it-works/:section" element={<HowItWorksPage />} />
       <Route path="/changelog" element={<ChangelogPage />} />
+      <Route path="/share/:token" element={<PublicShipmentPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route
@@ -73,6 +93,22 @@ function AppRoutes() {
       >
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<DashboardOverview />} />
+        <Route
+          path="shipments"
+          element={
+            <StaffRoute>
+              <DashboardShipments />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="shipments/:id"
+          element={
+            <StaffRoute>
+              <DashboardShipmentDetail />
+            </StaffRoute>
+          }
+        />
         <Route path="track" element={<Navigate to={DASHBOARD_OVERVIEW_PATH} replace />} />
         <Route
           path="clients"

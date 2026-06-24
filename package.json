@@ -1,11 +1,24 @@
 {
   "name": "cargolens",
   "private": true,
-  "description": "Scripts raíz (Sonar, etc.); apps en frontend/ y backend/",
+  "description": "Scripts raíz (Sonar, calidad, etc.); apps en frontend/ y backend/",
   "scripts": {
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "npm run lint --prefix frontend",
+    "typecheck": "npm run typecheck --prefix frontend",
+    "test": "npm run test --prefix backend && npm run test --prefix frontend",
     "test:coverage": "npm run test:coverage --prefix frontend && npm run test:coverage --prefix backend",
     "sonar:prefix": "node scripts/prefix-lcov.mjs",
     "sonar:scan": "npx sonarqube-scanner",
     "sonar": "npm run test:coverage && npm run sonar:prefix && npm run sonar:scan"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.5.3"
   }
 }

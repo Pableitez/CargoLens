@@ -98,7 +98,12 @@ function IconPlusBox({ className }) {
 function IconList({ className }) {
   return (
     <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path
+        d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -115,7 +120,12 @@ function IconClock({ className }) {
 function IconAlert({ className }) {
   return (
     <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M12 9v4M12 17h.01M10.3 4.8L2.6 18.4A1 1 0 003.4 20h17.2a1 1 0 00.8-1.6L13.7 4.8a1 1 0 00-1.7 0z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path
+        d="M12 9v4M12 17h.01M10.3 4.8L2.6 18.4A1 1 0 003.4 20h17.2a1 1 0 00.8-1.6L13.7 4.8a1 1 0 00-1.7 0z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -137,7 +147,13 @@ function IconGear({ className }) {
 function IconChevronSidebar() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -294,7 +310,12 @@ export function Sidebar({ onNavigate }) {
             <IconTrack className="sidebar__icon" />
             <span>{t("sidebar.search")}</span>
           </NavLink>
-          <NavLink to="/vessels" className={navCls} onClick={handleNav} onMouseEnter={() => handlePrefetch("/vessels")}>
+          <NavLink
+            to="/vessels"
+            className={navCls}
+            onClick={handleNav}
+            onMouseEnter={() => handlePrefetch("/vessels")}
+          >
             <IconShip className="sidebar__icon" />
             <span>{t("sidebar.vessels")}</span>
           </NavLink>
@@ -318,6 +339,17 @@ export function Sidebar({ onNavigate }) {
                 <IconGrid className="sidebar__icon" />
                 <span>{user.isClientPortal ? t("sidebar.myShipments") : t("sidebar.overview")}</span>
               </NavLink>
+              {staff && (
+                <NavLink
+                  to="/dashboard/shipments"
+                  className={({ isActive }) => `sidebar__link${isActive ? " sidebar__link--active" : ""}`}
+                  onClick={handleNav}
+                  onMouseEnter={() => handlePrefetch("/dashboard/shipments")}
+                >
+                  <IconShip className="sidebar__icon" />
+                  <span>{t("sidebar.shipments")}</span>
+                </NavLink>
+              )}
             </SidebarNavSection>
             {staff && (
               <>
@@ -454,7 +486,12 @@ export function Sidebar({ onNavigate }) {
             {loading && <span className="sidebar__muted">{t("sidebar.loading")}</span>}
             {!loading && (
               <>
-                <NavLink to="/login" className={navCls} onClick={handleNav} onMouseEnter={() => handlePrefetch("/login")}>
+                <NavLink
+                  to="/login"
+                  className={navCls}
+                  onClick={handleNav}
+                  onMouseEnter={() => handlePrefetch("/login")}
+                >
                   <span className="sidebar__icon sidebar__icon--text">→</span>
                   <span>{t("sidebar.login")}</span>
                 </NavLink>
@@ -517,7 +554,14 @@ export function Sidebar({ onNavigate }) {
                 </div>
               </div>
             </div>
-            <button type="button" className="sidebar__logout" onClick={() => { logout(); handleNav(); }}>
+            <button
+              type="button"
+              className="sidebar__logout"
+              onClick={() => {
+                logout();
+                handleNav();
+              }}
+            >
               {t("sidebar.logout")}
             </button>
           </div>

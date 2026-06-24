@@ -3,6 +3,7 @@
 /** @type {Record<string, string>} */
 const STAFF_SEGMENT_KEYS = {
   overview: "overview",
+  shipments: "shipments",
   clients: "clients",
   add: "add",
   import: "import",
@@ -16,6 +17,7 @@ const STAFF_SEGMENT_KEYS = {
 export function getWorkspaceNavStaff(t) {
   return [
     { to: "/dashboard/overview", label: t("workspace.nav.overview"), end: true },
+    { to: "/dashboard/shipments", label: t("workspace.nav.shipments") },
     { to: "/dashboard/clients", label: t("workspace.nav.clients") },
     { to: "/dashboard/add", label: t("workspace.nav.add") },
     { to: "/dashboard/import", label: t("workspace.nav.import") },

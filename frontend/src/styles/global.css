@@ -341,7 +341,9 @@ a:focus-visible:not(.btn) {
   color: var(--text);
   font-size: 0.95rem;
   font-family: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .field__input::placeholder {
@@ -750,11 +752,15 @@ body {
   border-radius: calc(var(--radius) + 2px);
   border: 1px solid var(--auth-card-border);
   background: var(--auth-card-bg);
-  box-shadow: var(--shadow), 0 0 0 1px rgba(56, 189, 248, 0.06);
+  box-shadow:
+    var(--shadow),
+    0 0 0 1px rgba(56, 189, 248, 0.06);
 }
 
 [data-theme="light"] .auth-card {
-  box-shadow: var(--shadow-sm), 0 0 0 1px rgba(14, 165, 233, 0.06);
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 1px rgba(14, 165, 233, 0.06);
 }
 
 .auth-card--wide {
@@ -1292,7 +1298,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .overview-snapshot__tab,
   .overview-snapshot__tab:active {
-    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      color 0.15s ease;
     transform: none;
   }
 }
@@ -3278,7 +3287,12 @@ select.field__input {
   overflow: hidden;
   padding: 2rem 1.25rem 2.25rem;
   border-top: none;
-  background: linear-gradient(165deg, color-mix(in srgb, var(--surface-0) 88%, var(--accent) 4%) 0%, var(--footer-bg) 42%, var(--footer-bg) 100%);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--surface-0) 88%, var(--accent) 4%) 0%,
+    var(--footer-bg) 42%,
+    var(--footer-bg) 100%
+  );
   text-align: center;
 }
 
@@ -3300,7 +3314,11 @@ select.field__input {
   width: min(72vw, 480px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 68%);
+  background: radial-gradient(
+    circle at 35% 35%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+    transparent 68%
+  );
   pointer-events: none;
 }
 
@@ -3424,8 +3442,14 @@ select.field__input {
   padding: 1.1rem 1.15rem 1.15rem 1.25rem;
   border-radius: calc(var(--radius) + 2px);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-  background: linear-gradient(135deg, var(--surface-0) 0%, color-mix(in srgb, var(--surface-0) 94%, var(--accent) 6%) 100%);
-  box-shadow: 0 10px 28px color-mix(in srgb, var(--text) 6%, transparent), inset 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent);
+  background: linear-gradient(
+    135deg,
+    var(--surface-0) 0%,
+    color-mix(in srgb, var(--surface-0) 94%, var(--accent) 6%) 100%
+  );
+  box-shadow:
+    0 10px 28px color-mix(in srgb, var(--text) 6%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent);
   text-align: left;
 }
 
@@ -3492,7 +3516,9 @@ select.field__input {
   padding: 0.2rem 0.45rem;
   margin: -0.2rem -0.45rem;
   border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .footer__legal-link:hover {
@@ -3562,7 +3588,9 @@ select.field__input {
   border-radius: 6px;
   padding: 0.2rem 0.35rem 0.2rem 0.15rem;
   margin: -0.2rem -0.35rem -0.2rem -0.15rem;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .back-link:hover {
@@ -3796,7 +3824,6 @@ select.field__input {
   color: var(--text);
   font-weight: 500;
 }
-
 
 .home-landing__panel {
   padding: 1.35rem 1.25rem;
@@ -4118,7 +4145,6 @@ select.field__input {
   text-wrap: pretty;
 }
 
-
 .home-guest-promo__features {
   margin: 0 0 1.15rem;
   padding: 0;
@@ -4210,9 +4236,22 @@ select.field__input {
   border-radius: calc(var(--radius) + 6px);
   border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--ui-line));
   background:
-    radial-gradient(ellipse 90% 70% at 100% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 52%),
-    radial-gradient(ellipse 60% 50% at 0% 100%, color-mix(in srgb, var(--accent-strong) 12%, transparent), transparent 55%),
-    linear-gradient(155deg, color-mix(in srgb, var(--accent) 9%, var(--surface-0)) 0%, var(--surface-0) 45%, var(--surface-elevated) 100%);
+    radial-gradient(
+      ellipse 90% 70% at 100% -10%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 0% 100%,
+      color-mix(in srgb, var(--accent-strong) 12%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--accent) 9%, var(--surface-0)) 0%,
+      var(--surface-0) 45%,
+      var(--surface-elevated) 100%
+    );
   box-shadow:
     0 1px 0 color-mix(in srgb, #fff 8%, transparent) inset,
     0 2px 0 color-mix(in srgb, var(--accent) 6%, transparent) inset,
@@ -4246,7 +4285,13 @@ select.field__input {
 
 .breakout__title-line {
   display: inline;
-  background: linear-gradient(100deg, var(--text) 0%, var(--text) 42%, var(--accent) 78%, color-mix(in srgb, var(--accent) 85%, var(--accent-strong)) 100%);
+  background: linear-gradient(
+    100deg,
+    var(--text) 0%,
+    var(--text) 42%,
+    var(--accent) 78%,
+    color-mix(in srgb, var(--accent) 85%, var(--accent-strong)) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -4396,7 +4441,9 @@ select.field__input {
   border-radius: var(--radius-sm);
   border: 1px solid var(--ui-line);
   background: var(--surface-0);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .home-features__item:hover {
@@ -4634,7 +4681,9 @@ select.field__input {
   color: var(--text);
   font-size: 1rem;
   font-family: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .search-bar__input:focus {
@@ -4670,7 +4719,9 @@ select.field__input {
   border-radius: var(--radius);
   padding: 1rem 1.25rem;
   box-shadow: var(--panel-shadow);
-  transition: border-color var(--transition-standard), box-shadow var(--transition-standard);
+  transition:
+    border-color var(--transition-standard),
+    box-shadow var(--transition-standard);
 }
 
 .panel__head {
@@ -4960,7 +5011,9 @@ select.field__input {
   background: rgba(56, 189, 248, 0.08);
   color: var(--accent);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .shipment-header__copy:hover {
@@ -5468,7 +5521,9 @@ select.field__input {
 }
 
 [data-theme="light"] .sidebar__section {
-  box-shadow: var(--sidebar-section-inset), 0 1px 2px rgba(15, 23, 42, 0.05);
+  box-shadow:
+    var(--sidebar-section-inset),
+    0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .sidebar__section-head {
@@ -5512,7 +5567,9 @@ select.field__input {
   color: var(--muted);
   opacity: 0.85;
   transform: rotate(-90deg);
-  transition: transform 0.2s ease, color 0.15s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.15s ease;
 }
 
 .sidebar__chevron--open {
@@ -5890,7 +5947,11 @@ select.field__input {
   width: min(72vw, 480px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 68%);
+  background: radial-gradient(
+    circle at 35% 35%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+    transparent 68%
+  );
   pointer-events: none;
 }
 
@@ -5958,7 +6019,9 @@ select.field__input {
   height: 2px;
   background: currentColor;
   border-radius: 1px;
-  box-shadow: 0 -5px 0 currentColor, 0 5px 0 currentColor;
+  box-shadow:
+    0 -5px 0 currentColor,
+    0 5px 0 currentColor;
 }
 
 .topbar__right {
@@ -6494,7 +6557,11 @@ select.field__input {
   padding: 1.5rem 1.25rem;
   border-radius: calc(var(--radius) + 4px);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-  background: linear-gradient(135deg, var(--surface-0) 0%, color-mix(in srgb, var(--surface-0) 94%, var(--accent) 6%) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--surface-0) 0%,
+    color-mix(in srgb, var(--surface-0) 94%, var(--accent) 6%) 100%
+  );
   box-shadow: 0 12px 32px color-mix(in srgb, var(--text) 8%, transparent);
 }
 
@@ -6949,7 +7016,9 @@ a.overview-kpi-strip__card--link {
   text-decoration: none;
   color: inherit;
   cursor: pointer;
-  transition: border-color var(--transition-standard), background var(--transition-standard),
+  transition:
+    border-color var(--transition-standard),
+    background var(--transition-standard),
     box-shadow var(--transition-standard);
 }
 
@@ -7027,5 +7096,104 @@ a.overview-kpi-strip__card--link:focus-visible {
   body {
     background: #fff !important;
     color: #000 !important;
+  }
+}
+
+.panel__head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.dash-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field--full {
+  grid-column: 1 / -1;
+}
+
+.dash-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dash-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--surface-2, rgba(255, 255, 255, 0.04));
+}
+
+.dash-chip__remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.public-share {
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.public-share__header {
+  max-width: 48rem;
+  margin: 0 auto 1rem;
+}
+
+.public-share__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.panel--public-share {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.public-share__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.public-share__meta dt {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.public-share__meta dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+}
+
+.public-share__containers {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+@media (max-width: 640px) {
+  .dash-form__grid,
+  .public-share__meta {
+    grid-template-columns: 1fr;
   }
 }
