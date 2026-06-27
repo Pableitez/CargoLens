@@ -4,8 +4,8 @@ import { BackLink } from "../components/BackLink.jsx";
 import { MainLayout } from "../layouts/MainLayout.jsx";
 import { VesselSearchMap } from "../components/VesselSearchMap.jsx";
 import { VesselsGuestPromo } from "../components/VesselsGuestPromo.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
-import * as vesselsApi from "../api/vessels.js";
+import { useAuth } from "../contexts/AuthContext";
+import * as vesselsApi from "../api/vessels";
 import { isValidLatLng } from "../utils/coords.js";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 import {
@@ -26,18 +26,26 @@ function VesselSavedListCell({ breakdown, t }) {
 
   if (a > 0 && c === 0) {
     return wrap(
-      <span className="vessel-saved-list-badge vessel-saved-list-badge--active">{t("vesselsPage.savedStatusActive")}</span>
+      <span className="vessel-saved-list-badge vessel-saved-list-badge--active">
+        {t("vesselsPage.savedStatusActive")}
+      </span>
     );
   }
   if (c > 0 && a === 0) {
     return wrap(
-      <span className="vessel-saved-list-badge vessel-saved-list-badge--completed">{t("vesselsPage.savedStatusCompleted")}</span>
+      <span className="vessel-saved-list-badge vessel-saved-list-badge--completed">
+        {t("vesselsPage.savedStatusCompleted")}
+      </span>
     );
   }
   return wrap(
     <>
-      <span className="vessel-saved-list-badge vessel-saved-list-badge--active">{t("vesselsPage.savedLineActive", { count: a })}</span>
-      <span className="vessel-saved-list-badge vessel-saved-list-badge--completed">{t("vesselsPage.savedLineCompleted", { count: c })}</span>
+      <span className="vessel-saved-list-badge vessel-saved-list-badge--active">
+        {t("vesselsPage.savedLineActive", { count: a })}
+      </span>
+      <span className="vessel-saved-list-badge vessel-saved-list-badge--completed">
+        {t("vesselsPage.savedLineCompleted", { count: c })}
+      </span>
     </>
   );
 }
@@ -55,8 +63,7 @@ function VesselResultTableRow({
 }) {
   const canMap = isValidLatLng(v.latitude ?? v.lat, v.longitude ?? v.lng ?? v.lon);
   const selected = selectedVesselIndex === globalIndex;
-  const toggle = () =>
-    setSelectedVesselIndex((prev) => (prev === globalIndex ? null : globalIndex));
+  const toggle = () => setSelectedVesselIndex((prev) => (prev === globalIndex ? null : globalIndex));
 
   return (
     <tr
@@ -83,9 +90,7 @@ function VesselResultTableRow({
         </td>
       ) : null}
       {showStatusCol ? (
-        <td className="dash-table__date">
-          {v.trackingError ? "No tracking" : v.shipmentStatus ?? "—"}
-        </td>
+        <td className="dash-table__date">{v.trackingError ? "No tracking" : (v.shipmentStatus ?? "—")}</td>
       ) : null}
       {showLifecycleCol ? (
         <td className="vessel-saved-list-td">
@@ -191,12 +196,12 @@ export function VesselsPage() {
 
   const anyVesselCoords = useMemo(() => {
     if (!data?.vessels?.length) return false;
-    return data.vessels.some((v) =>
-      isValidLatLng(v.latitude ?? v.lat, v.longitude ?? v.lng ?? v.lon)
-    );
+    return data.vessels.some((v) => isValidLatLng(v.latitude ?? v.lat, v.longitude ?? v.lng ?? v.lon));
   }, [data]);
 
-  const showContainersCol = Boolean(data?.vessels?.some((v) => Array.isArray(v.containerNumbers) && v.containerNumbers.length > 0));
+  const showContainersCol = Boolean(
+    data?.vessels?.some((v) => Array.isArray(v.containerNumbers) && v.containerNumbers.length > 0)
+  );
   const showStatusCol = data?.source === "containers";
   const showLifecycleCol = data?.source === "containers";
 
@@ -261,7 +266,9 @@ export function VesselsPage() {
               {error}
             </div>
           )}
-          {sourceLabel && !error && <p className="search-block__hint vessel-page__source-hint">{sourceLabel}</p>}
+          {sourceLabel && !error && (
+            <p className="search-block__hint vessel-page__source-hint">{sourceLabel}</p>
+          )}
         </section>
 
         {showGuestPromo && <VesselsGuestPromo />}
@@ -285,7 +292,11 @@ export function VesselsPage() {
                     {showContainersCol ? <th scope="col">Containers</th> : null}
                     {showStatusCol ? <th scope="col">Shipment</th> : null}
                     {showLifecycleCol ? (
-                      <th scope="col" title={t("vesselsPage.thSavedListHint")} className="dash-table__th-hint">
+                      <th
+                        scope="col"
+                        title={t("vesselsPage.thSavedListHint")}
+                        className="dash-table__th-hint"
+                      >
                         {t("vesselsPage.thSavedList")}
                       </th>
                     ) : null}

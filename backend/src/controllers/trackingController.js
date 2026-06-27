@@ -13,7 +13,7 @@ async function markSavedContainerAfterTrack(req, containerNumberUpper, { viaLive
   const companyId = new mongoose.Types.ObjectId(req.user.companyId);
   const baseQ = { companyId, containerNumber: containerNumberUpper };
   if (req.user.clientId) {
-    baseQ.clientId = new mongoose.Types.ObjectId(req.user.clientId);
+    baseQ.contractualPartyId = new mongoose.Types.ObjectId(req.user.clientId);
   }
   const $set = { lifecycleStatus: "active" };
   if (viaLiveApi) {
@@ -58,14 +58,9 @@ export async function searchTracking(req, res, next) {
     if (safecubeApiKey) {
       const carrier = carrierFromContainerNumber(cleaned);
       // Sinay usa SCAC; prefijo ISO del contenedor a veces no coincide — fallback de sealine.
-      const sealineGuess =
-        carrier.id !== "unknown" ? cleaned.slice(0, 4) : undefined;
+      const sealineGuess = carrier.id !== "unknown" ? cleaned.slice(0, 4) : undefined;
       try {
-        const detail = await fetchSafecubeShipmentWithSealineFallback(
-          safecubeApiKey,
-          cleaned,
-          sealineGuess
-        );
+        const detail = await fetchSafecubeShipmentWithSealineFallback(safecubeApiKey, cleaned, sealineGuess);
         const data = mapSafecubeToApp(detail);
         await markSavedContainerAfterTrack(req, cleaned, { viaLiveApi: true });
         return res.json(data);

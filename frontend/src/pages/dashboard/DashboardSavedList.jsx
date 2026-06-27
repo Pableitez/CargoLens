@@ -160,7 +160,7 @@ export function DashboardSavedList() {
                 {t("dashboardPage.list.emptyPortalBefore")}
                 <strong>{user?.clientName}</strong>
                 {t("dashboardPage.list.emptyPortalAfter")}
-                <Link to="/">{t("dashboardPage.list.emptyPortalSearch")}</Link>
+                <Link to="/track">{t("dashboardPage.list.emptyPortalSearch")}</Link>
                 {t("dashboardPage.list.emptyPortalEnd")}
               </>
             ) : (
@@ -174,7 +174,7 @@ export function DashboardSavedList() {
                   {t("dashboardPage.list.importExcel")}
                 </Link>
                 {t("dashboardPage.list.emptyStaffTail")}{" "}
-                <Link to="/">{t("dashboardPage.list.publicSearch")}</Link>.
+                <Link to="/track">{t("dashboardPage.list.publicSearch")}</Link>.
               </>
             )}
           </p>

@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { ApiConnectivityProvider } from "./contexts/ApiConnectivityContext.jsx";
-import { AuthProvider } from "./contexts/AuthContext.jsx";
-import { CommandPaletteProvider } from "./contexts/CommandPaletteContext.jsx";
-import { ThemeProvider } from "./contexts/ThemeContext.jsx";
-import { ToastProvider } from "./contexts/ToastContext.jsx";
+import { ApiConnectivityProvider } from "./contexts/ApiConnectivityContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { CommandPaletteProvider } from "./contexts/CommandPaletteContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { ToastProvider } from "./contexts/ToastContext";
 import { LanguageProvider } from "./i18n/LanguageContext.jsx";
 import { App } from "./App.jsx";
 import { appMetaDescription, appName, appPageTitleSuffix } from "./config/siteMeta.js";

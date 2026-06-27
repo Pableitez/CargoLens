@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { DASHBOARD_OVERVIEW_PATH } from "../../config/paths.js";
-import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
 import { DashboardPageSkeleton } from "../../components/DashboardPageSkeleton.jsx";
-import * as containersApi from "../../api/containers.js";
+import * as containersApi from "../../api/containers";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
 import { useStableT } from "../../i18n/useStableT.js";
 
@@ -39,16 +38,10 @@ export function DashboardAttention() {
 
   return (
     <section className="panel panel--dash-form" aria-labelledby="attention-heading">
-      <PageBreadcrumb
-        items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
-          { label: t("workspace.section.attention.topbar") },
-        ]}
-      />
-      <h2 id="attention-heading" className="panel__title panel__title--section">
+      <h2 id="attention-heading" className="sr-only">
         {t("dashboardPage.attention.pageTitle")}
       </h2>
-      {payload?.mode === "mock" && payload.hint && <p className="overview-map__hint">{payload.hint}</p>}
+      {payload?.mode === "mock" && payload.hint ? <p className="overview-map__hint">{payload.hint}</p> : null}
       {error && (
         <div className="alert alert--error" role="alert">
           {error}
@@ -58,13 +51,10 @@ export function DashboardAttention() {
         <DashboardPageSkeleton rows={5} />
       ) : !payload || payload.mode === "empty" ? (
         <div className="empty-state empty-state--compact">
-          <p className="empty-state__body">
-            {t("dashboardPage.attention.emptyLine1")}{" "}
-            <Link to="/dashboard/add" className="empty-hint__link">
-              {t("dashboardPage.attention.addSome")}
-            </Link>{" "}
-            {t("dashboardPage.attention.emptyLine2")}
-          </p>
+          <p className="empty-state__title">{t("dashboardPage.attention.emptyTitle")}</p>
+          <Link to="/dashboard/add" className="btn btn--primary btn--sm">
+            {t("dashboardPage.attention.addSome")}
+          </Link>
         </div>
       ) : (
         <>

@@ -1,5 +1,5 @@
 {
-  "name": "freightboard-web",
+  "name": "naolab-web",
   "private": true,
   "license": "UNLICENSED",
   "version": "0.1.0",
@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.api-contexts.json --noEmit",
     "test:e2e": "playwright test",
     "lint:locales": "node scripts/verify-locale-keys.mjs",
     "split:locales": "node scripts/split-locales.mjs",

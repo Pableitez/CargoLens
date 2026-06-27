@@ -72,3 +72,106 @@
 .field__input--filter {
   max-width: 100%;
 }
+
+.field__input--compact-top {
+  margin-top: 0.35rem;
+}
+
+.entity-code-fields__grid {
+  width: 100%;
+}
+
+.entity-code-fields__code {
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+  letter-spacing: 0.06em;
+}
+
+.entity-code-fields__segments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.entity-code-fields__segment {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated));
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.entity-code-fields__segment-sep {
+  font-size: 0.72rem;
+  color: var(--muted);
+  user-select: none;
+}
+
+.entity-form .party-profile__form-section:first-child {
+  padding-top: 0;
+}
+
+.entity-code-fields__function-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.45rem;
+}
+
+.entity-code-fields__function-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--field-input-border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.entity-code-fields__function-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--field-input-border));
+}
+
+.entity-code-fields__function-btn--active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.entity-code-fields__function-btn--trm.entity-code-fields__function-btn--active {
+  border-color: color-mix(in srgb, #38bdf8 70%, var(--accent));
+  background: color-mix(in srgb, #38bdf8 12%, var(--bg-elevated));
+}
+
+.entity-code-fields__function-code {
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.entity-code-fields__function-name {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.2;
+  text-align: left;
+}
+
+.entity-code-fields__segment--trm {
+  border-color: color-mix(in srgb, #38bdf8 55%, var(--accent));
+  background: color-mix(in srgb, #38bdf8 14%, var(--bg-elevated));
+}

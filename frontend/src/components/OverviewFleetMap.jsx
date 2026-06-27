@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "../contexts/ThemeContext.jsx";
+import { useTheme } from "../contexts/ThemeContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 import { cartoTileUrl } from "../map/cartoTiles.js";
 import { colorForContainer } from "../utils/overviewColors.js";
@@ -103,7 +103,12 @@ function OverviewFleetMap({ payload }) {
             {t("overviewMap.loadingMap")}
           </div>
         ) : (
-          <MapContainer center={center} zoom={3} className="map-shell__leaflet overview-map__leaflet" scrollWheelZoom>
+          <MapContainer
+            center={center}
+            zoom={3}
+            className="map-shell__leaflet overview-map__leaflet"
+            scrollWheelZoom
+          >
             <TileLayer
               key={theme}
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
@@ -163,9 +168,7 @@ function OverviewFleetMap({ payload }) {
           </MapContainer>
         )}
       </div>
-      {items.some((it) => !it.ok) && (
-        <p className="overview-map__partial">{t("overviewMap.partialHint")}</p>
-      )}
+      {items.some((it) => !it.ok) && <p className="overview-map__partial">{t("overviewMap.partialHint")}</p>}
     </div>
   );
 }

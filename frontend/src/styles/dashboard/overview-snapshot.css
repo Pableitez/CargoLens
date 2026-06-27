@@ -295,3 +295,30 @@
   padding-top: 1.25rem;
   border-top: 1px solid var(--sep-accent);
 }
+
+/* Dashboard home — trade operations hub */
+.dash-home {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.dash-home .panel__head {
+  margin-bottom: 0;
+}
+
+.dash-home__section {
+  padding: 0 0 0.15rem;
+}
+
+.dash-home__section-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.dash-home__placeholder {
+  margin-top: 0.25rem;
+}

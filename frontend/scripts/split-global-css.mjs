@@ -69,7 +69,7 @@ const IMPORTS = [
   "./ux/overlays.css",
 ];
 
-const entry = `/* CargoLens — modular styles (import order matters) */\n${IMPORTS.map((p) => `@import "${p}";`).join("\n")}\n`;
+const entry = `/* NaoLab — modular styles (import order matters) */\n${IMPORTS.map((p) => `@import "${p}";`).join("\n")}\n`;
 fs.writeFileSync(srcPath, entry, "utf8");
 
 console.log("Split global.css into", IMPORTS.length, "modules.");

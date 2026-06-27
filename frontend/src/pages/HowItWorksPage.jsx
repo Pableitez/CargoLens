@@ -1,8 +1,8 @@
 import { Link, NavLink, Navigate, useParams } from "react-router-dom";
 import { BackLink } from "../components/BackLink.jsx";
 import { MainLayout } from "../layouts/MainLayout.jsx";
-import { DASHBOARD_OVERVIEW_PATH } from "../config/paths.js";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { DASHBOARD_HOME_PATH } from "../config/paths.js";
+import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 
 const VALID_SECTIONS = new Set(["track", "vessels", "workspace", "list", "import", "clients", "activity"]);
@@ -109,11 +109,11 @@ export function HowItWorksPage() {
         ) : null}
 
         <div className="how-it-works__cta-row">
-          <Link to="/" className="btn btn--primary">
+          <Link to="/track" className="btn btn--primary">
             {t("howItWorks.ctaTrack")}
           </Link>
           {user ? (
-            <Link to={DASHBOARD_OVERVIEW_PATH} className="btn btn--secondary">
+            <Link to={DASHBOARD_HOME_PATH} className="btn btn--secondary">
               {t("howItWorks.ctaDashboard")}
             </Link>
           ) : (

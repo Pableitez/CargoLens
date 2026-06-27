@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
-import * as containersApi from "../api/containers.js";
+import * as containersApi from "../api/containers";
 
 const MAX_RESULTS = 150;
 
@@ -143,9 +143,7 @@ export function SavedContainerTrackPicker({ onPick, disabled }) {
                 disabled={disabled}
               >
                 <span className="search-block-saved__cn">{it.containerNumber}</span>
-                {it.clientName ? (
-                  <span className="search-block-saved__meta">{it.clientName}</span>
-                ) : null}
+                {it.clientName ? <span className="search-block-saved__meta">{it.clientName}</span> : null}
               </button>
             </li>
           ))}

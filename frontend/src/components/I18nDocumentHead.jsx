@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext";
 import { appName } from "../config/siteMeta.js";
 import { getDocumentTitle } from "../utils/pageTitle.js";
 import { getMetaDescription } from "../utils/metaDescription.js";
 
-const siteUrl = typeof import.meta.env.VITE_SITE_URL === "string" ? import.meta.env.VITE_SITE_URL.replace(/\/$/, "") : "";
+const siteUrl =
+  typeof import.meta.env.VITE_SITE_URL === "string" ? import.meta.env.VITE_SITE_URL.replace(/\/$/, "") : "";
 
 // Sincroniza título, descripción y meta OG/Twitter con idioma y ruta.
 export function I18nDocumentHead() {
@@ -32,7 +33,8 @@ export function I18nDocumentHead() {
     if (ogUrl) {
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       const base = siteUrl || origin;
-      if (base) ogUrl.setAttribute("content", `${base}${pathname.startsWith("/") ? pathname : `/${pathname}`}`);
+      if (base)
+        ogUrl.setAttribute("content", `${base}${pathname.startsWith("/") ? pathname : `/${pathname}`}`);
     }
 
     const twTitle = document.querySelector('meta[name="twitter:title"]');

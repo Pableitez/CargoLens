@@ -1,16 +1,12 @@
 import jwt from "jsonwebtoken";
 import { getEnv } from "../config/env.js";
+import { readAuthToken } from "../utils/authCookie.js";
 
-// Bearer opcional: si es válido, `req.user`; si no, sigue como invitado (rutas públicas con contexto).
-export function optionalAuth(req, res, next) {
+function attachUserFromToken(req, token) {
   const secret = getEnv().jwtSecret;
-  if (!secret) return next();
-
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) return next();
+  if (!secret || !token) return false;
 
   try {
-    const token = header.slice(7);
     const payload = jwt.verify(token, secret);
     const clientId = payload.clientId && String(payload.clientId) !== "null" ? payload.clientId : null;
     req.user = {
@@ -19,9 +15,15 @@ export function optionalAuth(req, res, next) {
       email: payload.email,
       clientId,
     };
+    return true;
   } catch {
-    // token inválido: invitado
+    return false;
   }
+}
+
+// Bearer o cookie httpOnly: si es válido, `req.user`; si no, sigue como invitado.
+export function optionalAuth(req, res, next) {
+  attachUserFromToken(req, readAuthToken(req));
   next();
 }
 
@@ -34,25 +36,11 @@ export function requireAuth(req, res, next) {
     });
   }
 
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "UNAUTHORIZED", message: "Missing bearer token." });
+  if (!attachUserFromToken(req, readAuthToken(req))) {
+    return res.status(401).json({ error: "UNAUTHORIZED", message: "Not authenticated." });
   }
 
-  try {
-    const token = header.slice(7);
-    const payload = jwt.verify(token, secret);
-    const clientId = payload.clientId && String(payload.clientId) !== "null" ? payload.clientId : null;
-    req.user = {
-      userId: payload.sub,
-      companyId: payload.companyId,
-      email: payload.email,
-      clientId,
-    };
-    next();
-  } catch {
-    return res.status(401).json({ error: "INVALID_TOKEN", message: "Invalid or expired token." });
-  }
+  next();
 }
 
 // Solo cuenta empresa (no portal cliente).

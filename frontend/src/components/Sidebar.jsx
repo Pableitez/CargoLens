@@ -1,13 +1,14 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { AccountMenuTrigger, AccountModal } from "./AccountModal.tsx";
 import { BrandMark } from "./BrandMark.jsx";
-import { ThemeToggle } from "./ThemeToggle.jsx";
 import { appName } from "../config/siteMeta.js";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext";
 import { prefetchRoute } from "../utils/prefetchRoutes.js";
 import { getSidebarOpenInitial } from "./sidebarModuleConfig.js";
+import { SidebarNavIcon, sidebarIconModuleId } from "./sidebarNavIcons.tsx";
 import { SidebarModuleNav } from "./SidebarModuleNav.jsx";
 import { isDesktopSidebarFlyout, useFlyoutPanelStyle } from "./sidebarFlyout.js";
 
@@ -163,7 +164,16 @@ function IconChevronSidebar() {
 
 const SIDEBAR_OPEN_INITIAL = getSidebarOpenInitial();
 
-function SidebarNavSection({ sectionId, label, open, onToggle, children, flyout = true }) {
+function SidebarNavSection({
+  sectionId,
+  label,
+  open,
+  onToggle,
+  children,
+  flyout = true,
+  collapsed = false,
+  iconModuleId,
+}) {
   const headRef = useRef(null);
   const panelId = `sidebar-section-${sectionId}`;
   const flyoutStyle = useFlyoutPanelStyle(open, flyout, headRef);
@@ -194,9 +204,15 @@ function SidebarNavSection({ sectionId, label, open, onToggle, children, flyout 
           className="sidebar__section-head"
           aria-expanded={open}
           aria-controls={panelId}
+          title={collapsed ? label : undefined}
           onClick={onToggle}
         >
-          <span className="sidebar__label sidebar__label--toggle">{label}</span>
+          {collapsed ? (
+            <span className="sidebar__link-glyph" aria-hidden>
+              <SidebarNavIcon moduleId={iconModuleId ?? sidebarIconModuleId(sectionId)} />
+            </span>
+          ) : null}
+          <span className="sidebar__label sidebar__label--toggle sidebar__link-text">{label}</span>
           <span
             className={`sidebar__chevron${flyout ? " sidebar__chevron--flyout" : ""}${open ? " sidebar__chevron--open" : ""}`}
             aria-hidden
@@ -212,12 +228,13 @@ function SidebarNavSection({ sectionId, label, open, onToggle, children, flyout 
 }
 
 // Navegación lateral agrupada (estilo operador).
-export function Sidebar({ onNavigate }) {
+export function Sidebar({ onNavigate, collapsed = false }) {
   const { pathname } = useLocation();
-  const { t, locale, setLocale } = useTranslation();
+  const { t } = useTranslation();
   const { user, logout, loading } = useAuth();
   const staff = user && !user.isClientPortal;
   const isPortal = !!user?.isClientPortal;
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const [openGroups, setOpenGroups] = useState(() => ({ ...SIDEBAR_OPEN_INITIAL }));
 
@@ -276,11 +293,11 @@ export function Sidebar({ onNavigate }) {
         : null}
       <div className="sidebar__inner">
         <div className="sidebar__brand">
-          <Link to="/" className="sidebar__logo-link" onClick={handleNav}>
+          <Link to="/" className="sidebar__logo-link" onClick={handleNav} title={appName}>
             <span className="sidebar__logo-mark" aria-hidden>
-              <BrandMark size={40} />
+              <BrandMark size={collapsed ? 36 : 40} />
             </span>
-            <div>
+            <div className="sidebar__logo-text">
               <span className="sidebar__logo-title">{appName}</span>
               <span className="sidebar__logo-sub">{t("brand.tagline")}</span>
             </div>
@@ -299,6 +316,7 @@ export function Sidebar({ onNavigate }) {
                 SidebarNavSection={SidebarNavSection}
                 openGroups={openGroups}
                 toggleSection={toggleSection}
+                collapsed={collapsed}
               />
             </>
           )}
@@ -306,9 +324,11 @@ export function Sidebar({ onNavigate }) {
           {!user && (
             <SidebarNavSection
               sectionId="account"
+              iconModuleId="account"
               label={t("sidebar.groupAccount")}
               open={openGroups.account}
               onToggle={() => toggleSection("account")}
+              collapsed={collapsed}
             >
               {loading && <span className="sidebar__muted">{t("sidebar.loading")}</span>}
               {!loading && (
@@ -340,57 +360,27 @@ export function Sidebar({ onNavigate }) {
         </nav>
 
         <div className="sidebar__bottom">
-          <div className="sidebar__prefs" role="group" aria-label={t("sidebar.prefsAria")}>
-            <div className="sidebar__pref-col">
-              <span className="sidebar__appearance-label">{t("language.label")}</span>
-              <div className="sidebar__lang-seg" role="group" aria-label={t("language.label")}>
-                <button
-                  type="button"
-                  className={`sidebar__lang-btn${locale === "en" ? " sidebar__lang-btn--active" : ""}`}
-                  onClick={() => setLocale("en")}
-                  aria-pressed={locale === "en"}
-                >
-                  EN
-                </button>
-                <button
-                  type="button"
-                  className={`sidebar__lang-btn${locale === "es" ? " sidebar__lang-btn--active" : ""}`}
-                  onClick={() => setLocale("es")}
-                  aria-pressed={locale === "es"}
-                >
-                  ES
-                </button>
-              </div>
-            </div>
-            <div className="sidebar__pref-col sidebar__pref-col--theme">
-              <span className="sidebar__appearance-label">{t("sidebar.theme")}</span>
-              <ThemeToggle className="sidebar__theme-toggle" />
-            </div>
-          </div>
           {user && (
             <div className="sidebar__user">
-              <div className="sidebar__user-panel">
-                <span className="sidebar__user-label">{t("sidebar.groupAccount")}</span>
-                <div className="sidebar__user-card">
-                  <div className="sidebar__user-avatar" aria-hidden>
-                    {getSidebarInitials(sidebarDisplayName, user.email)}
-                  </div>
-                  <div className="sidebar__user-text">
-                    <span className="sidebar__user-title">{sidebarDisplayName}</span>
-                    <span className="sr-only">{user.email}</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="sidebar__logout"
+              <AccountMenuTrigger
+                displayName={sidebarDisplayName}
+                email={user.email}
+                initials={getSidebarInitials(sidebarDisplayName, user.email)}
+                open={accountOpen}
                 onClick={() => {
-                  logout();
+                  setAccountOpen(true);
                   handleNav();
                 }}
-              >
-                {t("sidebar.logout")}
-              </button>
+              />
+              <AccountModal
+                open={accountOpen}
+                onClose={() => setAccountOpen(false)}
+                onLogout={() => {
+                  logout();
+                  setAccountOpen(false);
+                  handleNav();
+                }}
+              />
             </div>
           )}
         </div>

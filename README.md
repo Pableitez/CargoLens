@@ -1,8 +1,8 @@
-# CargoLens — Proyecto final Full Stack (The Bridge)
+# NaoLab — Proyecto final Full Stack (The Bridge)
 
 ## Descripción del proyecto
 
-**CargoLens** es una aplicación web de **seguimiento de contenedores marítimos** que incluye:
+**NaoLab** es una plataforma web de **operaciones comerciales y logística** que incluye:
 
 - Búsqueda pública de envíos y vista de detalle.
 - Registro y acceso por **workspace** (empresa) con **MongoDB** y autenticación **JWT**.
@@ -15,12 +15,12 @@ El código está organizado como **monorepo** (`frontend/` y `backend/`) para ma
 
 ## Stack tecnológico
 
-| Capa | Tecnología |
-|------|------------|
-| Frontend | React 18, Vite, React Router, Leaflet, Axios |
-| Backend | Node.js, Express, Mongoose |
-| Autenticación | JWT (Bearer en `localStorage`) |
-| Base de datos | MongoDB |
+| Capa          | Tecnología                                   |
+| ------------- | -------------------------------------------- |
+| Frontend      | React 18, Vite, React Router, Leaflet, Axios |
+| Backend       | Node.js, Express, Mongoose                   |
+| Autenticación | JWT (Bearer en `localStorage`)               |
+| Base de datos | MongoDB                                      |
 
 ---
 
@@ -52,16 +52,16 @@ API por defecto: `http://localhost:4000`. Comprobación: `GET /health`.
 
 ### Scripts principales
 
-| Ubicación | Comando | Uso |
-|-----------|---------|-----|
-| `backend/` | `npm run dev` | Servidor con recarga (`--watch`). |
-| `backend/` | `npm start` | Arranque sin watch (producción). |
-| `backend/` | `npm run seed:demo` | Usuario y datos de demostración. |
-| `backend/` | `npm test` / `npm run test:coverage` | Jest y cobertura (CI/Sonar). |
-| `frontend/` | `npm run dev` / `build` / `preview` | Ciclo Vite. |
-| `frontend/` | `npm test` / `npm run test:coverage` | Vitest. |
-| `frontend/` | `npm run lint` / `npm run lint:locales` | ESLint y coherencia i18n. |
-| `frontend/` | `npm run test:e2e` | Playwright (servidor de desarrollo en ejecución). |
+| Ubicación   | Comando                                 | Uso                                               |
+| ----------- | --------------------------------------- | ------------------------------------------------- |
+| `backend/`  | `npm run dev`                           | Servidor con recarga (`--watch`).                 |
+| `backend/`  | `npm start`                             | Arranque sin watch (producción).                  |
+| `backend/`  | `npm run seed:demo`                     | Usuario y datos de demostración.                  |
+| `backend/`  | `npm test` / `npm run test:coverage`    | Jest y cobertura (CI/Sonar).                      |
+| `frontend/` | `npm run dev` / `build` / `preview`     | Ciclo Vite.                                       |
+| `frontend/` | `npm test` / `npm run test:coverage`    | Vitest.                                           |
+| `frontend/` | `npm run lint` / `npm run lint:locales` | ESLint y coherencia i18n.                         |
+| `frontend/` | `npm run test:e2e`                      | Playwright (servidor de desarrollo en ejecución). |
 
 ---
 
@@ -69,19 +69,19 @@ API por defecto: `http://localhost:4000`. Comprobación: `GET /health`.
 
 Las rutas de negocio utilizan el prefijo **`/api`**. El health check está en la raíz.
 
-| Método | Ruta | Autenticación | Descripción |
-|--------|------|----------------|-------------|
-| GET | `/health` | No | Estado del servicio y base de datos. |
-| POST | `/api/auth/register` | No | Registro. |
-| POST | `/api/auth/login` | No | Obtención de JWT. |
-| GET | `/api/auth/me` | Bearer | Perfil del usuario. |
-| GET | `/api/track/search` | Opcional | Búsqueda por número de contenedor (`q`). |
-| GET | `/api/vessels/search` | No | Búsqueda pública de buques (clave en servidor). |
-| GET | `/api/vessels/from-containers` | Bearer | Buques a partir de contenedores guardados. |
-| GET/POST/PATCH/DELETE | `/api/containers` | Bearer / staff | CRUD, importación. |
-| GET | `/api/containers/overview-map` | Bearer | Datos para mapa y resumen. |
-| CRUD | `/api/clients` | Staff | Clientes del workspace. |
-| GET | `/api/activity` | Staff | Actividad del workspace. |
+| Método                | Ruta                           | Autenticación  | Descripción                                     |
+| --------------------- | ------------------------------ | -------------- | ----------------------------------------------- |
+| GET                   | `/health`                      | No             | Estado del servicio y base de datos.            |
+| POST                  | `/api/auth/register`           | No             | Registro.                                       |
+| POST                  | `/api/auth/login`              | No             | Obtención de JWT.                               |
+| GET                   | `/api/auth/me`                 | Bearer         | Perfil del usuario.                             |
+| GET                   | `/api/track/search`            | Opcional       | Búsqueda por número de contenedor (`q`).        |
+| GET                   | `/api/vessels/search`          | No             | Búsqueda pública de buques (clave en servidor). |
+| GET                   | `/api/vessels/from-containers` | Bearer         | Buques a partir de contenedores guardados.      |
+| GET/POST/PATCH/DELETE | `/api/containers`              | Bearer / staff | CRUD, importación.                              |
+| GET                   | `/api/containers/overview-map` | Bearer         | Datos para mapa y resumen.                      |
+| CRUD                  | `/api/clients`                 | Staff          | Clientes del workspace.                         |
+| GET                   | `/api/activity`                | Staff          | Actividad del workspace.                        |
 
 Sobre `/api` se aplica **rate limiting** (ver `backend/src/app.js`).
 
@@ -97,10 +97,10 @@ cd backend && npm run seed:demo
 
 Para que el mismo usuario exista en el entorno desplegado, el `MONGODB_URI` usado al ejecutar el seed debe corresponder al **mismo** clúster o base de datos que utiliza el backend en producción.
 
-| Campo | Valor |
-|-------|--------|
-| Email | `demo@freightboard.local` |
-| Contraseña | `FreightDemo2026!` |
+| Campo      | Valor               |
+| ---------- | ------------------- |
+| Email      | `demo@naolab.local` |
+| Contraseña | `FreightDemo2026!`  |
 
 Acceso: ruta `/login`.
 
@@ -121,16 +121,16 @@ Para el modo simulado se puede usar el número **`ZZZZ0000000`**; el resultado e
 
 Pasos pensados para **quien prueba la aplicación solo con el navegador**, sin clonar el repositorio ni levantar servidores en local. Sustituye la URL de ejemplo por la del despliegue real (p. ej. Cloudflare Pages) o, si se usa entorno de desarrollo, por `http://localhost:5173`.
 
-| Paso | Qué hacer en el navegador | Qué deberías ver |
-|------|---------------------------|------------------|
-| 1 | Abrir la **URL base** de la aplicación (página de inicio). | La portada con el buscador de contenedor. |
-| 2 | En el buscador, escribir **`ZZZZ0000000`** y confirmar la búsqueda (botón o Enter). | Vista de seguimiento del envío. Si el servidor no usa API de operador, datos de **demostración** (aviso de simulación si la UI lo indica). |
-| 3 | Ir a **Iniciar sesión** / **`/login`** (enlace en la cabecera o menú, o añadiendo `/login` a la URL). | Formulario de email y contraseña. |
-| 4 | Entrar con la **cuenta demo** (email y contraseña de la tabla de la sección «Cuenta de demostración»). | Redirección al **panel** (dashboard) del workspace. |
-| 5 | Revisar el **resumen** (overview): KPIs, tarjetas o mapa según los datos cargados. | Contenido coherente con el workspace (p. ej. contenedores de prueba si el entorno tiene seed aplicado). |
-| 6 | Usar el **menú lateral**: **Lista guardada**, **Clientes**, **Actividad** (según permisos de staff). | Listados y acciones sin errores de carga visibles. |
-| 7 | (Opcional) Abrir **`/vessels`** desde el menú o escribiendo la ruta en la barra de direcciones. | Búsqueda de buques; si el backend no tiene clave de API, mensaje o estado vacío controlado. |
-| 8 | (Opcional) Pulsar **`Ctrl+K`** (Windows/Linux) o **`⌘+K`** (Mac) para la **paleta de comandos** y saltar a una ruta o contenedor. | Lista de acciones y navegación rápida. |
+| Paso | Qué hacer en el navegador                                                                                                         | Qué deberías ver                                                                                                                           |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | Abrir la **URL base** de la aplicación (página de inicio).                                                                        | La portada con el buscador de contenedor.                                                                                                  |
+| 2    | En el buscador, escribir **`ZZZZ0000000`** y confirmar la búsqueda (botón o Enter).                                               | Vista de seguimiento del envío. Si el servidor no usa API de operador, datos de **demostración** (aviso de simulación si la UI lo indica). |
+| 3    | Ir a **Iniciar sesión** / **`/login`** (enlace en la cabecera o menú, o añadiendo `/login` a la URL).                             | Formulario de email y contraseña.                                                                                                          |
+| 4    | Entrar con la **cuenta demo** (email y contraseña de la tabla de la sección «Cuenta de demostración»).                            | Redirección al **panel** (dashboard) del workspace.                                                                                        |
+| 5    | Revisar el **resumen** (overview): KPIs, tarjetas o mapa según los datos cargados.                                                | Contenido coherente con el workspace (p. ej. contenedores de prueba si el entorno tiene seed aplicado).                                    |
+| 6    | Usar el **menú lateral**: **Lista guardada**, **Clientes**, **Actividad** (según permisos de staff).                              | Listados y acciones sin errores de carga visibles.                                                                                         |
+| 7    | (Opcional) Abrir **`/vessels`** desde el menú o escribiendo la ruta en la barra de direcciones.                                   | Búsqueda de buques; si el backend no tiene clave de API, mensaje o estado vacío controlado.                                                |
+| 8    | (Opcional) Pulsar **`Ctrl+K`** (Windows/Linux) o **`⌘+K`** (Mac) para la **paleta de comandos** y saltar a una ruta o contenedor. | Lista de acciones y navegación rápida.                                                                                                     |
 
 **Nota:** si la cuenta demo no existe en la base de datos del servidor, el login fallará hasta que un administrador ejecute el seed en ese entorno (ver sección «Cuenta de demostración»).
 
@@ -159,13 +159,13 @@ Entre dominios distintos, los problemas habituales se resuelven verificando **CO
 
 ## Correspondencia con la rúbrica de evaluación
 
-| Criterio | Evidencia en el proyecto |
-|----------|----------------------------|
-| **Backend** | API REST, validaciones, códigos de estado HTTP, JWT, rate limiting, manejo de errores e integración con servicio externo cuando aplica. |
-| **Frontend (React)** | Componentes organizados, Context, hooks, enrutamiento, interfaz coherente, i18n. |
-| **Integración frontend–backend** | Cliente HTTP centralizado, token en peticiones, indicadores de carga y mensajes de error en flujos principales. |
-| **GitHub / repositorio** | Organización por carpetas, este README, scripts documentados, tabla de endpoints, `.gitignore`. |
-| **Despliegue** | Backend y frontend alojados por separado con variables de entorno descritas. |
+| Criterio                         | Evidencia en el proyecto                                                                                                                |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Backend**                      | API REST, validaciones, códigos de estado HTTP, JWT, rate limiting, manejo de errores e integración con servicio externo cuando aplica. |
+| **Frontend (React)**             | Componentes organizados, Context, hooks, enrutamiento, interfaz coherente, i18n.                                                        |
+| **Integración frontend–backend** | Cliente HTTP centralizado, token en peticiones, indicadores de carga y mensajes de error en flujos principales.                         |
+| **GitHub / repositorio**         | Organización por carpetas, este README, scripts documentados, tabla de endpoints, `.gitignore`.                                         |
+| **Despliegue**                   | Backend y frontend alojados por separado con variables de entorno descritas.                                                            |
 
 ---
 
@@ -232,4 +232,4 @@ Browser (React) ──axios /api──► Express ──► MongoDB (Mongoose)
 
 ---
 
-*Documentación elaborada como memoria del proyecto final. Para incidencias en la reproducción del entorno, verificar variables en `.env` y conectividad con MongoDB.*
+_Documentación elaborada como memoria del proyecto final. Para incidencias en la reproducción del entorno, verificar variables en `.env` y conectividad con MongoDB._

@@ -1,4 +1,4 @@
-import { useTheme } from "../contexts/ThemeContext.jsx";
+import { useTheme } from "../contexts/ThemeContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 
 function IconSun() {

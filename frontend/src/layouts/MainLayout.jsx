@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ApiStatusBanner } from "../components/ApiStatusBanner.jsx";
-import { BrandMark } from "../components/BrandMark.jsx";
 import { Sidebar } from "../components/Sidebar.jsx";
 import { TrackingTopbarNav } from "../components/TrackingTopbarNav.jsx";
 import { appName, developerCredit } from "../config/siteMeta.js";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
+import { useDesktopRail } from "../hooks/useDesktopRail.js";
 
 function topbarDataSourceLine(dataSource, t) {
   if (dataSource === "safecube") return t("mainLayout.liveSinay");
@@ -19,6 +19,7 @@ function topbarDataSourceLine(dataSource, t) {
 export function MainLayout({ children, dataSource, title, subtitle, topbarExtra, topbarNav }) {
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const desktopRail = useDesktopRail();
   const location = useLocation();
 
   useEffect(() => {
@@ -27,12 +28,16 @@ export function MainLayout({ children, dataSource, title, subtitle, topbarExtra,
 
   const sourceLine = topbarDataSourceLine(dataSource, t);
 
-  const hasPageTitle = Boolean(title);
+  const showPageTitle = typeof title === "string" && title.length > 0;
+  const hideTopbarHeading = title === null || title === "";
 
   return (
     <div className="layout layout--shell">
-      <aside className={`sidebar${sidebarOpen ? " sidebar--open" : ""}`} aria-label={t("mainLayout.navMain")}>
-        <Sidebar onNavigate={() => setSidebarOpen(false)} />
+      <aside
+        className={`sidebar${sidebarOpen ? " sidebar--open" : ""}${desktopRail ? " sidebar--collapsed" : ""}`}
+        aria-label={t("mainLayout.navMain")}
+      >
+        <Sidebar collapsed={desktopRail} onNavigate={() => setSidebarOpen(false)} />
       </aside>
 
       <button
@@ -59,11 +64,13 @@ export function MainLayout({ children, dataSource, title, subtitle, topbarExtra,
             >
               <span className="topbar__menu-bars" aria-hidden />
             </button>
-            {hasPageTitle ? (
+            {showPageTitle ? (
               <div className="topbar__heading">
-                <h1 className="footer__brand-name">{title}</h1>
-                {subtitle ? <p className="footer__brand-tag">{subtitle}</p> : null}
+                <h1 className="topbar__title">{title}</h1>
+                {subtitle ? <p className="topbar__subtitle">{subtitle}</p> : null}
               </div>
+            ) : hideTopbarHeading ? (
+              <div className="topbar__heading topbar__heading--minimal" aria-hidden="true" />
             ) : (
               <div className="topbar__heading">
                 <div className="footer__brand-name">{appName}</div>
@@ -91,59 +98,34 @@ export function MainLayout({ children, dataSource, title, subtitle, topbarExtra,
           {children}
         </main>
 
-        <footer className="footer footer--shell">
-          <div className="footer__shell-bg" aria-hidden />
-          <div className="footer__grid">
-            <div className="footer__block footer__block--brand">
-              <div className="footer__brand">
-                <span className="footer__brand-mark" aria-hidden>
-                  <BrandMark size={40} />
-                </span>
-                <div className="footer__brand-text">
-                  <div className="footer__brand-name">{appName}</div>
-                  <p className="footer__brand-tag">{t("brand.tagline")}</p>
-                </div>
-              </div>
-            </div>
-            <div className="footer__developer" aria-label={t("mainLayout.projectCredits")}>
-              <p className="footer__dev-title">{t("mainLayout.project")}</p>
-              <p className="footer__dev-name">
-                {appName}
-                <span className="footer__dev-year" aria-hidden>
-                  {" "}
-                  · {developerCredit.year}
-                </span>
-              </p>
-              <p className="footer__dev-person">
-                {developerCredit.name}
-                {developerCredit.role ? (
-                  <span className="footer__dev-role"> · {developerCredit.role}</span>
-                ) : null}
-              </p>
-              <nav className="footer__legal-links" aria-label={t("mainLayout.footerLegalNav")}>
-                <Link to="/how-it-works" className="footer__legal-link">
-                  {t("mainLayout.howItWorks")}
-                </Link>
-                <span className="footer__sep" aria-hidden>
-                  ·
-                </span>
-                <Link to="/privacy" className="footer__legal-link">
-                  {t("mainLayout.privacy")}
-                </Link>
-                <span className="footer__sep" aria-hidden>
-                  ·
-                </span>
-                <Link to="/terms" className="footer__legal-link">
-                  {t("mainLayout.terms")}
-                </Link>
-                <span className="footer__sep" aria-hidden>
-                  ·
-                </span>
-                <Link to="/changelog" className="footer__legal-link">
-                  {t("mainLayout.changelog")}
-                </Link>
-              </nav>
-            </div>
+        <footer className="footer footer--shell footer--shell-minimal">
+          <div className="footer__shell-bar">
+            <p className="footer__shell-copy">
+              © {developerCredit.year} {appName}
+            </p>
+            <nav className="footer__legal-links" aria-label={t("mainLayout.footerLegalNav")}>
+              <Link to="/how-it-works" className="footer__legal-link">
+                {t("mainLayout.howItWorks")}
+              </Link>
+              <span className="footer__sep" aria-hidden>
+                ·
+              </span>
+              <Link to="/privacy" className="footer__legal-link">
+                {t("mainLayout.privacy")}
+              </Link>
+              <span className="footer__sep" aria-hidden>
+                ·
+              </span>
+              <Link to="/terms" className="footer__legal-link">
+                {t("mainLayout.terms")}
+              </Link>
+              <span className="footer__sep" aria-hidden>
+                ·
+              </span>
+              <Link to="/changelog" className="footer__legal-link">
+                {t("mainLayout.changelog")}
+              </Link>
+            </nav>
           </div>
         </footer>
       </div>

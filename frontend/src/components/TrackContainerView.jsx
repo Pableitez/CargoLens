@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { BrandMark } from "./BrandMark.jsx";
 import { MainLayout } from "../layouts/MainLayout.jsx";
 import { appName } from "../config/siteMeta.js";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext";
 import { SearchBar } from "./SearchBar.jsx";
 import { SavedContainerTrackPicker } from "./SavedContainerTrackPicker.jsx";
 import { Timeline } from "./Timeline.jsx";
@@ -224,9 +224,7 @@ export function TrackContainerView({
   );
 
   if (embedded) {
-    return (
-      <div className={`track-workspace${compact ? " track-workspace--overview" : ""}`}>{inner}</div>
-    );
+    return <div className={`track-workspace${compact ? " track-workspace--overview" : ""}`}>{inner}</div>;
   }
 
   return (

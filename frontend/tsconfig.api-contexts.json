@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "checkJs": true
+  },
+  "include": ["src/api/**/*.ts", "src/contexts/**/*.tsx", "src/contexts/**/*.ts", "src/vite-env.d.ts"]
+}

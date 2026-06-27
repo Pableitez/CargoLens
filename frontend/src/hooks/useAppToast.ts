@@ -1,4 +1,4 @@
-import { useToast as useToastRaw } from "../contexts/ToastContext.jsx";
+import { useToast as useToastRaw } from "../contexts/ToastContext";
 
 type ToastContextValue = {
   showToast: (options: { message: string; variant?: "success" | "error" | "info" }) => void;

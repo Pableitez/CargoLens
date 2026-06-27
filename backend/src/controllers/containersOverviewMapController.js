@@ -9,14 +9,8 @@ import { normalizeLatLng } from "../utils/coords.js";
 import { devError } from "../utils/devLog.js";
 
 // Vista previa / mapa: solo filas marcadas API operador (con tope).
-const MAX_ACTIVE = Math.min(
-  24,
-  Math.max(4, Number(process.env.SAFECUBE_OVERVIEW_MAX_CONTAINERS) || 12)
-);
-const MAX_COMPLETED = Math.min(
-  100,
-  Math.max(4, Number(process.env.SAFECUBE_OVERVIEW_MAX_COMPLETED) || 30)
-);
+const MAX_ACTIVE = Math.min(24, Math.max(4, Number(process.env.SAFECUBE_OVERVIEW_MAX_CONTAINERS) || 12));
+const MAX_COMPLETED = Math.min(100, Math.max(4, Number(process.env.SAFECUBE_OVERVIEW_MAX_COMPLETED) || 30));
 
 const BETWEEN_MS = 80;
 
@@ -119,7 +113,7 @@ function mockMapItem(row, trackingDataSource) {
     trackingDataSource,
     entrySource,
     lifecycleStatus,
-    clientId: row.clientId ? String(row.clientId) : "",
+    clientId: row.contractualPartyId ? String(row.contractualPartyId) : "",
     clientName: row.clientName || "",
     notes: row.notes || "",
     position: pos,
@@ -152,7 +146,7 @@ function buildFailedMapItem(row, errMsg) {
     trackingDataSource: "manual",
     entrySource: "api",
     lifecycleStatus,
-    clientId: row.clientId ? String(row.clientId) : "",
+    clientId: row.contractualPartyId ? String(row.contractualPartyId) : "",
     clientName: row.clientName || "",
     notes: row.notes || "",
     status: "UNKNOWN",
@@ -186,7 +180,7 @@ function buildLiveMapItem(row, built) {
     trackingDataSource: "live",
     entrySource: "api",
     lifecycleStatus,
-    clientId: row.clientId ? String(row.clientId) : "",
+    clientId: row.contractualPartyId ? String(row.contractualPartyId) : "",
     clientName: row.clientName || "",
     notes: row.notes || "",
     position: position ?? undefined,
@@ -229,13 +223,18 @@ export async function overviewMap(req, res) {
   const q = { companyId: new mongoose.Types.ObjectId(companyId) };
 
   if (req.user.clientId) {
-    q.clientId = new mongoose.Types.ObjectId(req.user.clientId);
+    q.contractualPartyId = new mongoose.Types.ObjectId(req.user.clientId);
   }
 
   try {
     const totalRows = await SavedContainer.countDocuments(q);
     if (totalRows === 0) {
-      return res.json({ mode: "empty", items: [], itemsCompleted: [], counts: { activeApi: 0, completedApi: 0 } });
+      return res.json({
+        mode: "empty",
+        items: [],
+        itemsCompleted: [],
+        counts: { activeApi: 0, completedApi: 0 },
+      });
     }
 
     const activeQ = { ...q, lifecycleStatus: { $ne: "completed" }, entrySource: "api" };

@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext.jsx";
-import { useToast } from "../../contexts/ToastContext.jsx";
+import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
 import { useStableT } from "../../i18n/useStableT.js";
-import * as containersApi from "../../api/containers.js";
-import * as clientsApi from "../../api/clients.js";
+import * as containersApi from "../../api/containers";
+import * as clientsApi from "../../api/clients";
 import { setPaletteContainerNumbers } from "../../utils/recentPalette.js";
 
 const DashboardWorkspaceContext = createContext(null);
@@ -25,7 +25,7 @@ export function DashboardWorkspaceProvider({ children }) {
   const [error, setError] = useState("");
   const [form, setForm] = useState({ containerNumber: "", clientId: "", notes: "" });
   const [saving, setSaving] = useState(false);
-  const [clientForm, setClientForm] = useState({ name: "" });
+  const [clientForm, setClientForm] = useState({ name: "", contractualTier: "primary", parentClientId: "" });
   const [savingClient, setSavingClient] = useState(false);
   const [importMsg, setImportMsg] = useState(null);
   const [importing, setImporting] = useState(false);
@@ -75,7 +75,6 @@ export function DashboardWorkspaceProvider({ children }) {
     const cid = new URLSearchParams(location.search).get("clientId");
     if (cid) setClientIdFilter(cid);
   }, [location.pathname, location.search]);
-
 
   const filteredItems = useMemo(() => {
     const q = clientFilter.trim().toLowerCase();
@@ -136,8 +135,13 @@ export function DashboardWorkspaceProvider({ children }) {
       setSavingClient(true);
       setError("");
       try {
-        await clientsApi.createClient({ name: clientForm.name.trim() });
-        setClientForm({ name: "" });
+        await clientsApi.createClient({
+          name: clientForm.name.trim(),
+          contractualTier: clientForm.contractualTier,
+          parentClientId:
+            clientForm.contractualTier === "subsidiary" ? clientForm.parentClientId || undefined : undefined,
+        });
+        setClientForm({ name: "", contractualTier: "primary", parentClientId: "" });
         await loadClients();
         showToast({ message: tRef.current("dashboard.clientCreated"), variant: "success" });
       } catch (err) {
@@ -248,6 +252,7 @@ export function DashboardWorkspaceProvider({ children }) {
       filteredItems,
       overviewStats,
       load,
+      loadClients,
       handleAdd,
       handleDelete,
       handleAddClient,
@@ -274,6 +279,7 @@ export function DashboardWorkspaceProvider({ children }) {
       filteredItems,
       overviewStats,
       load,
+      loadClients,
       handleAdd,
       handleDelete,
       handleAddClient,

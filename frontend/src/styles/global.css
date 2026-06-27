@@ -1,4 +1,4 @@
-/* CargoLens — modular styles (import order matters) */
+/* NaoLab — modular styles (import order matters) */
 @import "./tokens/fonts.css";
 @import "./tokens/theme.css";
 @import "./base/focus.css";
@@ -10,6 +10,11 @@
 @import "./dashboard/stats.css";
 @import "./dashboard/overview-snapshot.css";
 @import "./dashboard/overview-summary.css";
+@import "./dashboard/orders.css";
+@import "./dashboard/trade-setup.css";
+@import "./dashboard/messages.css";
+@import "./dashboard/modules.css";
+@import "./dashboard/filter-sidebar.css";
 @import "./marketing/public-pages.css";
 @import "./tracking/results.css";
 @import "./shell/app-shell.css";

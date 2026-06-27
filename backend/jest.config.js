@@ -5,4 +5,5 @@ export default {
   collectCoverageFrom: ["src/**/*.js", "!src/**/*.test.js"],
   coverageDirectory: "coverage",
   coverageReporters: ["lcov", "text-summary"],
+  transform: {},
 };

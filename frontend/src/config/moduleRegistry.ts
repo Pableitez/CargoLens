@@ -5,6 +5,7 @@ export type SubmoduleDef = {
   route: string;
   i18nKey: string;
   implemented?: boolean;
+  staffOnly?: boolean;
 };
 
 export type ModuleGroupDef = {
@@ -26,27 +27,45 @@ export type NavModuleDef = {
   implemented?: boolean;
 };
 
-export const PLATFORM_NAV: NavModuleDef[] = [
-  { id: "home", route: "/dashboard/home", i18nKey: "modules.nav.home", end: true },
-  {
-    id: "cases",
-    route: "/dashboard/cases",
-    i18nKey: "modules.nav.cases",
-    staffOnly: true,
-    implemented: true,
-  },
-  { id: "shipments", route: "/dashboard/shipments", i18nKey: "modules.nav.shipments", staffOnly: true },
-  {
-    id: "operationalFinance",
-    route: "/dashboard/operational-finance",
-    i18nKey: "modules.nav.operationalFinance",
-    staffOnly: true,
-  },
-  { id: "documents", route: "/dashboard/documents", i18nKey: "modules.nav.documents", staffOnly: true },
-  { id: "insights", route: "/dashboard/insights", i18nKey: "modules.nav.insights", staffOnly: true },
-  { id: "tasks", route: "/dashboard/tasks", i18nKey: "modules.nav.tasks", staffOnly: true },
-  { id: "settings", route: "/dashboard/settings", i18nKey: "modules.nav.settings", staffOnly: true },
-];
+export const SIDEBAR_HOME: NavModuleDef = {
+  id: "home",
+  route: "/dashboard/home",
+  i18nKey: "modules.nav.home",
+  end: true,
+};
+
+/** @deprecated Use getStaffDashboardNav / getClientDashboardNav instead. */
+export const PLATFORM_NAV: NavModuleDef[] = [SIDEBAR_HOME];
+
+export function getStaffDashboardNav(): NavModuleDef[] {
+  return [SIDEBAR_HOME];
+}
+
+export function getClientDashboardNav(): NavModuleDef[] {
+  return [
+    SIDEBAR_HOME,
+    {
+      id: "tradeSetup",
+      route: "/dashboard/trade-setup",
+      i18nKey: "modules.clientAccount.tradeSetup",
+      implemented: true,
+    },
+    {
+      id: "messages",
+      route: "/dashboard/messages",
+      i18nKey: "modules.insights.customerMessagingService",
+      implemented: true,
+    },
+  ];
+}
+
+export function getStaffPlatformNav(): NavModuleDef[] {
+  return getStaffDashboardNav();
+}
+
+export function getClientPlatformNav(): NavModuleDef[] {
+  return getClientDashboardNav();
+}
 
 export const OPERATIONS_MODULES: ModuleGroupDef[] = [
   {
@@ -56,11 +75,17 @@ export const OPERATIONS_MODULES: ModuleGroupDef[] = [
     i18nLeadKey: "modules.export.lead",
     staffOnly: true,
     submodules: [
-      { id: "order", route: "/dashboard/operations/export/order", i18nKey: "modules.export.order" },
+      {
+        id: "order",
+        route: "/dashboard/operations/export/order",
+        i18nKey: "modules.export.order",
+        implemented: true,
+      },
       {
         id: "shipperBooking",
         route: "/dashboard/operations/export/shipper-booking",
         i18nKey: "modules.export.shipperBooking",
+        implemented: true,
       },
       {
         id: "exportCustoms",
@@ -213,26 +238,77 @@ export const INSIGHTS_MODULE: ModuleGroupDef = {
     { id: "reporting", route: "/dashboard/insights/reporting", i18nKey: "modules.insights.reporting" },
     {
       id: "customerMessagingService",
-      route: "/dashboard/insights/customer-messaging-service",
+      route: "/dashboard/messages",
       i18nKey: "modules.insights.customerMessagingService",
+      implemented: true,
     },
   ],
 };
 
 export const TRACKING_LINKS: SubmoduleDef[] = [
+  {
+    id: "overview",
+    route: "/dashboard/tracking/overview",
+    i18nKey: "modules.tracking.overview",
+    implemented: true,
+  },
   { id: "savedList", route: "/dashboard/list", i18nKey: "modules.tracking.savedList", implemented: true },
   { id: "coverage", route: "/dashboard/attention", i18nKey: "modules.tracking.coverage", implemented: true },
   { id: "vessels", route: "/vessels", i18nKey: "modules.tracking.vessels", implemented: true },
 ];
 
-/** Staff-only container workspace (clients, add, import, activity) — Tracking dropdown + hub. */
-export const STAFF_WORKSPACE_TOOL_LINKS: SubmoduleDef[] = [
+/** Per-contractual account tools — staff manages all clients; portal users see their own trade setup. */
+export const CLIENT_ACCOUNT_LINKS: SubmoduleDef[] = [
   {
-    id: "clients",
-    route: "/dashboard/clients",
-    i18nKey: "modules.workspaceTools.clients",
+    id: "tradeSetupStaff",
+    route: "/dashboard/clients/parties",
+    i18nKey: "modules.settings.parties",
+    implemented: true,
+    staffOnly: true,
+  },
+  {
+    id: "tradeSetupPortal",
+    route: "/dashboard/trade-setup",
+    i18nKey: "modules.clientAccount.tradeSetup",
+    implemented: true,
+    staffOnly: false,
+  },
+];
+
+/** Staff settings — party directory + facilities catalog. */
+export const SETTINGS_LINKS: SubmoduleDef[] = [
+  {
+    id: "parties",
+    route: "/dashboard/clients/parties",
+    i18nKey: "modules.settings.parties",
     implemented: true,
   },
+  {
+    id: "facilities",
+    route: "/dashboard/clients/facilities",
+    i18nKey: "modules.settings.facilities",
+    implemented: true,
+  },
+  {
+    id: "relationships",
+    route: "/dashboard/clients/relationships",
+    i18nKey: "modules.settings.relationships",
+    implemented: true,
+  },
+];
+
+export const SETTINGS_MODULE: ModuleGroupDef = {
+  id: "settings",
+  route: "/dashboard/settings",
+  i18nTitleKey: "modules.settings.title",
+  i18nLeadKey: "modules.settings.lead",
+  staffOnly: true,
+  implemented: true,
+  submodules: SETTINGS_LINKS,
+};
+
+/** Staff-only container workspace — Tracking dropdown (not account settings). */
+export const STAFF_TRACKING_CONTAINER_LINKS: SubmoduleDef[] = [
   { id: "add", route: "/dashboard/add", i18nKey: "modules.workspaceTools.addContainer", implemented: true },
   {
     id: "import",
@@ -248,31 +324,39 @@ export const STAFF_WORKSPACE_TOOL_LINKS: SubmoduleDef[] = [
   },
 ];
 
+/** @deprecated Prefer SETTINGS_LINKS + STAFF_TRACKING_CONTAINER_LINKS. */
+export const STAFF_WORKSPACE_TOOL_LINKS: SubmoduleDef[] = [
+  ...SETTINGS_LINKS,
+  ...STAFF_TRACKING_CONTAINER_LINKS,
+];
+
 /** Tracking en la topbar (derecha) — no en sidebar ni workspace-nav. */
 export const GUEST_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
-  { id: "search", route: "/", i18nKey: "modules.tracking.search", implemented: true },
+  { id: "search", route: "/track", i18nKey: "modules.tracking.search", implemented: true },
   { id: "vessels", route: "/vessels", i18nKey: "modules.tracking.vessels", implemented: true },
 ];
 
 export const CLIENT_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
-  { id: "search", route: "/dashboard/home", i18nKey: "modules.tracking.search", implemented: true },
+  {
+    id: "search",
+    route: "/dashboard/tracking/overview",
+    i18nKey: "modules.tracking.search",
+    implemented: true,
+  },
   { id: "savedList", route: "/dashboard/list", i18nKey: "modules.tracking.savedList", implemented: true },
 ];
 
 export const STAFF_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
-  { id: "search", route: "/dashboard/home", i18nKey: "modules.tracking.search", implemented: true },
+  {
+    id: "search",
+    route: "/dashboard/tracking/overview",
+    i18nKey: "modules.tracking.search",
+    implemented: true,
+  },
   ...TRACKING_LINKS,
 ];
 
-export function getStaffPlatformNav(): NavModuleDef[] {
-  return PLATFORM_NAV;
-}
-
-export function getClientPlatformNav(): NavModuleDef[] {
-  return PLATFORM_NAV.filter((m) => !m.staffOnly);
-}
-
 export function findModuleGroupByRoute(pathname: string): ModuleGroupDef | undefined {
-  const all = [...OPERATIONS_MODULES, DOCUMENTS_MODULE, INSIGHTS_MODULE];
+  const all = [...OPERATIONS_MODULES, DOCUMENTS_MODULE, INSIGHTS_MODULE, SETTINGS_MODULE];
   return all.find((g) => pathname === g.route || pathname.startsWith(`${g.route}/`));
 }

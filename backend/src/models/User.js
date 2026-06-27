@@ -10,10 +10,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    // Si registro con invitación cliente: portal solo lectura para ese cliente.
+    // Portal users: contractual party id (legacy field name clientId).
     clientId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
+      ref: "Party",
       default: null,
       index: true,
     },

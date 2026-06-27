@@ -8,9 +8,9 @@ const savedContainerSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    clientId: {
+    contractualPartyId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
+      ref: "Party",
       default: null,
       index: true,
     },

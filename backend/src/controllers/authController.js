@@ -2,12 +2,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { getEnv } from "../config/env.js";
 import { isDbConnected } from "../db.js";
+import { Party } from "../models/Party.js";
 import { Client } from "../models/Client.js";
+import { resolvePrimaryContractualParty } from "../services/tradeMasters/contractualPartyValidation.js";
 import { Company } from "../models/Company.js";
 import { User } from "../models/User.js";
 import { jsonError } from "../utils/jsonError.js";
 import { devError } from "../utils/devLog.js";
 import { resolveCompanyForRegistration } from "./authRegisterHelpers.js";
+import { clearAuthCookie, setAuthCookie } from "../utils/authCookie.js";
 
 const SALT_ROUNDS = 10;
 
@@ -22,44 +25,79 @@ function signToken(user) {
   );
 }
 
+async function findContractualPartyForUser(clientId, companyId) {
+  const party = await Party.findOne({
+    _id: clientId,
+    companyId,
+    accountTier: "contractual",
+  }).lean();
+  if (party) return party;
+
+  const legacyParty = await Party.findOne({ _id: clientId, companyId }).lean();
+  if (legacyParty && (legacyParty.inviteCode || legacyParty.contractualTier || legacyParty.parentPartyId)) {
+    return { ...legacyParty, accountTier: legacyParty.accountTier ?? "contractual" };
+  }
+
+  const legacyClient = await Client.findOne({ _id: clientId, companyId }).lean();
+  if (!legacyClient) return null;
+
+  return {
+    _id: legacyClient._id,
+    legalName: legacyClient.name,
+    code: legacyClient.code ?? "",
+    contractualTier: legacyClient.contractualTier ?? "primary",
+    parentPartyId: legacyClient.parentClientId ?? null,
+    inviteCode: legacyClient.inviteCode ?? "",
+    accountTier: "contractual",
+  };
+}
+
 async function buildUserPayload(user) {
   const company = await Company.findById(user.companyId).lean();
   let client = null;
+  let primaryClient = null;
   if (user.clientId) {
-    client = await Client.findById(user.clientId).lean();
+    client = await findContractualPartyForUser(user.clientId, user.companyId);
+    primaryClient = client ? await resolvePrimaryContractualParty(client) : null;
   }
   return {
-    id: user._id,
+    id: String(user._id),
     email: user.email,
-    companyId: user.companyId,
+    companyId: String(user.companyId),
     companyName: company?.name ?? "",
     inviteCode: company?.inviteCode ?? "",
-    clientId: user.clientId ?? null,
-    clientName: client?.name ?? null,
+    clientId: user.clientId ? String(user.clientId) : null,
+    clientName: client?.legalName ?? null,
+    clientCode: client?.code ?? null,
+    clientContractualTier: client?.contractualTier ?? null,
+    parentClientId: client?.parentPartyId ? String(client.parentPartyId) : null,
+    parentPartyId: client?.parentPartyId ? String(client.parentPartyId) : null,
+    primaryClientId: primaryClient?._id ? String(primaryClient._id) : null,
+    primaryClientName: primaryClient?.legalName ?? null,
+    primaryClientCode: primaryClient?.code ?? null,
     clientInviteCode: client?.inviteCode ?? null,
     isClientPortal: !!user.clientId,
   };
 }
 
 function dbUnavailable(res) {
-  return jsonError(
-    res,
-    503,
-    "DB_UNAVAILABLE",
-    "Database not configured or unreachable. Set MONGODB_URI."
-  );
+  return jsonError(res, 503, "DB_UNAVAILABLE", "Database not configured or unreachable. Set MONGODB_URI.");
 }
 
 export async function register(req, res) {
   if (!isDbConnected()) return dbUnavailable(res);
 
-  const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const email = String(req.body?.email ?? "")
+    .trim()
+    .toLowerCase();
   const password = String(req.body?.password ?? "");
   const companyName = String(req.body?.companyName ?? "").trim();
   const companyInviteCode = String(req.body?.companyInviteCode ?? req.body?.inviteCode ?? "")
     .trim()
     .toUpperCase();
-  const clientInviteCode = String(req.body?.clientInviteCode ?? "").trim().toUpperCase();
+  const clientInviteCode = String(req.body?.clientInviteCode ?? "")
+    .trim()
+    .toUpperCase();
 
   if (!email || !password || password.length < 8) {
     return res.status(400).json({
@@ -101,9 +139,9 @@ export async function register(req, res) {
 
     const token = signToken(user);
     const payload = await buildUserPayload(user);
+    setAuthCookie(res, token);
 
     return res.status(201).json({
-      token,
       user: payload,
     });
   } catch (err) {
@@ -115,7 +153,9 @@ export async function register(req, res) {
 export async function login(req, res) {
   if (!isDbConnected()) return dbUnavailable(res);
 
-  const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const email = String(req.body?.email ?? "")
+    .trim()
+    .toLowerCase();
   const password = String(req.body?.password ?? "");
 
   if (!email || !password) {
@@ -138,15 +178,20 @@ export async function login(req, res) {
 
     const token = signToken(user);
     const payload = await buildUserPayload(user);
+    setAuthCookie(res, token);
 
     return res.json({
-      token,
       user: payload,
     });
   } catch (err) {
     devError(err);
     return res.status(500).json({ error: "SERVER_ERROR", message: "Login failed." });
   }
+}
+
+export async function logout(req, res) {
+  clearAuthCookie(res);
+  return res.json({ ok: true });
 }
 
 export async function me(req, res) {

@@ -1,36 +1,16 @@
 import { Link } from "react-router-dom";
-import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
 import { useDashboardWorkspace } from "./DashboardWorkspaceContext.jsx";
 import { useTranslation } from "../../i18n/LanguageContext.jsx";
 
 export function DashboardAddContainer() {
   const { t } = useTranslation();
-  const { clients, form, setForm, saving, handleAdd, overviewStats } = useDashboardWorkspace();
+  const { clients, form, setForm, saving, handleAdd } = useDashboardWorkspace();
 
   return (
     <section className="panel panel--dash-form" aria-labelledby="add-container-heading">
-      <PageBreadcrumb
-        items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
-          { label: t("dashboardPage.addContainer.breadcrumbAdd") },
-        ]}
-      />
-      <h2 id="add-container-heading" className="panel__title panel__title--section sr-only">
+      <h2 id="add-container-heading" className="sr-only">
         {t("dashboardPage.addContainer.title")}
       </h2>
-      <p className="panel__lead">
-        <strong>{overviewStats.total}</strong> {t("dashboardPage.addContainer.savedWord")}
-        {overviewStats.unassigned > 0 ? (
-          <>
-            {" "}
-            · <strong>{overviewStats.unassigned}</strong> {t("dashboardPage.addContainer.unassignedWord")}
-          </>
-        ) : null}
-        {" · "}
-        <Link to="/dashboard/list" className="dash-overview__link">
-          {t("dashboardPage.addContainer.viewList")}
-        </Link>
-      </p>
       <form className="dash-form" onSubmit={handleAdd}>
         <div className="field">
           <label className="field__label" htmlFor="dash-cn">
@@ -79,6 +59,9 @@ export function DashboardAddContainer() {
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? t("dashboardPage.addContainer.saving") : t("dashboardPage.addContainer.save")}
           </button>
+          <Link to="/dashboard/list" className="btn btn--ghost">
+            {t("dashboardPage.addContainer.viewList")}
+          </Link>
         </div>
       </form>
     </section>

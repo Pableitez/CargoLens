@@ -1,17 +1,18 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { DASHBOARD_OVERVIEW_PATH } from "./config/paths.js";
 import { CommandPalette } from "./components/CommandPalette.jsx";
 import { RouteRecentHook } from "./components/RouteRecentHook.jsx";
 import { RouteScrollToTop } from "./components/RouteScrollToTop.jsx";
-import { ProtectedRoute } from "./components/ProtectedRoute.jsx";
-import { StaffRoute } from "./pages/dashboard/StaffRoute.jsx";
+import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
+import { StaffRoute } from "./pages/dashboard/StaffRoute.tsx";
 import { I18nDocumentHead } from "./components/I18nDocumentHead.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import { RouteFallback } from "./components/RouteFallback.jsx";
 import { MODULE_PLACEHOLDER_ROUTES } from "./modules/shared/modulePages.tsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx").then((m) => ({ default: m.HomePage })));
+const TrackPage = lazy(() => import("./pages/TrackPage.jsx").then((m) => ({ default: m.TrackPage })));
 const LoginPage = lazy(() => import("./pages/LoginPage.jsx").then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() =>
   import("./pages/RegisterPage.jsx").then((m) => ({ default: m.RegisterPage }))
@@ -26,11 +27,11 @@ const TermsOfServicePage = lazy(() =>
 const DashboardLayout = lazy(() =>
   import("./pages/dashboard/DashboardLayout.jsx").then((m) => ({ default: m.DashboardLayout }))
 );
+const DashboardHome = lazy(() =>
+  import("./pages/dashboard/DashboardHome.jsx").then((m) => ({ default: m.DashboardHome }))
+);
 const DashboardOverview = lazy(() =>
   import("./pages/dashboard/DashboardOverview.jsx").then((m) => ({ default: m.DashboardOverview }))
-);
-const DashboardClients = lazy(() =>
-  import("./pages/dashboard/DashboardClients.jsx").then((m) => ({ default: m.DashboardClients }))
 );
 const DashboardAddContainer = lazy(() =>
   import("./pages/dashboard/DashboardAddContainer.jsx").then((m) => ({ default: m.DashboardAddContainer }))
@@ -47,9 +48,6 @@ const DashboardActivity = lazy(() =>
 const DashboardAttention = lazy(() =>
   import("./pages/dashboard/DashboardAttention.jsx").then((m) => ({ default: m.DashboardAttention }))
 );
-const DashboardSettings = lazy(() =>
-  import("./pages/dashboard/DashboardSettings.jsx").then((m) => ({ default: m.DashboardSettings }))
-);
 const NotFoundPage = lazy(() =>
   import("./pages/NotFoundPage.jsx").then((m) => ({ default: m.NotFoundPage }))
 );
@@ -59,29 +57,60 @@ const HowItWorksPage = lazy(() =>
 const ChangelogPage = lazy(() =>
   import("./pages/ChangelogPage.jsx").then((m) => ({ default: m.ChangelogPage }))
 );
-const DashboardShipments = lazy(() =>
-  import("./features/shipments/DashboardShipments.tsx").then((m) => ({ default: m.DashboardShipments }))
-);
-const DashboardShipmentDetail = lazy(() =>
-  import("./features/shipments/DashboardShipmentDetail.tsx").then((m) => ({
-    default: m.DashboardShipmentDetail,
+const DashboardOrderDetail = lazy(() =>
+  import("./features/orders/DashboardOrderDetail.tsx").then((m) => ({
+    default: m.DashboardOrderDetail,
   }))
 );
-const DashboardShipmentsImport = lazy(() =>
-  import("./features/shipments/DashboardShipmentsImport.tsx").then((m) => ({
-    default: m.DashboardShipmentsImport,
+const DashboardTradeSetup = lazy(() =>
+  import("./features/export/DashboardTradeSetup.tsx").then((m) => ({ default: m.DashboardTradeSetup }))
+);
+const DashboardFacilities = lazy(() =>
+  import("./features/export/DashboardFacilities.tsx").then((m) => ({ default: m.DashboardFacilities }))
+);
+const DashboardPartyProfile = lazy(() =>
+  import("./features/export/DashboardPartyProfile.tsx").then((m) => ({ default: m.DashboardPartyProfile }))
+);
+const DashboardRelationships = lazy(() =>
+  import("./features/export/DashboardRelationships.tsx").then((m) => ({
+    default: m.DashboardRelationships,
   }))
 );
-const PublicShipmentPage = lazy(() =>
-  import("./pages/PublicShipmentPage.tsx").then((m) => ({ default: m.PublicShipmentPage }))
-);
-const DashboardCases = lazy(() =>
-  import("./features/cases/DashboardCases.tsx").then((m) => ({ default: m.DashboardCases }))
-);
-const DashboardCaseDetail = lazy(() =>
-  import("./features/cases/DashboardCaseDetail.tsx").then((m) => ({
-    default: m.DashboardCaseDetail,
+const DashboardTradeMastersImportHub = lazy(() =>
+  import("./features/export/DashboardTradeMastersImportHub.tsx").then((m) => ({
+    default: m.DashboardTradeMastersImportHub,
   }))
+);
+const DashboardTradeMastersImport = lazy(() =>
+  import("./features/export/DashboardTradeMastersImport.tsx").then((m) => ({
+    default: m.DashboardTradeMastersImport,
+  }))
+);
+const DashboardOrders = lazy(() =>
+  import("./features/orders/DashboardOrders.tsx").then((m) => ({ default: m.DashboardOrders }))
+);
+const DashboardOrdersImport = lazy(() =>
+  import("./features/orders/DashboardOrdersImport.tsx").then((m) => ({
+    default: m.DashboardOrdersImport,
+  }))
+);
+const DashboardShipperBookings = lazy(() =>
+  import("./features/shipperBookings/DashboardShipperBookings.tsx").then((m) => ({
+    default: m.DashboardShipperBookings,
+  }))
+);
+const DashboardShipperBookingDetail = lazy(() =>
+  import("./features/shipperBookings/DashboardShipperBookingDetail.tsx").then((m) => ({
+    default: m.DashboardShipperBookingDetail,
+  }))
+);
+const DashboardShipperBookingsImport = lazy(() =>
+  import("./features/shipperBookings/DashboardShipperBookingsImport.tsx").then((m) => ({
+    default: m.DashboardShipperBookingsImport,
+  }))
+);
+const DashboardMessages = lazy(() =>
+  import("./features/messages/DashboardMessages.jsx").then((m) => ({ default: m.DashboardMessages }))
 );
 const DashboardTrackingHub = lazy(() =>
   import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardTrackingHub }))
@@ -113,21 +142,34 @@ const DashboardDocumentsHub = lazy(() =>
 const DashboardInsightsHub = lazy(() =>
   import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardInsightsHub }))
 );
+const DashboardSettingsHub = lazy(() =>
+  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardSettingsHub }))
+);
 const ModulePlaceholderByRoute = lazy(() =>
   import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.ModulePlaceholderByRoute }))
 );
+
+function RedirectClientToParty() {
+  const { clientId } = useParams();
+  return <Navigate to={`/dashboard/clients/parties/${clientId}`} replace />;
+}
+
+function RedirectLegacyPartyProfile() {
+  const { partyId } = useParams();
+  return <Navigate to={`/dashboard/clients/parties/${partyId}`} replace />;
+}
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/track" element={<TrackPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
       <Route path="/vessels" element={<VesselsPage />} />
       <Route path="/how-it-works" element={<Navigate to="/how-it-works/track" replace />} />
       <Route path="/how-it-works/:section" element={<HowItWorksPage />} />
       <Route path="/changelog" element={<ChangelogPage />} />
-      <Route path="/share/:token" element={<PublicShipmentPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route
@@ -139,24 +181,9 @@ function AppRoutes() {
         }
       >
         <Route index element={<Navigate to="home" replace />} />
-        <Route path="home" element={<DashboardOverview />} />
+        <Route path="home" element={<DashboardHome />} />
+        <Route path="tracking/overview" element={<DashboardOverview />} />
         <Route path="overview" element={<Navigate to={DASHBOARD_OVERVIEW_PATH} replace />} />
-        <Route
-          path="cases"
-          element={
-            <StaffRoute>
-              <DashboardCases />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="cases/:id"
-          element={
-            <StaffRoute>
-              <DashboardCaseDetail />
-            </StaffRoute>
-          }
-        />
         <Route path="tracking" element={<DashboardTrackingHub />} />
         <Route
           path="operational-finance"
@@ -187,6 +214,117 @@ function AppRoutes() {
           element={
             <StaffRoute>
               <DashboardExportHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/export/trade-setup"
+          element={<Navigate to="/dashboard/clients/parties" replace />}
+        />
+        <Route path="trade-setup" element={<DashboardTradeSetup />} />
+        <Route path="trade-setup/facilities" element={<DashboardFacilities />} />
+        <Route path="trade-setup/parties/:partyId" element={<DashboardPartyProfile />} />
+        <Route
+          path="clients/parties"
+          element={
+            <StaffRoute>
+              <DashboardTradeSetup />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="clients/parties/:partyId"
+          element={
+            <StaffRoute>
+              <DashboardPartyProfile />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="clients/facilities"
+          element={
+            <StaffRoute>
+              <DashboardFacilities />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="clients/relationships"
+          element={
+            <StaffRoute>
+              <DashboardRelationships />
+            </StaffRoute>
+          }
+        />
+        <Route path="clients/party-relationships" element={<Navigate to="../relationships" replace />} />
+        <Route path="clients/facility-relationships" element={<Navigate to="../relationships" replace />} />
+        <Route
+          path="clients/trade-masters/import"
+          element={
+            <StaffRoute>
+              <DashboardTradeMastersImportHub />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="clients/trade-masters/import/:kind"
+          element={
+            <StaffRoute>
+              <DashboardTradeMastersImport />
+            </StaffRoute>
+          }
+        />
+        <Route path="clients/trade-setup" element={<Navigate to="/dashboard/clients/parties" replace />} />
+        <Route
+          path="clients/trade-setup/facilities"
+          element={<Navigate to="/dashboard/clients/facilities" replace />}
+        />
+        <Route path="clients/trade-setup/parties/:partyId" element={<RedirectLegacyPartyProfile />} />
+        <Route
+          path="operations/export/order/import"
+          element={
+            <StaffRoute>
+              <DashboardOrdersImport />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/export/order/:id"
+          element={
+            <StaffRoute>
+              <DashboardOrderDetail />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/export/order"
+          element={
+            <StaffRoute>
+              <DashboardOrders />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/export/shipper-booking/import"
+          element={
+            <StaffRoute>
+              <DashboardShipperBookingsImport />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/export/shipper-booking/:id"
+          element={
+            <StaffRoute>
+              <DashboardShipperBookingDetail />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/export/shipper-booking"
+          element={
+            <StaffRoute>
+              <DashboardShipperBookings />
             </StaffRoute>
           }
         />
@@ -230,6 +368,19 @@ function AppRoutes() {
             </StaffRoute>
           }
         />
+        <Route path="messages" element={<DashboardMessages />} />
+        <Route
+          path="insights/customer-messaging-service"
+          element={<Navigate to="/dashboard/messages" replace />}
+        />
+        <Route
+          path="settings"
+          element={
+            <StaffRoute>
+              <DashboardSettingsHub />
+            </StaffRoute>
+          }
+        />
         {MODULE_PLACEHOLDER_ROUTES.map(({ path, titleKey, parent }) => (
           <Route
             key={path}
@@ -241,36 +392,14 @@ function AppRoutes() {
             }
           />
         ))}
-        <Route
-          path="shipments"
-          element={
-            <StaffRoute>
-              <DashboardShipments />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="shipments/import"
-          element={
-            <StaffRoute>
-              <DashboardShipmentsImport />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="shipments/:id"
-          element={
-            <StaffRoute>
-              <DashboardShipmentDetail />
-            </StaffRoute>
-          }
-        />
         <Route path="track" element={<Navigate to={DASHBOARD_OVERVIEW_PATH} replace />} />
+        <Route path="clients/new" element={<Navigate to="/dashboard/clients/parties?add=party" replace />} />
+        <Route path="clients" element={<Navigate to="/dashboard/clients/parties" replace />} />
         <Route
-          path="clients"
+          path="clients/:clientId"
           element={
             <StaffRoute>
-              <DashboardClients />
+              <RedirectClientToParty />
             </StaffRoute>
           }
         />
@@ -304,14 +433,6 @@ function AppRoutes() {
           element={
             <StaffRoute>
               <DashboardAttention />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="settings"
-          element={
-            <StaffRoute>
-              <DashboardSettings />
             </StaffRoute>
           }
         />

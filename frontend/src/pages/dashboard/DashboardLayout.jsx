@@ -5,6 +5,7 @@ import { OnboardingBanner } from "../../components/OnboardingBanner.jsx";
 import { useTranslation } from "../../i18n/LanguageContext.jsx";
 import { MainLayout } from "../../layouts/MainLayout.jsx";
 import { DashboardWorkspaceProvider, useDashboardWorkspace } from "./DashboardWorkspaceContext.jsx";
+import { BackgroundJobsProvider } from "../../contexts/BackgroundJobsContext.tsx";
 import { getWorkspaceTitles } from "./workspaceConfig.js";
 
 function DashboardShell() {
@@ -66,7 +67,9 @@ function DashboardShell() {
 export function DashboardLayout() {
   return (
     <DashboardWorkspaceProvider>
-      <DashboardShell />
+      <BackgroundJobsProvider>
+        <DashboardShell />
+      </BackgroundJobsProvider>
     </DashboardWorkspaceProvider>
   );
 }

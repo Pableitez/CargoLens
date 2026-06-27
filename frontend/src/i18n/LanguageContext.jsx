@@ -3,7 +3,7 @@ import { setActiveLocale } from "./activeLocale.js";
 import en from "./locales/en.js";
 import es from "./locales/es.js";
 
-const STORAGE_KEY = "freightboard-locale";
+const STORAGE_KEY = "naolab-locale";
 
 const messages = { en, es };
 
@@ -33,8 +33,10 @@ export function LanguageProvider({ children }) {
     return "en";
   });
 
-  // Alinear locale con format.js antes de que monten los hijos.
-  setActiveLocale(locale);
+  // Alinear locale con format.js cuando cambia el idioma.
+  useEffect(() => {
+    setActiveLocale(locale);
+  }, [locale]);
 
   useEffect(() => {
     try {

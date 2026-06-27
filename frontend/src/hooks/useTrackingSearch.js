@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { fetchTrackingByQuery } from "../api/tracking.js";
+import { fetchTrackingByQuery } from "../api/tracking";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 
 const TRACK_DASH_CACHE_PREFIX = "fb.trackDash.";
@@ -28,10 +28,7 @@ function readTrackDashCache(cn) {
 function writeTrackDashCache(cn, payload) {
   if (typeof sessionStorage === "undefined") return;
   try {
-    sessionStorage.setItem(
-      TRACK_DASH_CACHE_PREFIX + cn,
-      JSON.stringify({ at: Date.now(), payload })
-    );
+    sessionStorage.setItem(TRACK_DASH_CACHE_PREFIX + cn, JSON.stringify({ at: Date.now(), payload }));
   } catch {
     // cuota
   }

@@ -4,6 +4,7 @@ import { getWorkspaceTitles } from "../pages/dashboard/workspaceConfig.js";
 export function getMetaDescription(pathname, t, isClientPortal = false) {
   const path = pathname.split("?")[0].replace(/\/$/, "") || "/";
   if (path === "/") return t("seo.description.home");
+  if (path === "/track") return t("seo.description.track");
   if (path === "/privacy") return t("seo.description.privacy");
   if (path === "/terms") return t("seo.description.terms");
   if (path === "/vessels") return t("seo.description.vessels");

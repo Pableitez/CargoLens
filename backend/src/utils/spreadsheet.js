@@ -51,6 +51,28 @@ export function readExcelRows(buffer) {
   return rowsFromWorkbook(workbook);
 }
 
+export function readExcelWorkbook(buffer) {
+  return XLSX.read(buffer, { type: "buffer" });
+}
+
+/** Reads rows from a sheet by name (case-insensitive). Returns empty rows if sheet is missing. */
+export function rowsFromNamedSheet(workbook, sheetName) {
+  const target = normalizeHeaderKey(sheetName);
+  const sheetKey = workbook.SheetNames.find((name) => normalizeHeaderKey(name) === target);
+  if (!sheetKey) {
+    return { sheetName, rows: [], found: false };
+  }
+  const sheet = workbook.Sheets[sheetKey];
+  if (!sheet) {
+    return { sheetName, rows: [], found: false };
+  }
+  return {
+    sheetName: sheetKey,
+    rows: XLSX.utils.sheet_to_json(sheet, { defval: "" }),
+    found: true,
+  };
+}
+
 export function isCsvFilename(filename = "") {
   return String(filename).trim().toLowerCase().endsWith(".csv");
 }

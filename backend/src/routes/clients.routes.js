@@ -1,11 +1,18 @@
 import { Router } from "express";
-import { createClient, deleteClient, listClients, updateClient } from "../controllers/clientsController.js";
+import {
+  createClient,
+  deleteClient,
+  getClient,
+  listClients,
+  updateClient,
+} from "../controllers/clientsController.js";
 import { requireAuth, requireStaff } from "../middleware/auth.js";
 
 export const clientsRouter = Router();
 
 clientsRouter.use(requireAuth, requireStaff);
 clientsRouter.get("/", listClients);
+clientsRouter.get("/:id", getClient);
 clientsRouter.post("/", createClient);
 clientsRouter.patch("/:id", updateClient);
 clientsRouter.delete("/:id", deleteClient);

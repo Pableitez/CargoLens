@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useApiConnectivity } from "../contexts/ApiConnectivityContext.jsx";
+import { useApiConnectivity } from "../contexts/ApiConnectivityContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 
 // Aviso cuando la API no responde (red).
@@ -18,7 +18,11 @@ export function ApiStatusBanner() {
     <div className="api-status-banner" role="alert">
       <div className="api-status-banner__inner">
         <p className="api-status-banner__text">{t("apiBanner.offline")}</p>
-        <button type="button" className="btn btn--ghost btn--sm api-status-banner__dismiss" onClick={() => setDismissed(true)}>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm api-status-banner__dismiss"
+          onClick={() => setDismissed(true)}
+        >
           {t("apiBanner.dismiss")}
         </button>
       </div>

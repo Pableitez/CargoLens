@@ -1,0 +1,264 @@
+/* Dashboard module hubs — operations, tracking, documents, etc. */
+
+.panel--module-hub {
+  --module-accent: var(--accent);
+}
+
+.panel--module-hub .panel__head {
+  margin-bottom: 1rem;
+}
+
+.module-hub__hero {
+  margin-bottom: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--module-accent) 18%, var(--ui-line));
+  border-radius: var(--radius-sm, 10px);
+  background: color-mix(in srgb, var(--module-accent) 7%, var(--bg-elevated, var(--bg)));
+}
+
+.module-hub__hero .panel__title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+}
+
+.module-hub__hero .panel__lead {
+  margin: 0;
+  max-width: 52ch;
+}
+
+.module-hub__hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.module-hub-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.module-hub-grid--compact {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.module-hub-card {
+  margin: 0;
+}
+
+.module-hub-card__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 100%;
+  padding: 1rem 1.05rem 0.95rem;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--radius-sm, 10px);
+  background: var(--bg-elevated, var(--bg));
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.module-hub-card__link:hover {
+  border-color: color-mix(in srgb, var(--module-accent, var(--accent)) 42%, var(--ui-line));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--module-accent, var(--accent)) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+.module-hub-card__link--disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.module-hub-card__link--disabled:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--ui-line);
+}
+
+.module-hub-card--primary .module-hub-card__link {
+  border-color: color-mix(in srgb, var(--module-accent, var(--accent)) 22%, var(--ui-line));
+  background: color-mix(in srgb, var(--module-accent, var(--accent)) 6%, var(--bg-elevated, var(--bg)));
+}
+
+.module-hub-card--muted .module-hub-card__link {
+  background: color-mix(in srgb, var(--muted) 4%, var(--bg-elevated, var(--bg)));
+}
+
+.module-hub-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.module-hub-card__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--module-accent, var(--accent));
+  background: color-mix(in srgb, var(--module-accent, var(--accent)) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--module-accent, var(--accent)) 24%, transparent);
+}
+
+.module-hub-card__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.module-hub-card__title {
+  display: block;
+  font-weight: 700;
+  font-size: 0.94rem;
+  line-height: 1.25;
+}
+
+.module-hub-card__desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.module-hub-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.15rem;
+}
+
+.module-hub-card__badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.module-hub-card__badge--live {
+  color: #059669;
+  background: color-mix(in srgb, #10b981 12%, transparent);
+  border-color: color-mix(in srgb, #10b981 28%, transparent);
+}
+
+.module-hub-card__badge--soon {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+  border-color: color-mix(in srgb, var(--muted) 22%, transparent);
+}
+
+[data-theme="light"] .module-hub-card__badge--live {
+  color: #047857;
+}
+
+.module-hub-card__cta {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--module-accent, var(--accent));
+}
+
+.module-hub-tools {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--ui-line);
+}
+
+.module-hub-tools__title {
+  margin: 0 0 0.15rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.module-hub-tools__lead {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Group accent colors */
+.panel--module-hub--export {
+  --module-accent: #2563eb;
+}
+.panel--module-hub--transport {
+  --module-accent: #0891b2;
+}
+.panel--module-hub--warehouse {
+  --module-accent: #d97706;
+}
+.panel--module-hub--import {
+  --module-accent: #7c3aed;
+}
+.panel--module-hub--documents {
+  --module-accent: #64748b;
+}
+.panel--module-hub--insights {
+  --module-accent: #059669;
+}
+.panel--module-hub--tracking {
+  --module-accent: var(--accent);
+}
+.panel--module-hub--operations {
+  --module-accent: var(--accent);
+}
+.panel--module-hub--operationalFinance {
+  --module-accent: #b45309;
+}
+.panel--module-hub--tasks {
+  --module-accent: #6366f1;
+}
+
+/* Placeholder submodule page */
+.panel--module-placeholder .module-placeholder__card {
+  max-width: 36rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px dashed var(--ui-line);
+  border-radius: var(--radius-sm, 10px);
+  background: color-mix(in srgb, var(--muted) 4%, var(--bg-elevated, var(--bg)));
+}
+
+.module-placeholder__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.module-placeholder__back {
+  display: inline-flex;
+  margin-top: 1rem;
+  font-weight: 650;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.module-placeholder__back:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 639px) {
+  .module-hub-grid,
+  .module-hub-grid--compact {
+    grid-template-columns: 1fr;
+  }
+}

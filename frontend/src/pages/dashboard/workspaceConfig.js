@@ -2,15 +2,15 @@
 
 import {
   findModuleGroupByRoute,
-  getClientPlatformNav,
-  getStaffPlatformNav,
+  getClientDashboardNav,
+  getStaffDashboardNav,
 } from "../../config/moduleRegistry.ts";
 
 /** @typedef {{ to: string; label: string; end?: boolean }} NavItem */
 
 /** @param {import('../../i18n/LanguageContext.jsx').TranslateFn} t */
 export function getWorkspaceNavStaff(t) {
-  return getStaffPlatformNav().map((item) => ({
+  return getStaffDashboardNav().map((item) => ({
     to: item.route,
     label: t(item.i18nKey),
     end: Boolean(item.end),
@@ -19,7 +19,7 @@ export function getWorkspaceNavStaff(t) {
 
 /** @param {import('../../i18n/LanguageContext.jsx').TranslateFn} t */
 export function getWorkspaceNavClient(t) {
-  return getClientPlatformNav().map((item) => ({
+  return getClientDashboardNav().map((item) => ({
     to: item.route,
     label: t(item.i18nKey),
     end: Boolean(item.end),
@@ -38,14 +38,31 @@ function titleFromKey(t, key) {
   return { topbar: t(key), headline: t(key) };
 }
 
+function noTopbarTitle() {
+  return { topbar: null, headline: null };
+}
+
 /** @param {string} pathname @param {boolean} isClientPortal @param {import('../../i18n/LanguageContext.jsx').TranslateFn} t */
 export function getWorkspaceTitles(pathname, isClientPortal, t) {
+  if (pathname === "/dashboard/overview" || pathname.startsWith("/dashboard/home")) {
+    return noTopbarTitle();
+  }
+
   if (isClientPortal) {
+    if (pathname.startsWith("/dashboard/trade-setup")) {
+      return titleFromKey(t, "modules.clientAccount.tradeSetup");
+    }
+    if (pathname.startsWith("/dashboard/messages")) {
+      return titleFromKey(t, "messagesPage.title");
+    }
     if (pathname.startsWith("/dashboard/list")) {
       return {
         topbar: t("workspace.section.clientList.topbar"),
         headline: t("workspace.section.clientList.headline"),
       };
+    }
+    if (pathname.startsWith("/dashboard/tracking/overview")) {
+      return titleFromKey(t, "modules.tracking.overview");
     }
     if (pathname.startsWith("/dashboard/tracking")) {
       return titleFromKey(t, "modules.tracking.title");
@@ -53,17 +70,8 @@ export function getWorkspaceTitles(pathname, isClientPortal, t) {
     return titleFromKey(t, "modules.nav.home");
   }
 
-  if (pathname === "/dashboard/overview" || pathname.startsWith("/dashboard/home")) {
-    return titleFromKey(t, "modules.nav.home");
-  }
-  if (pathname.startsWith("/dashboard/cases")) {
-    return titleFromKey(t, "modules.cases.title");
-  }
-  if (pathname.startsWith("/dashboard/shipments/import")) {
-    return titleFromKey(t, "modules.nav.shipments");
-  }
-  if (pathname.startsWith("/dashboard/shipments")) {
-    return titleFromKey(t, "modules.nav.shipments");
+  if (pathname.startsWith("/dashboard/tracking/overview")) {
+    return titleFromKey(t, "modules.tracking.overview");
   }
   if (pathname.startsWith("/dashboard/tracking")) {
     return titleFromKey(t, "modules.tracking.title");
@@ -77,8 +85,16 @@ export function getWorkspaceTitles(pathname, isClientPortal, t) {
   if (pathname.startsWith("/dashboard/operations")) {
     const group = findModuleGroupByRoute(pathname);
     if (group) {
+      if (pathname === group.route) {
+        return titleFromKey(t, group.i18nTitleKey);
+      }
       const sub = group.submodules.find((s) => pathname === s.route || pathname.startsWith(`${s.route}/`));
-      if (sub) return titleFromKey(t, sub.i18nKey);
+      if (sub) {
+        if (pathname === sub.route) {
+          return titleFromKey(t, sub.i18nKey);
+        }
+        return titleFromKey(t, sub.i18nKey);
+      }
       return titleFromKey(t, group.i18nTitleKey);
     }
     return titleFromKey(t, "modules.operations.indexTitle");
@@ -99,6 +115,24 @@ export function getWorkspaceTitles(pathname, isClientPortal, t) {
     }
     return titleFromKey(t, "modules.insights.title");
   }
+  if (pathname.startsWith("/dashboard/messages")) {
+    return titleFromKey(t, "messagesPage.title");
+  }
+  if (pathname.startsWith("/dashboard/settings")) {
+    return titleFromKey(t, "modules.settings.title");
+  }
+  if (pathname.startsWith("/dashboard/clients/facilities")) {
+    return titleFromKey(t, "modules.settings.facilities");
+  }
+  if (
+    pathname.startsWith("/dashboard/clients/parties") ||
+    pathname.startsWith("/dashboard/clients/trade-setup")
+  ) {
+    return titleFromKey(t, "modules.settings.parties");
+  }
+  if (pathname.startsWith("/dashboard/clients")) {
+    return titleFromKey(t, "modules.settings.parties");
+  }
 
   /** @type {Record<string, string>} */
   const workspaceToolTitleKeys = {
@@ -108,7 +142,6 @@ export function getWorkspaceTitles(pathname, isClientPortal, t) {
     list: "workspace.section.list.topbar",
     activity: "workspace.section.activity.topbar",
     attention: "workspace.section.attention.topbar",
-    settings: "workspace.section.settings.topbar",
   };
   const segment = getDashboardSegment(pathname);
   const toolTitleKey = workspaceToolTitleKeys[segment];

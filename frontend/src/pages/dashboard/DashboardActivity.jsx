@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import * as activityApi from "../../api/activity.js";
-import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
+import * as activityApi from "../../api/activity";
 import { DashboardPageSkeleton } from "../../components/DashboardPageSkeleton.jsx";
 import { formatDateTimeWithZone, parseValidDateIso } from "./dashboardUtils.js";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
@@ -49,13 +48,7 @@ export function DashboardActivity() {
 
   return (
     <section className="panel panel--dash-form" aria-labelledby="activity-heading">
-      <PageBreadcrumb
-        items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
-          { label: t("workspace.section.activity.topbar") },
-        ]}
-      />
-      <h2 id="activity-heading" className="panel__title panel__title--section">
+      <h2 id="activity-heading" className="sr-only">
         {t("dashboardPage.activity.pageTitle")}
       </h2>
       {error && (
@@ -71,8 +64,6 @@ export function DashboardActivity() {
             ◎
           </div>
           <p className="empty-state__title">{t("dashboardPage.activity.emptyTitle")}</p>
-          <p className="empty-state__body">{t("dashboardPage.activity.empty")}</p>
-          <p className="empty-state__body empty-state__hint">{t("dashboardPage.activity.emptyCtaLead")}</p>
           <div className="empty-state__actions">
             <Link to="/dashboard/add" className="btn btn--primary btn--sm">
               {t("dashboardPage.activity.ctaAdd")}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "../contexts/ThemeContext.jsx";
+import { useTheme } from "../contexts/ThemeContext";
 import { cartoTileUrl } from "../map/cartoTiles.js";
 import { isValidLatLng } from "../utils/coords.js";
 

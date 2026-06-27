@@ -11,16 +11,14 @@ export function resolveCorsOrigin() {
   try {
     const u = new URL(raw);
     if (u.protocol !== "http:" && u.protocol !== "https:") {
-      console.warn(
-        "[CORS] CLIENT_ORIGIN debe ser una URL http(s); se ignora y se usa CORS permisivo."
-      );
+      console.warn("[CORS] CLIENT_ORIGIN debe ser una URL http(s); se ignora y se usa CORS permisivo.");
       return true;
     }
     return raw;
   } catch {
     console.warn(
       `[CORS] CLIENT_ORIGIN no es una URL válida (${raw.slice(0, 64)}…). ` +
-        "Corrígela en Render (p. ej. https://cargolens-cfh.pages.dev). Mientras tanto se usa CORS permisivo."
+        "Corrígela en Render (p. ej. https://naolab.pages.dev). Mientras tanto se usa CORS permisivo."
     );
     return true;
   }
@@ -32,6 +30,9 @@ export function getEnv() {
   if (!jwtSecret && nodeEnv === "development") {
     jwtSecret = "dev-insecure-jwt-secret-change-me";
   }
+  if (!jwtSecret && nodeEnv === "production") {
+    throw new Error("JWT_SECRET must be set in production.");
+  }
 
   return {
     nodeEnv,
@@ -39,11 +40,11 @@ export function getEnv() {
     mongoUri: process.env.MONGODB_URI ?? "",
     jwtSecret,
     clientOrigin: process.env.CLIENT_ORIGIN ?? "",
+    allowOpenRegistration: process.env.ALLOW_OPEN_REGISTRATION === "true" || nodeEnv === "development",
     // Misma clave que en Developers → API Credentials (app.safecube.ai).
     safecubeApiKey: String(process.env.SAFECUBE_API_KEY ?? "").trim(),
     // Base API Puertos y Buques Sinay v1.
-    safecubeVesselBase:
-      process.env.SAFECUBE_VESSEL_BASE ?? "https://api.sinay.ai/ports-vessels/api/v1",
+    safecubeVesselBase: process.env.SAFECUBE_VESSEL_BASE ?? "https://api.sinay.ai/ports-vessels/api/v1",
 
     // Vessels Intelligence (última posición AIS); distinto del listado Puertos y Buques.
     safecubeVesselIntelBase:

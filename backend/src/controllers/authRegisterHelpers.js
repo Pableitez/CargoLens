@@ -1,26 +1,26 @@
-import { Client } from "../models/Client.js";
+import { Party } from "../models/Party.js";
 import { Company } from "../models/Company.js";
 import { generateInviteCode } from "../utils/inviteCode.js";
+import { getEnv } from "../config/env.js";
 
 /**
- * Resuelve empresa + clientId para registro (invite cliente, invite empresa o nueva empresa).
+ * Resuelve empresa + clientId (contractual party id) para registro.
  * @returns {{ ok: true, company: object, clientId: import("mongoose").Types.ObjectId | null } | { ok: false, status: number, body: object }}
  */
-export async function resolveCompanyForRegistration({
-  clientInviteCode,
-  companyInviteCode,
-  companyName,
-}) {
+export async function resolveCompanyForRegistration({ clientInviteCode, companyInviteCode, companyName }) {
   if (clientInviteCode) {
-    const client = await Client.findOne({ inviteCode: clientInviteCode });
-    if (!client) {
+    const party = await Party.findOne({
+      inviteCode: clientInviteCode,
+      accountTier: "contractual",
+    });
+    if (!party) {
       return {
         ok: false,
         status: 400,
         body: { error: "INVALID_INVITE", message: "Client invite code not found." },
       };
     }
-    const company = await Company.findById(client.companyId);
+    const company = await Company.findById(party.companyId);
     if (!company) {
       return {
         ok: false,
@@ -28,7 +28,7 @@ export async function resolveCompanyForRegistration({
         body: { error: "INVALID_INVITE", message: "Client workspace invalid." },
       };
     }
-    return { ok: true, company, clientId: client._id };
+    return { ok: true, company, clientId: party._id };
   }
 
   if (companyInviteCode) {
@@ -41,6 +41,18 @@ export async function resolveCompanyForRegistration({
       };
     }
     return { ok: true, company, clientId: null };
+  }
+
+  const { allowOpenRegistration } = getEnv();
+  if (!allowOpenRegistration) {
+    return {
+      ok: false,
+      status: 403,
+      body: {
+        error: "REGISTRATION_CLOSED",
+        message: "Registration requires a company or client invite code.",
+      },
+    };
   }
 
   if (!companyName) {

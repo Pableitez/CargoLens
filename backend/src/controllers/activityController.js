@@ -2,13 +2,7 @@ import mongoose from "mongoose";
 import { isDbConnected } from "../db.js";
 import { WorkspaceActivity } from "../models/WorkspaceActivity.js";
 import { devError } from "../utils/devLog.js";
-
-function dbUnavailable(res) {
-  return res.status(503).json({
-    error: "DB_UNAVAILABLE",
-    message: "Database not configured or unreachable.",
-  });
-}
+import { dbUnavailable } from "./controllerHelpers.js";
 
 export async function listActivity(req, res) {
   if (!isDbConnected()) return dbUnavailable(res);

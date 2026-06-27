@@ -1,0 +1,66 @@
+// Public marketing landing — ES
+export default {
+  marketing: {
+    aria: "Presentación de la plataforma",
+    hero: {
+      eyebrow: "Gratis para forwarders y operadores",
+      title: "Operaciones de comercio exterior, en un solo flujo",
+      lead: "Pedidos, reservas shipper, documentos y visibilidad de contenedores — pensado para forwarders, exportadores e importadores.",
+      ctaPrimary: "Empezar gratis",
+      ctaSecondary: "Iniciar sesión",
+      ctaTrack: "Probar visibilidad de contenedor →",
+      imageAlt: "Panel operativo y logística marítima",
+    },
+    audience: {
+      title: "Para tu rol",
+      lead: "Un espacio para los equipos que mueven carga entre fronteras.",
+      forwarderTitle: "Forwarder",
+      forwarderBody:
+        "Pedidos de exportación, reservas shipper, invitaciones a clientes y flujo de equipo en un solo lugar.",
+      exporterTitle: "Exportador",
+      exporterBody: "Planifica envíos, coordina reservas y comparte estado con tu forwarder o clientes.",
+      importerTitle: "Importador",
+      importerBody:
+        "Sigue llegadas y documentos con tu forwarder — los módulos de importación están en roadmap.",
+    },
+    flow: {
+      title: "Del pedido a la visibilidad",
+      lead: "Pasos operativos conectados — no otro tracker aislado.",
+      stepOrder: "Pedido",
+      stepOrderBody: "Crea e importa pedidos de exportación con clientes y referencias.",
+      stepBooking: "Reserva shipper",
+      stepBookingBody: "Reserva espacio y vincula reservas a tus pedidos.",
+      stepTransport: "Transporte",
+      stepTransportBody: "Coordinación con naviera, instrucciones y schedules — próximamente.",
+      stepDocuments: "Documentos",
+      stepDocumentsBody: "Facturas comerciales, packing list y FCR — módulo planificado.",
+      stepVisibility: "Visibilidad",
+      stepVisibilityBody: "Hitos de contenedor, mapa de buques y estado para clientes cuando lo necesites.",
+      badgeLive: "Disponible",
+      badgeSoon: "Pronto",
+    },
+    features: {
+      title: "Lo que ya puedes usar",
+      lead: "Empieza por operaciones de exportación; el tracking sigue ahí cuando importa la visibilidad.",
+      ordersTitle: "Pedidos de exportación",
+      ordersBody: "Lista, filtros, importación Excel y detalle con línea de tiempo.",
+      bookingsTitle: "Reservas shipper",
+      bookingsBody: "Gestiona reservas con referencias, estado y vínculos a pedidos.",
+      clientsTitle: "Clientes y equipo",
+      clientsBody: "Códigos de invitación staff, portal cliente y actividad compartida.",
+      visibilityTitle: "Visibilidad de contenedor",
+      visibilityBody:
+        "Búsqueda ISO pública, listas guardadas, mapa de flota y buques — como módulo, no como producto entero.",
+      ctaOrders: "Ver pedidos (entrar)",
+      ctaTrack: "Abrir visibilidad",
+    },
+    mission: {
+      title: "Herramientas que antes solo tenían los grandes operadores",
+      lead: "Gratis al empezar. Pensado para operaciones diarias de exportación, no para dashboards vacíos.",
+      b1: "Espacio multiusuario con roles para equipo y clientes",
+      b2: "Importación Excel para pedidos y listas operativas",
+      b3: "Seguimiento de contenedores cuando lo necesitas — sin convertirlo en la portada",
+      ctaRegister: "Crear espacio gratis",
+    },
+  },
+};

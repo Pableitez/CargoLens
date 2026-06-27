@@ -29,9 +29,7 @@ function dedupKeyFromRow(containerNumber, built) {
 
 // Conteos active/completed agregados por buque.
 function lifecycleBreakdownFromSavedRow(savedRow) {
-  return savedRow.lifecycleStatus === "completed"
-    ? { active: 0, completed: 1 }
-    : { active: 1, completed: 0 };
+  return savedRow.lifecycleStatus === "completed" ? { active: 0, completed: 1 } : { active: 1, completed: 0 };
 }
 
 function mergeLifecycleBreakdown(a, b) {
@@ -149,13 +147,17 @@ async function mergeSavedRowIntoVessels(merged, row, safecubeApiKey) {
 export async function buildVesselRowsFromSavedContainers({ companyId, clientId }) {
   const q = { companyId: new mongoose.Types.ObjectId(companyId) };
   if (clientId) {
-    q.clientId = new mongoose.Types.ObjectId(clientId);
+    q.contractualPartyId = new mongoose.Types.ObjectId(clientId);
   }
 
   const rows = await SavedContainer.find(q).sort({ updatedAt: -1 }).limit(MAX_CONTAINERS).lean();
 
   if (rows.length === 0) {
-    return { mode: "empty", vessels: [], hint: "Save containers in the workspace to see their vessels here." };
+    return {
+      mode: "empty",
+      vessels: [],
+      hint: "Save containers in the workspace to see their vessels here.",
+    };
   }
 
   const { safecubeApiKey } = getEnv();

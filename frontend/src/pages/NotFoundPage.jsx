@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { MainLayout } from "../layouts/MainLayout.jsx";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
-import { DASHBOARD_OVERVIEW_PATH } from "../config/paths.js";
+import { useAuth } from "../contexts/AuthContext";
+import { DASHBOARD_HOME_PATH } from "../config/paths.js";
 
 export function NotFoundPage() {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export function NotFoundPage() {
             {t("notFound.home")}
           </Link>
           {user ? (
-            <Link to={DASHBOARD_OVERVIEW_PATH} className="not-found__link">
+            <Link to={DASHBOARD_HOME_PATH} className="not-found__link">
               {t("notFound.dashboard")}
             </Link>
           ) : (

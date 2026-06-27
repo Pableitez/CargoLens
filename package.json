@@ -1,5 +1,5 @@
 {
-  "name": "cargolens",
+  "name": "naolab",
   "private": true,
   "description": "Scripts raíz (Sonar, calidad, etc.); apps en frontend/ y backend/",
   "scripts": {

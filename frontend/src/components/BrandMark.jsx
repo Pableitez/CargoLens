@@ -1,32 +1,78 @@
 import { useId } from "react";
 
-// Marca espiral (gradiente azul, referencia orgánica / movimiento).
+/** Trade route arc behind the N (origin → destination). */
+const ROUTE = "M 13.5 14.5 Q 24 27 34.5 33.5";
+/** Bold N letterform — maritime / navigation mark. */
+const N_PATH = "M 15 34 V 14 L 33 34 V 14";
+/** Compass ring — subtle chart / ops context. */
+const RING = "M 24 22 m -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0";
+/** Cardinal ticks on the ring. */
+const TICKS = ["M 24 6.5 V 9.5", "M 24 34.5 V 37.5", "M 7.5 22 H 10.5", "M 37.5 22 H 40.5"];
+const WAVE = "M 6 40.5 Q 14 37.5 24 39.5 T 42 40.5";
+
+/** NaoLab mark — route N on compass ring + ocean line. */
 export function BrandMark({ className, size = 40 }) {
   const raw = useId();
-  const gid = `bm-${raw.replace(/:/g, "")}`;
+  const gid = `nl-${raw.replace(/:/g, "")}`;
 
   return (
-    <svg className={className} width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      aria-hidden="true"
+      focusable="false"
+    >
       <defs>
-        <linearGradient id={gid} x1="6" y1="8" x2="42" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#7dd3fc" />
-          <stop offset="0.42" stopColor="#0ea5e9" />
-          <stop offset="1" stopColor="#1e3a8a" />
+        <linearGradient id={gid} x1="8" y1="8" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#bae6fd" />
+          <stop offset="0.4" stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#0369a1" />
+        </linearGradient>
+        <linearGradient id={`${gid}-route`} x1="13" y1="14" x2="35" y2="34" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#7dd3fc" stopOpacity="0.15" />
+          <stop offset="1" stopColor="#0ea5e9" stopOpacity="0.55" />
         </linearGradient>
       </defs>
-      <g fill="none" stroke={`url(#${gid})`} strokeLinecap="round">
-        <circle cx="24" cy="24" r="19" strokeWidth="3.2" strokeDasharray="78 125" transform="rotate(-38 24 24)" />
-        <circle
-          cx="24"
-          cy="24"
-          r="13.5"
-          strokeWidth="3"
-          strokeDasharray="52 155"
-          transform="rotate(18 24 24)"
-          opacity="0.92"
-        />
-        <circle cx="24" cy="24" r="8" strokeWidth="2.6" strokeDasharray="36 185" transform="rotate(88 24 24)" opacity="0.88" />
+
+      <circle cx="13.5" cy="14.5" r="2.1" fill={`url(#${gid})`} opacity="0.85" />
+      <circle cx="34.5" cy="33.5" r="2.1" fill={`url(#${gid})`} opacity="0.85" />
+
+      <path d={RING} fill="none" stroke={`url(#${gid})`} strokeWidth="1.15" strokeOpacity="0.28" />
+
+      <g stroke={`url(#${gid})`} strokeWidth="1.1" strokeLinecap="round" strokeOpacity="0.38">
+        {TICKS.map((d) => (
+          <path key={d} d={d} />
+        ))}
       </g>
+
+      <path
+        d={ROUTE}
+        fill="none"
+        stroke={`url(#${gid}-route)`}
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeDasharray="1 0"
+      />
+
+      <path
+        d={N_PATH}
+        fill="none"
+        stroke={`url(#${gid})`}
+        strokeWidth="3.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d={WAVE}
+        fill="none"
+        stroke={`url(#${gid})`}
+        strokeWidth="1.65"
+        strokeLinecap="round"
+        strokeOpacity="0.55"
+      />
     </svg>
   );
 }

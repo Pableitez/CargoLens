@@ -4,6 +4,7 @@ import { getWorkspaceTitles } from "../pages/dashboard/workspaceConfig.js";
 export function getDocumentTitle(pathname, t, isClientPortal = false) {
   const path = pathname.split("?")[0].replace(/\/$/, "") || "/";
   if (path === "/") return t("pageTitle.home");
+  if (path === "/track") return t("pageTitle.track");
   if (path === "/privacy") return t("pageTitle.privacy");
   if (path === "/terms") return t("pageTitle.terms");
   if (path === "/vessels") return t("pageTitle.vessels");

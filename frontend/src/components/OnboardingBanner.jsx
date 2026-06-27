@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext";
 
-const STORAGE_KEY = "freightboard-onboarding-dismissed";
+const STORAGE_KEY = "naolab-onboarding-dismissed";
 
 export function OnboardingBanner() {
   const { t } = useTranslation();

@@ -1,4 +1,3 @@
-import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
 import { downloadCsvTemplate } from "./dashboardUtils.js";
 import { useDashboardWorkspace } from "./DashboardWorkspaceContext.jsx";
 import { useTranslation } from "../../i18n/LanguageContext.jsx";
@@ -9,20 +8,9 @@ export function DashboardImport() {
 
   return (
     <section className="panel panel--dash-form" aria-labelledby="import-heading">
-      <PageBreadcrumb
-        items={[
-          { label: t("workspace.section.overview.topbar"), to: "/dashboard/home" },
-          { label: t("workspace.section.import.topbar") },
-        ]}
-      />
-      <h2 id="import-heading" className="panel__title panel__title--section sr-only">
+      <h2 id="import-heading" className="sr-only">
         {t("dashboardPage.import.title")}
       </h2>
-      <p className="panel__lead">
-        {t("dashboardPage.import.leadBefore")}
-        <strong>.xlsx</strong>
-        {t("dashboardPage.import.leadAfter")}
-      </p>
       <div className="import-spec" role="table" aria-label={t("dashboardPage.import.ariaColumns")}>
         <div className="import-spec__row import-spec__row--head">
           <span>{t("dashboardPage.import.colColumn")}</span>

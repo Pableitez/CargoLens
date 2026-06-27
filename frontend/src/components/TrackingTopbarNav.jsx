@@ -3,14 +3,15 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   CLIENT_TRACKING_TOPBAR_LINKS,
   GUEST_TRACKING_TOPBAR_LINKS,
+  STAFF_TRACKING_CONTAINER_LINKS,
   STAFF_TRACKING_TOPBAR_LINKS,
-  STAFF_WORKSPACE_TOOL_LINKS,
 } from "../config/moduleRegistry.ts";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 import { prefetchRoute } from "../utils/prefetchRoutes.js";
 
 function matchNavRoute(pathname, route, { end = false } = {}) {
+  if (route === "/track") return pathname === "/track";
   if (route === "/") return pathname === "/";
   if (end) return pathname === route;
   return pathname === route || pathname.startsWith(`${route}/`);
@@ -53,7 +54,7 @@ export function TrackingTopbarNav() {
   const rootRef = useRef(null);
 
   const links = resolveTrackingLinks(user);
-  const workspaceTools = user && !user.isClientPortal ? STAFF_WORKSPACE_TOOL_LINKS : [];
+  const workspaceTools = user && !user.isClientPortal ? STAFF_TRACKING_CONTAINER_LINKS : [];
   const trackingActive = isTrackingRoute(pathname, links, workspaceTools);
 
   useEffect(() => {

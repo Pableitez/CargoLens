@@ -111,6 +111,37 @@
   color: var(--text);
 }
 
+.page-header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--sep-accent);
+}
+
+.page-header-bar--actions-only {
+  justify-content: flex-end;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.page-header-bar .dash-form__actions {
+  flex-shrink: 0;
+}
+
+.page-header-bar__title {
+  margin: 0;
+  font-size: clamp(1.2rem, 1.05rem + 0.35vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.15;
+}
+
 .dash-pagination {
   display: flex;
   flex-wrap: wrap;

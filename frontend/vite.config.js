@@ -1,6 +1,10 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -10,9 +14,9 @@ export default defineConfig({
       includeAssets: ["favicon-tab.svg", "icons/**/*.svg"],
       devOptions: { enabled: true },
       manifest: {
-        name: "CargoLens",
-        short_name: "CargoLens",
-        description: "Ocean container tracking — milestones, vessel, route, and timeline.",
+        name: "NaoLab",
+        short_name: "NaoLab",
+        description: "Trade operations platform — export orders, shipper bookings, and container visibility.",
         theme_color: "#070a0e",
         background_color: "#070a0e",
         display: "standalone",
@@ -30,6 +34,15 @@ export default defineConfig({
   ],
   optimizeDeps: {
     include: ["leaflet", "react-leaflet"],
+  },
+  resolve: {
+    alias: {
+      "@shared": path.resolve(rootDir, "../shared"),
+    },
+    extensionAlias: {
+      ".js": [".ts", ".tsx", ".js"],
+      ".jsx": [".tsx", ".jsx"],
+    },
   },
   server: {
     port: 5173,

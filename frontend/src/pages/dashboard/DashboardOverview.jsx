@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Link, useSearchParams } from "react-router-dom";
 import { OverviewSnapshotCards } from "../../components/OverviewSnapshotCards.jsx";
 import { TrackContainerView } from "../../components/TrackContainerView.jsx";
-import * as containersApi from "../../api/containers.js";
+import * as containersApi from "../../api/containers";
 import { DASHBOARD_OVERVIEW_PATH } from "../../config/paths.js";
 import { OverviewKpiStrip } from "../../components/OverviewKpiStrip.jsx";
 import { useDashboardWorkspace } from "./DashboardWorkspaceContext.jsx";
@@ -133,15 +133,19 @@ export function DashboardOverview() {
       setMapPayload(data);
       writeOverviewMapCache(data);
     } catch {
-      setMapPayload({ mode: "empty", items: [], itemsCompleted: [], counts: { activeApi: 0, completedApi: 0 } });
+      setMapPayload({
+        mode: "empty",
+        items: [],
+        itemsCompleted: [],
+        counts: { activeApi: 0, completedApi: 0 },
+      });
     }
   }, []);
 
   const onTrackRecorded = useCallback(() => {
-    Promise.all([
-      Promise.resolve(reloadWorkspaceContainers()),
-      Promise.resolve(refreshOverviewMap()),
-    ]).catch(() => {});
+    Promise.all([Promise.resolve(reloadWorkspaceContainers()), Promise.resolve(refreshOverviewMap())]).catch(
+      () => {}
+    );
   }, [reloadWorkspaceContainers, refreshOverviewMap]);
 
   const removeSavedAndRefreshMap = useCallback(
@@ -209,17 +213,13 @@ export function DashboardOverview() {
   }, [mapPayload, activeOverviewItems]);
 
   const completedNonApiSnapshotItems = useMemo(() => {
-    const raw = (items ?? []).filter(
-      (r) => r.lifecycleStatus === "completed" && r.entrySource !== "api"
-    );
+    const raw = (items ?? []).filter((r) => r.lifecycleStatus === "completed" && r.entrySource !== "api");
     const filtered = filterOverviewItemsByClient(raw, clientFilterKey);
     return filtered.map((r) => workspaceRowToSnapshotItem(r, t));
   }, [items, clientFilterKey, t]);
 
   const nonApiActiveSnapshotItems = useMemo(() => {
-    const raw = (items ?? []).filter(
-      (r) => r.lifecycleStatus !== "completed" && r.entrySource !== "api"
-    );
+    const raw = (items ?? []).filter((r) => r.lifecycleStatus !== "completed" && r.entrySource !== "api");
     const filtered = filterOverviewItemsByClient(raw, clientFilterKey);
     return filtered.map((r) => workspaceActiveNonApiToSnapshotItem(r, t));
   }, [items, clientFilterKey, t]);
@@ -267,7 +267,12 @@ export function DashboardOverview() {
         writeOverviewMapCache(data);
       } catch {
         if (!cancelled) {
-          setMapPayload({ mode: "empty", items: [], itemsCompleted: [], counts: { activeApi: 0, completedApi: 0 } });
+          setMapPayload({
+            mode: "empty",
+            items: [],
+            itemsCompleted: [],
+            counts: { activeApi: 0, completedApi: 0 },
+          });
         }
       } finally {
         if (!cancelled) {

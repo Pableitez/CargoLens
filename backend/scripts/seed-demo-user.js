@@ -14,9 +14,11 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { Company } from "../src/models/Company.js";
 import { User } from "../src/models/User.js";
-import { Client } from "../src/models/Client.js";
+import { Party } from "../src/models/Party.js";
 import { SavedContainer } from "../src/models/SavedContainer.js";
+import { suggestBeCode } from "../shared/domain/beCode.js";
 import { generateClientInviteCode } from "../src/utils/clientInviteCode.js";
+import { DEMO_CLIENT_CONTRACT_BY_NAME, DEMO_EXTRA_CLIENTS } from "./demoBeCodes.js";
 
 const SALT_ROUNDS = 10;
 
@@ -33,6 +35,9 @@ CAAU9282584 MRSU6650015 MRSU6657895 CAAU7175416 TIIU5220023 FFAU4800088 CAAU9018
   .trim()
   .split(/\s+/)
   .filter(Boolean);
+
+/** Definición contractual por nombre de cliente (contenedores demo). */
+const DEMO_CLIENT_CONTRACT = DEMO_CLIENT_CONTRACT_BY_NAME;
 
 /** Nombre de cliente + nota por prefijo ISO (4 primeros caracteres). */
 const DEMO_CLIENT_BY_PREFIX = {
@@ -114,7 +119,7 @@ function demoRowForNumber(containerNumber) {
 
 const DEMO = {
   companyName: "FreightBoard Demo S.L.",
-  email: "demo@freightboard.local",
+  email: "demo@naolab.local",
   password: "FreightDemo2026!",
   /** Código fijo si está libre; si choca, se genera otro. */
   preferredInvite: "DEMOFB26",
@@ -128,10 +133,24 @@ async function ensureInviteCode() {
   return crypto.randomBytes(4).toString("hex").toUpperCase();
 }
 
+function contractForClientName(name) {
+  const meta = DEMO_CLIENT_CONTRACT[name.trim()];
+  if (meta) return meta;
+  const code = suggestBeCode({ country: "XX", legalName: name, functionCode: "HQ" });
+  return { code: code || "XXCLIENTHQ", tier: "primary" };
+}
+
+async function ensureClientInvite(preferred) {
+  if (!preferred) return uniqueClientInviteCode();
+  const clash = await Party.findOne({ inviteCode: preferred, accountTier: "contractual" });
+  if (!clash) return preferred;
+  return uniqueClientInviteCode();
+}
+
 async function uniqueClientInviteCode() {
   for (let i = 0; i < 24; i += 1) {
     const code = generateClientInviteCode();
-    const clash = await Client.findOne({ inviteCode: code });
+    const clash = await Party.findOne({ inviteCode: code, accountTier: "contractual" });
     if (!clash) return code;
   }
   const crypto = await import("crypto");
@@ -177,14 +196,39 @@ async function main() {
   await SavedContainer.updateMany({ entrySource: "api" }, { $set: { entrySource: "manual" } });
 
   await SavedContainer.deleteMany({ companyId: company._id });
-  await Client.deleteMany({ companyId: company._id });
+  await Party.deleteMany({ companyId: company._id, accountTier: "contractual" });
 
   const uniqueNames = [...new Set(DEMO.containers.map((c) => c.clientName.trim()).filter(Boolean))];
   const clientIdByName = new Map();
   for (const name of uniqueNames) {
     const inviteCode = await uniqueClientInviteCode();
-    const doc = await Client.create({ companyId: company._id, name, inviteCode });
+    const { code, tier } = contractForClientName(name);
+    const doc = await Party.create({
+      companyId: company._id,
+      legalName: name,
+      code,
+      inviteCode,
+      accountTier: "contractual",
+      contractualTier: tier,
+      parentPartyId: null,
+    });
     clientIdByName.set(name, doc._id);
+  }
+
+  for (const extra of DEMO_EXTRA_CLIENTS) {
+    const parentId = clientIdByName.get(extra.parentName);
+    if (!parentId) continue;
+    const inviteCode = await ensureClientInvite(extra.preferredInvite);
+    const doc = await Party.create({
+      companyId: company._id,
+      legalName: extra.name,
+      code: extra.code,
+      inviteCode,
+      accountTier: "contractual",
+      contractualTier: extra.tier,
+      parentPartyId: parentId,
+    });
+    clientIdByName.set(extra.name, doc._id);
   }
 
   const rows = DEMO.containers.map((c) => {
@@ -193,7 +237,7 @@ async function main() {
     return {
       companyId: company._id,
       containerNumber: c.containerNumber.toUpperCase(),
-      clientId,
+      contractualPartyId: clientId,
       clientName: c.clientName,
       notes: c.notes,
       entrySource: "seed",
@@ -215,8 +259,10 @@ async function main() {
   console.log(`  Nombre:       ${freshCompany.name}`);
   console.log(`  Código invitación: ${freshCompany.inviteCode}`);
   console.log("");
-  console.log(`Clientes (entidad Client, visibles en lista y desplegables): ${uniqueNames.length}`);
-  console.log(`Contenedores guardados: ${DEMO.containers.length} (tracking en vivo si hay SAFECUBE_API_KEY).`);
+  console.log(`Clientes contractuales: ${clientIdByName.size} (con código y tipo primary/subsidiary)`);
+  console.log(
+    `Contenedores guardados: ${DEMO.containers.length} (tracking en vivo si hay SAFECUBE_API_KEY).`
+  );
   for (const c of DEMO.containers) {
     console.log(`  • ${c.containerNumber}  →  ${c.clientName}`);
   }

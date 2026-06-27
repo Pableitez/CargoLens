@@ -1,7 +1,7 @@
-const RECENT_ROUTES = "freightboard-recent-routes";
-const PALETTE_CONTAINERS = "freightboard-palette-containers";
+const RECENT_ROUTES = "naolab-recent-routes";
+const PALETTE_CONTAINERS = "naolab-palette-containers";
 // Contenedores ocultos en la paleta (sigue sincronizado; se filtra al leer).
-const PALETTE_HIDDEN = "freightboard-palette-hidden";
+const PALETTE_HIDDEN = "naolab-palette-hidden";
 
 function readJson(key, fallback) {
   try {

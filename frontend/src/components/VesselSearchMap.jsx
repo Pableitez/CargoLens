@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "../contexts/ThemeContext.jsx";
+import { useTheme } from "../contexts/ThemeContext";
 import { cartoTileUrl } from "../map/cartoTiles.js";
 import { isValidLatLng } from "../utils/coords.js";
 
@@ -39,13 +39,7 @@ function FlyToSelected({ lat, lng }) {
 }
 
 // Marcador circular; pulsa al seleccionar (animación con setStyle de Leaflet).
-function VesselCircleMarker({
-  center,
-  color,
-  selected,
-  children,
-  markerKey,
-}) {
+function VesselCircleMarker({ center, color, selected, children, markerKey }) {
   const ref = useRef(null);
   const baseRef = useRef({ color, weight: 2, fillOpacity: 0.85, radius: 9 });
 

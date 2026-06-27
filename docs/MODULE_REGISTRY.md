@@ -1,4 +1,4 @@
-# Module registry — CargoLens
+# Module registry — NaoLab
 
 Taxonomía oficial del producto. **No reordenar** submódulos entre áreas sin actualizar este documento y `frontend/src/config/moduleRegistry.ts`.
 
@@ -90,4 +90,4 @@ Ruta base: `/dashboard/insights`
 
 ## Estado de implementación
 
-Ver `implemented: true` en `frontend/src/config/moduleRegistry.ts`. Hoy: **cases** (CRUD + timeline + vínculo embarques), **shipments** (parcial), **tracking** (parcial vía overview/list/vessels), **settings**, **home** (overview).
+Ver `implemented: true` en `frontend/src/config/moduleRegistry.ts`. Hoy: **orders** (export PO, CRUD + import Excel), **cases** (CRUD + timeline + vínculo embarques), **shipments** (parcial), **tracking** (parcial vía overview/list/vessels), **settings**, **home** (overview).

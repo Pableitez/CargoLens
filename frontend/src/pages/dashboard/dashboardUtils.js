@@ -39,7 +39,7 @@ export function downloadCsvTemplate() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "cargolens-import-template.csv";
+  a.download = "naolab-import-template.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -51,15 +51,14 @@ function csvEscape(value) {
 }
 
 // Exportar filas de contenedores guardados a CSV (lista ya filtrada).
-export function downloadSavedContainersCsv(rows, filename = "cargolens-saved-containers.csv") {
+export function downloadSavedContainersCsv(rows, filename = "naolab-saved-containers.csv") {
   const header = ["container", "client", "notes", "entry_source", "created_utc", "updated_utc"];
   const lines = [header.join(",")];
   for (const r of rows) {
     const created = r.createdAt ? new Date(r.createdAt).toISOString() : "";
     const updated = r.updatedAt ? new Date(r.updatedAt).toISOString() : "";
     const es = r.entrySource;
-    const entrySource =
-      es === "import" ? "import" : es === "seed" ? "seed" : es === "api" ? "api" : "manual";
+    const entrySource = es === "import" ? "import" : es === "seed" ? "seed" : es === "api" ? "api" : "manual";
     lines.push(
       [
         csvEscape(r.containerNumber),

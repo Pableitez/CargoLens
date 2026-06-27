@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 import XLSX from "xlsx";
 import { isDbConnected } from "../db.js";
-import { Client } from "../models/Client.js";
+import { Party } from "../models/Party.js";
 import { SavedContainer } from "../models/SavedContainer.js";
+import { findContractualPartyById } from "../services/tradeMasters/contractualPartyValidation.js";
 import { logWorkspaceActivity } from "../services/workspaceActivityLog.js";
 import { devError } from "../utils/devLog.js";
+import { paginatedFind, parseListQuery } from "../utils/listQuery.js";
 
 const MAX_CLIENT_FILTER_LEN = 128;
 
@@ -42,7 +44,7 @@ function serializeRow(r) {
   return {
     id: r._id,
     containerNumber: r.containerNumber,
-    clientId: r.clientId ?? null,
+    clientId: r.contractualPartyId ?? null,
     clientName: r.clientName || "",
     notes: r.notes || "",
     entrySource: normalizeEntrySource(r.entrySource),
@@ -62,10 +64,10 @@ export async function listContainers(req, res) {
   const q = { companyId: new mongoose.Types.ObjectId(companyId) };
 
   if (req.user.clientId) {
-    q.clientId = new mongoose.Types.ObjectId(req.user.clientId);
+    q.contractualPartyId = new mongoose.Types.ObjectId(req.user.clientId);
   } else {
     if (mongoose.isValidObjectId(clientIdFilter)) {
-      q.clientId = new mongoose.Types.ObjectId(clientIdFilter);
+      q.contractualPartyId = new mongoose.Types.ObjectId(clientIdFilter);
     } else if (clientFilter) {
       const cf = clientFilter.slice(0, MAX_CLIENT_FILTER_LEN).toLowerCase();
       // Subcadena case-insensitive sin RegExp (evita ReDoS / S2631).
@@ -76,10 +78,14 @@ export async function listContainers(req, res) {
   }
 
   try {
-    const rows = await SavedContainer.find(q).sort({ updatedAt: -1 }).lean();
-    return res.json({
-      items: rows.map(serializeRow),
+    const { limit, skip } = parseListQuery(req.query);
+    const result = await paginatedFind(SavedContainer, q, {
+      sort: { updatedAt: -1 },
+      limit,
+      skip,
+      serialize: serializeRow,
     });
+    return res.json(result);
   } catch (err) {
     devError(err);
     return res.status(500).json({ error: "SERVER_ERROR", message: "Failed to list containers." });
@@ -99,20 +105,17 @@ export async function createContainer(req, res) {
   const companyId = req.user.companyId;
   const containerNumber = normalizeContainer(req.body?.containerNumber);
   const notes = String(req.body?.notes ?? "").trim();
-  let clientId = null;
+  let contractualPartyId = null;
   let clientName = String(req.body?.clientName ?? "").trim();
 
   const clientIdStr = safeObjectIdString(req.body?.clientId);
   if (clientIdStr) {
-    const client = await Client.findOne({
-      _id: new mongoose.Types.ObjectId(clientIdStr),
-      companyId: new mongoose.Types.ObjectId(companyId),
-    }).lean();
-    if (!client) {
+    const party = await findContractualPartyById(companyId, clientIdStr);
+    if (!party) {
       return res.status(400).json({ error: "INVALID_CLIENT", message: "Unknown client for this company." });
     }
-    clientId = client._id;
-    clientName = client.name;
+    contractualPartyId = party._id;
+    clientName = party.legalName ?? "";
   }
 
   if (containerNumber.length < 4) {
@@ -125,7 +128,7 @@ export async function createContainer(req, res) {
   try {
     const doc = await SavedContainer.create({
       companyId,
-      clientId,
+      contractualPartyId,
       containerNumber,
       clientName,
       notes,
@@ -288,7 +291,7 @@ function pickCell(row, ...keys) {
 
 async function assignClientFromBody(doc, raw, companyId) {
   if (raw === null || raw === "") {
-    doc.clientId = null;
+    doc.contractualPartyId = null;
     doc.clientName = "";
     return { ok: true };
   }
@@ -296,19 +299,16 @@ async function assignClientFromBody(doc, raw, companyId) {
   if (!idStr) {
     return { ok: false, status: 400, body: { error: "INVALID_CLIENT", message: "Invalid client id." } };
   }
-  const client = await Client.findOne({
-    _id: new mongoose.Types.ObjectId(idStr),
-    companyId: new mongoose.Types.ObjectId(companyId),
-  }).lean();
-  if (!client) {
+  const party = await findContractualPartyById(companyId, idStr);
+  if (!party) {
     return {
       ok: false,
       status: 400,
       body: { error: "INVALID_CLIENT", message: "Unknown client for this company." },
     };
   }
-  doc.clientId = client._id;
-  doc.clientName = client.name;
+  doc.contractualPartyId = party._id;
+  doc.clientName = party.legalName ?? "";
   return { ok: true };
 }
 
@@ -325,7 +325,7 @@ function applyLifecycleFromBody(doc, raw) {
   return { ok: true };
 }
 
-async function importOneDataRow(row, rowIndex, companyId, inviteToClient) {
+async function importOneDataRow(row, rowIndex, companyId, inviteToParty) {
   const i = rowIndex;
   const containerNumber = normalizeContainer(
     pickCell(row, "container", "container_number", "container number", "contenedor", "number", "ctn")
@@ -347,26 +347,26 @@ async function importOneDataRow(row, rowIndex, companyId, inviteToClient) {
   );
   const notes = pickCell(row, "notes", "note", "notas", "remarks");
 
-  let clientId = null;
+  let contractualPartyId = null;
   let clientName = "";
   if (inviteRaw) {
     const code = inviteRaw.toUpperCase().replace(/\s+/g, "");
-    const client = inviteToClient.get(code);
-    if (!client) {
+    const party = inviteToParty.get(code);
+    if (!party) {
       return {
         created: 0,
         skipped: 1,
         rowErrors: [`Row ${i + 2}: unknown client invite "${inviteRaw}"`],
       };
     }
-    clientId = client._id;
-    clientName = client.name;
+    contractualPartyId = party._id;
+    clientName = party.legalName ?? "";
   }
 
   try {
     await SavedContainer.create({
       companyId: new mongoose.Types.ObjectId(companyId),
-      clientId,
+      contractualPartyId,
       containerNumber,
       clientName,
       notes,
@@ -412,15 +412,20 @@ export async function importContainers(req, res) {
     return res.status(400).json({ error: "EMPTY", message: "The sheet has no data rows." });
   }
 
-  const clients = await Client.find({ companyId: new mongoose.Types.ObjectId(companyId) }).lean();
-  const inviteToClient = new Map(clients.map((c) => [c.inviteCode.toUpperCase(), c]));
+  const parties = await Party.find({
+    companyId: new mongoose.Types.ObjectId(companyId),
+    accountTier: "contractual",
+  }).lean();
+  const inviteToParty = new Map(
+    parties.filter((p) => p.inviteCode).map((p) => [String(p.inviteCode).toUpperCase(), p])
+  );
 
   let created = 0;
   let skipped = 0;
   const errors = [];
 
   for (let i = 0; i < rows.length; i += 1) {
-    const out = await importOneDataRow(rows[i], i, companyId, inviteToClient);
+    const out = await importOneDataRow(rows[i], i, companyId, inviteToParty);
     created += out.created;
     skipped += out.skipped;
     for (const e of out.rowErrors) errors.push(e);

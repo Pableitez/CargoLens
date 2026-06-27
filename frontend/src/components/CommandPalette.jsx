@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DASHBOARD_OVERVIEW_PATH } from "../config/paths.js";
-import { STAFF_WORKSPACE_TOOL_LINKS } from "../config/moduleRegistry.ts";
-import { useAuth } from "../contexts/AuthContext.jsx";
-import { useCommandPalette } from "../contexts/CommandPaletteContext.jsx";
+import { STAFF_TRACKING_CONTAINER_LINKS, SETTINGS_LINKS } from "../config/moduleRegistry.ts";
+import { useAuth } from "../contexts/AuthContext";
+import { useCommandPalette } from "../contexts/CommandPaletteContext";
 import { getWorkspaceNavClient, getWorkspaceNavStaff } from "../pages/dashboard/workspaceConfig.js";
 import {
   getPaletteContainerNumbers,
@@ -33,7 +33,8 @@ export function CommandPalette() {
 
   const navItems = useMemo(() => {
     const pub = [
-      { id: "h", label: t("commandPalette.navHome"), to: "/", kw: "home track" },
+      { id: "h", label: t("commandPalette.navHome"), to: "/", kw: "home platform marketing" },
+      { id: "tr", label: t("pageTitle.track"), to: "/track", kw: "track container visibility search" },
       { id: "v", label: t("commandPalette.navVessels"), to: "/vessels", kw: "vessels ships map" },
       { id: "w", label: t("mainLayout.howItWorks"), to: "/how-it-works/track", kw: "how guide" },
       { id: "l", label: t("pageTitle.login"), to: "/login", kw: "login sign" },
@@ -49,7 +50,7 @@ export function CommandPalette() {
     }));
     const toolItems =
       !isClient && user
-        ? STAFF_WORKSPACE_TOOL_LINKS.map((row, i) => ({
+        ? [...SETTINGS_LINKS, ...STAFF_TRACKING_CONTAINER_LINKS].map((row, i) => ({
             id: `t${i}`,
             label: t(row.i18nKey),
             to: row.route,
