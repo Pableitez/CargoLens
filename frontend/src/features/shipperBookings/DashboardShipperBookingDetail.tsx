@@ -10,6 +10,7 @@ import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import { resolveLocationCode } from "../../utils/locationUtils";
 import { ShipperBookingTimeline } from "./ShipperBookingTimeline";
+import { LinkedCarrierBookings } from "./LinkedCarrierBookings";
 import { OrderLinesPicker } from "./OrderLinesPicker";
 import {
   type BookFromOrdersLocationState,
@@ -511,6 +512,12 @@ export function DashboardShipperBookingDetail() {
         </h2>
         {!isNew && (
           <div className="dash-form__actions dash-form__actions--start">
+            <Link
+              to={`/dashboard/operations/transport/carrier-booking/new/from-sb?shipperBookingIds=${id}`}
+              className="btn btn--secondary"
+            >
+              {t("shipperBookingsPage.createCarrierBooking")}
+            </Link>
             <button type="button" className="btn btn--secondary" onClick={() => setTimelineOpen(true)}>
               {t("shipperBookingsPage.openTimeline")}
               {events.length > 0 && <span className="timeline-trigger__count">{events.length}</span>}
@@ -528,6 +535,8 @@ export function DashboardShipperBookingDetail() {
           <span className={bookingStatusClass(form.status)}>{bookingStatusLabel(form.status, t)}</span>
         </p>
       )}
+
+      {!isNew && id && <LinkedCarrierBookings shipperBookingId={id} />}
 
       {isNew && (
         <p className="orders-note">

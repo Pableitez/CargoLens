@@ -1,6 +1,8 @@
 import { EntitySearchPicker } from "../../components/EntitySearchPicker";
 import { LocationCombobox } from "../../components/LocationCombobox";
+import { ReadOnlyFieldValue } from "../../components/ReadOnlyFieldValue";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
+import { formatLocationLabel } from "../../utils/locationUtils";
 import {
   type OrderLocationFacilityIds,
   type TradeFacilitySlot,
@@ -16,6 +18,7 @@ type OrderLocationFieldsProps = {
   onChange: (patch: Partial<OrderLocationFacilityIds>) => void;
   chainDefaults?: OrderChainDefaults | null;
   disabled?: boolean;
+  readOnly?: boolean;
 };
 
 const SLOTS: Array<{
@@ -44,6 +47,7 @@ export function OrderLocationFields({
   onChange,
   chainDefaults,
   disabled = false,
+  readOnly = false,
 }: OrderLocationFieldsProps) {
   const { t } = useAppTranslation();
 
@@ -55,6 +59,25 @@ export function OrderLocationFields({
     onAutoSelect: onChange,
     chainDefaults,
   });
+
+  if (readOnly) {
+    return (
+      <>
+        {SLOTS.map(({ slot, labelKey }) => {
+          const display = usesTradeMasters
+            ? labelForSlot(slot, String(value[ID_FIELDS[slot]] ?? ""))
+            : formatLocationLabel(value[slot]) || value[slot];
+
+          return (
+            <div className="field" key={slot}>
+              <span className="field__label">{t(labelKey)}</span>
+              <ReadOnlyFieldValue>{display}</ReadOnlyFieldValue>
+            </div>
+          );
+        })}
+      </>
+    );
+  }
 
   if (!usesTradeMasters) {
     return (

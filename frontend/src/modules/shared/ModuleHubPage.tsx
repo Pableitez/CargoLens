@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
+import { SidebarNavIcon } from "../../components/sidebarNavIcons";
 import { OPERATIONS_MODULES } from "../../config/moduleRegistry";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import type { ModuleGroupDef, SubmoduleDef } from "../../config/moduleRegistry";
@@ -15,12 +16,8 @@ type ModuleHubPageProps = {
   breadcrumbs?: BreadcrumbItem[];
 };
 
-function moduleIconLabel(i18nKey: string, title: string) {
-  const leaf = i18nKey.split(".").pop() ?? "";
-  if (leaf.length <= 3) return leaf.slice(0, 3).toUpperCase();
-  const words = title.trim().split(/\s+/);
-  if (words.length >= 2) return `${words[0][0] ?? ""}${words[1][0] ?? ""}`.toUpperCase();
-  return title.slice(0, 2).toUpperCase();
+function submoduleDescKey(i18nKey: string) {
+  return `${i18nKey}Desc`;
 }
 
 function ModuleHubCard({
@@ -35,6 +32,8 @@ function ModuleHubCard({
   primary?: boolean;
 }) {
   const title = t(item.i18nKey);
+  const descKey = submoduleDescKey(item.i18nKey);
+  const desc = t(descKey) !== descKey ? t(descKey) : null;
   const implemented = Boolean(item.implemented);
 
   const cardClass = [
@@ -49,10 +48,11 @@ function ModuleHubCard({
     <>
       <div className="module-hub-card__head">
         <span className="module-hub-card__icon" aria-hidden>
-          {moduleIconLabel(item.i18nKey, title)}
+          <SidebarNavIcon moduleId={item.id} className="module-hub-card__svg" />
         </span>
         <div className="module-hub-card__text">
           <span className="module-hub-card__title">{title}</span>
+          {desc ? <span className="module-hub-card__desc">{desc}</span> : null}
         </div>
       </div>
       <div className="module-hub-card__foot">
@@ -189,10 +189,11 @@ export function OperationsIndexPage() {
             <Link to={group.route} className="module-hub-card__link">
               <div className="module-hub-card__head">
                 <span className="module-hub-card__icon" aria-hidden>
-                  {group.id.slice(0, 2).toUpperCase()}
+                  <SidebarNavIcon moduleId={group.id} className="module-hub-card__svg" />
                 </span>
                 <div className="module-hub-card__text">
                   <span className="module-hub-card__title">{t(group.i18nTitleKey)}</span>
+                  <span className="module-hub-card__desc">{t(group.i18nLeadKey)}</span>
                 </div>
               </div>
               <div className="module-hub-card__foot">

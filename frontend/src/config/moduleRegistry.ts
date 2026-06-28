@@ -105,6 +105,7 @@ export const OPERATIONS_MODULES: ModuleGroupDef[] = [
         id: "carrierBooking",
         route: "/dashboard/operations/transport/carrier-booking",
         i18nKey: "modules.transport.carrierBooking",
+        implemented: true,
       },
       {
         id: "shippingInstructions",
@@ -245,18 +246,6 @@ export const INSIGHTS_MODULE: ModuleGroupDef = {
   ],
 };
 
-export const TRACKING_LINKS: SubmoduleDef[] = [
-  {
-    id: "overview",
-    route: "/dashboard/tracking/overview",
-    i18nKey: "modules.tracking.overview",
-    implemented: true,
-  },
-  { id: "savedList", route: "/dashboard/list", i18nKey: "modules.tracking.savedList", implemented: true },
-  { id: "coverage", route: "/dashboard/attention", i18nKey: "modules.tracking.coverage", implemented: true },
-  { id: "vessels", route: "/vessels", i18nKey: "modules.tracking.vessels", implemented: true },
-];
-
 /** Per-contractual account tools — staff manages all clients; portal users see their own trade setup. */
 export const CLIENT_ACCOUNT_LINKS: SubmoduleDef[] = [
   {
@@ -306,55 +295,6 @@ export const SETTINGS_MODULE: ModuleGroupDef = {
   implemented: true,
   submodules: SETTINGS_LINKS,
 };
-
-/** Staff-only container workspace — Tracking dropdown (not account settings). */
-export const STAFF_TRACKING_CONTAINER_LINKS: SubmoduleDef[] = [
-  { id: "add", route: "/dashboard/add", i18nKey: "modules.workspaceTools.addContainer", implemented: true },
-  {
-    id: "import",
-    route: "/dashboard/import",
-    i18nKey: "modules.workspaceTools.importContainers",
-    implemented: true,
-  },
-  {
-    id: "activity",
-    route: "/dashboard/activity",
-    i18nKey: "modules.workspaceTools.activity",
-    implemented: true,
-  },
-];
-
-/** @deprecated Prefer SETTINGS_LINKS + STAFF_TRACKING_CONTAINER_LINKS. */
-export const STAFF_WORKSPACE_TOOL_LINKS: SubmoduleDef[] = [
-  ...SETTINGS_LINKS,
-  ...STAFF_TRACKING_CONTAINER_LINKS,
-];
-
-/** Tracking en la topbar (derecha) — no en sidebar ni workspace-nav. */
-export const GUEST_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
-  { id: "search", route: "/track", i18nKey: "modules.tracking.search", implemented: true },
-  { id: "vessels", route: "/vessels", i18nKey: "modules.tracking.vessels", implemented: true },
-];
-
-export const CLIENT_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
-  {
-    id: "search",
-    route: "/dashboard/tracking/overview",
-    i18nKey: "modules.tracking.search",
-    implemented: true,
-  },
-  { id: "savedList", route: "/dashboard/list", i18nKey: "modules.tracking.savedList", implemented: true },
-];
-
-export const STAFF_TRACKING_TOPBAR_LINKS: SubmoduleDef[] = [
-  {
-    id: "search",
-    route: "/dashboard/tracking/overview",
-    i18nKey: "modules.tracking.search",
-    implemented: true,
-  },
-  ...TRACKING_LINKS,
-];
 
 export function findModuleGroupByRoute(pathname: string): ModuleGroupDef | undefined {
   const all = [...OPERATIONS_MODULES, DOCUMENTS_MODULE, INSIGHTS_MODULE, SETTINGS_MODULE];

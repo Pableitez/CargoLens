@@ -9,7 +9,7 @@ export function NotFoundPage() {
   const { user } = useAuth();
 
   return (
-    <MainLayout title={t("pageTitle.notFound")} dataSource={null}>
+    <MainLayout title={t("pageTitle.notFound")}>
       <div className="not-found">
         <p className="not-found__lead">{t("notFound.lead")}</p>
         <div className="not-found__actions">

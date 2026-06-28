@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { EntitySearchPicker } from "../../components/EntitySearchPicker";
+import { ReadOnlyFieldValue } from "../../components/ReadOnlyFieldValue";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import {
   EMPTY_ORDER_TRADE_SELECTION,
@@ -14,6 +15,7 @@ type OrderTradeFieldsProps = {
   onChange: (patch: Partial<OrderTradeSelection>) => void;
   onChainDefaults?: (defaults: OrderChainDefaults) => void;
   disabled?: boolean;
+  readOnly?: boolean;
 };
 
 export function OrderTradeFields({
@@ -21,6 +23,7 @@ export function OrderTradeFields({
   onChange,
   onChainDefaults,
   disabled = false,
+  readOnly = false,
 }: OrderTradeFieldsProps) {
   const { t } = useAppTranslation();
   const {
@@ -38,6 +41,7 @@ export function OrderTradeFields({
   } = useOrderTradeSetup({ enabled: true, selection: value, onChainDefaults });
 
   useEffect(() => {
+    if (readOnly) return;
     if (shipperOptions.length === 1 && !value.operatingShipperPartyId.trim()) {
       onChange({ operatingShipperPartyId: shipperOptions[0].partyId });
     }
@@ -47,6 +51,7 @@ export function OrderTradeFields({
   }, [
     consigneeOptions,
     onChange,
+    readOnly,
     shipperOptions,
     value.contractualPartyId,
     value.operatingConsigneePartyId,
@@ -63,6 +68,25 @@ export function OrderTradeFields({
   }
 
   const customerEmpty = !loadingClients && clients.length === 0;
+
+  if (readOnly) {
+    return (
+      <>
+        <div className="field order-trade-field">
+          <span className="field__label">{t("tradeField.contractualCustomer")}</span>
+          <ReadOnlyFieldValue>{selectedCustomerLabel}</ReadOnlyFieldValue>
+        </div>
+        <div className="field order-trade-field">
+          <span className="field__label">{t("tradeField.shipper")}</span>
+          <ReadOnlyFieldValue>{selectedShipperLabel}</ReadOnlyFieldValue>
+        </div>
+        <div className="field order-trade-field">
+          <span className="field__label">{t("tradeField.consignee")}</span>
+          <ReadOnlyFieldValue>{selectedConsigneeLabel}</ReadOnlyFieldValue>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

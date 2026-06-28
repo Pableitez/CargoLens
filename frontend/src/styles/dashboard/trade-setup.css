@@ -431,9 +431,9 @@
 }
 
 .trade-setup-role--shipper {
-  background: color-mix(in srgb, #38bdf8 14%, transparent);
-  color: #7dd3fc;
-  border-color: color-mix(in srgb, #38bdf8 28%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .trade-setup-role--consignee {
@@ -461,7 +461,7 @@
 }
 
 [data-theme="light"] .trade-setup-role--shipper {
-  color: #0369a1;
+  color: var(--accent-strong);
 }
 
 [data-theme="light"] .trade-setup-role--consignee {
@@ -2032,8 +2032,8 @@
 }
 
 .trade-setup-badge--rel-alias {
-  background: color-mix(in srgb, #0ea5e9 14%, transparent);
-  color: #38bdf8;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
 }
 
 .entity-search-picker {

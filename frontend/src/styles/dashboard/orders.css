@@ -23,6 +23,25 @@
   color: var(--text);
 }
 
+.field__readonly-value {
+  margin: 0;
+  padding: 0.35rem 0 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.order-form--readonly .order-lines-table td {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  vertical-align: top;
+}
+
+.order-form--readonly .order-lines-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--surface-0) 92%, var(--accent) 8%);
+}
+
 .field__derived-status {
   display: flex;
   flex-direction: column;
@@ -410,9 +429,9 @@
 }
 
 .order-status--new {
-  background: color-mix(in srgb, #38bdf8 14%, transparent);
-  color: #7dd3fc;
-  border-color: color-mix(in srgb, #38bdf8 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .order-status--partially_booked {
@@ -434,8 +453,22 @@
   border-color: color-mix(in srgb, #ef4444 28%, transparent);
 }
 
+.order-status--submitted,
+.order-status--acknowledged {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.order-status--failed,
+.order-status--rejected {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #f87171;
+  border-color: color-mix(in srgb, #ef4444 28%, transparent);
+}
+
 [data-theme="light"] .order-status--new {
-  color: #0369a1;
+  color: var(--accent-strong);
 }
 
 [data-theme="light"] .order-status--partially_booked {
@@ -983,5 +1016,65 @@
 @media (max-width: 768px) {
   .order-section__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.carrier-sb-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.carrier-sb-picker__empty {
+  margin: 0;
+  padding: 0.85rem 0;
+}
+
+.carrier-sb-selected {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.carrier-sb-selected__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carrier-sb-selected__pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--ui-line);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elevated, var(--bg)));
+}
+
+.carrier-equipment-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem 1rem;
+  align-items: end;
+  margin-bottom: 0.75rem;
+}
+
+.carrier-equipment-row .field--checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding-bottom: 0.15rem;
+}
+
+@media (max-width: 900px) {
+  .carrier-equipment-row {
+    grid-template-columns: 1fr 1fr;
   }
 }

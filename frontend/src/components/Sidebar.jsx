@@ -27,19 +27,6 @@ function getSidebarInitials(displayName, email) {
   return "?";
 }
 
-function IconTrack({ className }) {
-  return (
-    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M11 19a7 7 0 100-14 7 7 0 000 14zm8-2l3 3"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function IconGrid({ className }) {
   return (
     <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -47,19 +34,6 @@ function IconGrid({ className }) {
         d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
         stroke="currentColor"
         strokeWidth="1.75"
-      />
-    </svg>
-  );
-}
-
-function IconShip({ className }) {
-  return (
-    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 14l2 5h12l2-5M6 14h12l-2-9H8L6 14zM9 5h6l-1-2h-4L9 5z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinejoin="round"
       />
     </svg>
   );
@@ -299,7 +273,6 @@ export function Sidebar({ onNavigate, collapsed = false }) {
             </span>
             <div className="sidebar__logo-text">
               <span className="sidebar__logo-title">{appName}</span>
-              <span className="sidebar__logo-sub">{t("brand.tagline")}</span>
             </div>
           </Link>
         </div>
@@ -319,6 +292,28 @@ export function Sidebar({ onNavigate, collapsed = false }) {
                 collapsed={collapsed}
               />
             </>
+          )}
+
+          {!user && (
+            <SidebarNavSection
+              sectionId="platform"
+              iconModuleId="home"
+              label={t("modules.sidebar.groupPlatform")}
+              open={openGroups.platform}
+              onToggle={() => toggleSection("platform")}
+              collapsed={collapsed}
+            >
+              <NavLink
+                to="/"
+                end
+                className={navCls}
+                onClick={handleNav}
+                onMouseEnter={() => handlePrefetch("/")}
+              >
+                <span className="sidebar__icon sidebar__icon--text">⌂</span>
+                <span>{t("modules.nav.home")}</span>
+              </NavLink>
+            </SidebarNavSection>
           )}
 
           {!user && (

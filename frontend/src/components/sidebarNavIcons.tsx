@@ -241,6 +241,18 @@ function IconAccount({ className }: IconProps) {
   );
 }
 
+function IconOperations({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path
+        d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+    </Svg>
+  );
+}
+
 function IconDefault({ className }: IconProps) {
   return (
     <Svg className={className}>
@@ -252,6 +264,7 @@ function IconDefault({ className }: IconProps) {
 
 const ICON_BY_MODULE: Record<string, ComponentType<IconProps>> = {
   home: IconHome,
+  operations: IconOperations,
   order: IconOrder,
   shipperBooking: IconBooking,
   exportCustoms: IconCustoms,

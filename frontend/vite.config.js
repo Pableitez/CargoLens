@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: {
         name: "NaoLab",
         short_name: "NaoLab",
-        description: "Trade operations platform — export orders, shipper bookings, and container visibility.",
+        description: "Trade operations platform — export orders, shipper bookings, and carrier coordination.",
         theme_color: "#070a0e",
         background_color: "#070a0e",
         display: "standalone",
@@ -32,9 +32,6 @@ export default defineConfig({
       },
     }),
   ],
-  optimizeDeps: {
-    include: ["leaflet", "react-leaflet"],
-  },
   resolve: {
     alias: {
       "@shared": path.resolve(rootDir, "../shared"),

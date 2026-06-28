@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ApiStatusBanner } from "../components/ApiStatusBanner.jsx";
+import { PublicShellPrefs } from "../components/PublicShellPrefs.jsx";
 import { Sidebar } from "../components/Sidebar.jsx";
-import { TrackingTopbarNav } from "../components/TrackingTopbarNav.jsx";
 import { appName, developerCredit } from "../config/siteMeta.js";
+import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 import { useDesktopRail } from "../hooks/useDesktopRail.js";
 
-function topbarDataSourceLine(dataSource, t) {
-  if (dataSource === "safecube") return t("mainLayout.liveSinay");
-  if (dataSource === "mock") return t("mainLayout.demoNoKey");
-  return null;
-}
-
 /**
- * Barra superior: solo texto (título o nombre+tagline). El logo va en la sidebar y en el pie — evita duplicar el mismo símbolo.
+ * Barra superior: título de página cuando aplica; si no, queda limpia (marca solo en sidebar).
  */
-export function MainLayout({ children, dataSource, title, subtitle, topbarExtra, topbarNav }) {
+export function MainLayout({ children, title, subtitle, topbarExtra, topbarNav }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const desktopRail = useDesktopRail();
   const location = useLocation();
@@ -26,10 +22,7 @@ export function MainLayout({ children, dataSource, title, subtitle, topbarExtra,
     setSidebarOpen(false);
   }, [location.pathname, location.hash]);
 
-  const sourceLine = topbarDataSourceLine(dataSource, t);
-
   const showPageTitle = typeof title === "string" && title.length > 0;
-  const hideTopbarHeading = title === null || title === "";
 
   return (
     <div className="layout layout--shell">
@@ -69,27 +62,13 @@ export function MainLayout({ children, dataSource, title, subtitle, topbarExtra,
                 <h1 className="topbar__title">{title}</h1>
                 {subtitle ? <p className="topbar__subtitle">{subtitle}</p> : null}
               </div>
-            ) : hideTopbarHeading ? (
-              <div className="topbar__heading topbar__heading--minimal" aria-hidden="true" />
             ) : (
-              <div className="topbar__heading">
-                <div className="footer__brand-name">{appName}</div>
-                <p className="footer__brand-tag">{t("brand.tagline")}</p>
-              </div>
+              <div className="topbar__heading topbar__heading--minimal" aria-hidden="true" />
             )}
             {topbarNav ? <div className="topbar__nav">{topbarNav}</div> : null}
             <div className="topbar__right">
-              <TrackingTopbarNav />
+              {!user ? <PublicShellPrefs /> : null}
               {topbarExtra ? <div className="topbar__extras no-print">{topbarExtra}</div> : null}
-              {sourceLine ? (
-                <span
-                  className="topbar__pill"
-                  role="status"
-                  data-mode={dataSource === "safecube" ? "live" : "demo"}
-                >
-                  {sourceLine}
-                </span>
-              ) : null}
             </div>
           </div>
         </header>

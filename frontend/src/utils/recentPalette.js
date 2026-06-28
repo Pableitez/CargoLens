@@ -1,7 +1,4 @@
 const RECENT_ROUTES = "naolab-recent-routes";
-const PALETTE_CONTAINERS = "naolab-palette-containers";
-// Contenedores ocultos en la paleta (sigue sincronizado; se filtra al leer).
-const PALETTE_HIDDEN = "naolab-palette-hidden";
 
 function readJson(key, fallback) {
   try {
@@ -21,14 +18,6 @@ function writeJson(key, value) {
   }
 }
 
-function normalizeCn(s) {
-  return String(s ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/\s+/g, "");
-}
-
-// Últimas rutas visitadas para la paleta (máx. 10).
 export function pushRecentRoute(path) {
   if (!path || path === "/") return;
   const prev = readJson(RECENT_ROUTES, []);
@@ -38,24 +27,4 @@ export function pushRecentRoute(path) {
 
 export function getRecentRoutes() {
   return readJson(RECENT_ROUTES, []);
-}
-
-// Números guardados para abrir rápido (desde workspace).
-export function setPaletteContainerNumbers(nums) {
-  writeJson(PALETTE_CONTAINERS, Array.isArray(nums) ? nums.slice(0, 80) : []);
-}
-
-// Ocultar un contenedor en la paleta hasta limpiar almacenamiento.
-export function hidePaletteContainerNumber(cn) {
-  const norm = normalizeCn(cn);
-  if (!norm) return;
-  const prev = readJson(PALETTE_HIDDEN, []);
-  if (prev.includes(norm)) return;
-  writeJson(PALETTE_HIDDEN, [...prev, norm].slice(0, 200));
-}
-
-export function getPaletteContainerNumbers() {
-  const nums = readJson(PALETTE_CONTAINERS, []);
-  const hidden = new Set(readJson(PALETTE_HIDDEN, []).map((x) => normalizeCn(x)));
-  return nums.filter((n) => !hidden.has(normalizeCn(n)));
 }

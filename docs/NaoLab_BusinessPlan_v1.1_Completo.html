@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>NaoLab — Business Plan v1.1</title>
+  <meta name="description" content="NaoLab Business Plan v1.1 — trade operations platform for forwarders."/>
+  <style>
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  --bg: #f7f7f4;
+  --bg-elevated: #fdfdfc;
+  --text: #2c2a26;
+  --muted: #5c5752;
+  --accent: #7a7268;
+  --accent-strong: #5c564e;
+  --accent-dim: rgba(122, 114, 104, 0.1);
+  --border: rgba(44, 42, 38, 0.08);
+  --border-strong: rgba(216, 213, 207, 0.95);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --content-max: 920px;
+  --font: "DM Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.bp-shell { min-height: 100vh; }
+
+.bp-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-strong);
+  background: linear-gradient(180deg, #fdfdfc 0%, #f7f7f4 100%);
+}
+.bp-hero__glow {
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 420px;
+  background: radial-gradient(ellipse at 30% 40%, rgba(122, 132, 113, 0.14), transparent 62%);
+  pointer-events: none;
+}
+.bp-hero__inner {
+  position: relative;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 3rem 1.5rem 2.5rem;
+}
+.bp-hero__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.bp-hero__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+.bp-hero__eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.bp-hero__title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(120deg, #2c2a26 0%, #6f6b63 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.bp-hero__subtitle {
+  margin: 0 0 1.25rem;
+  max-width: 42ch;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+.bp-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.bp-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  background: rgba(253, 253, 252, 0.94);
+  color: var(--muted);
+}
+.bp-badge--accent {
+  color: #fffdfb;
+  border-color: rgba(44, 42, 38, 0.08);
+  background: #2c2a26;
+}
+.bp-badge--live {
+  color: var(--text);
+  border-color: rgba(122, 132, 113, 0.32);
+  background: rgba(232, 235, 227, 0.95);
+}
+
+.bp-layout {
+  max-width: calc(var(--content-max) + 280px);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.bp-toc {
+  position: sticky;
+  top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: rgba(253, 253, 252, 0.98);
+}
+.bp-toc__label {
+  margin: 0 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.bp-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.bp-toc a {
+  display: block;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: background 0.18s, color 0.18s;
+}
+.bp-toc a:hover {
+  color: var(--text);
+  background: rgba(238, 240, 234, 0.85);
+}
+.bp-toc a.is-active {
+  color: var(--text);
+  background: rgba(232, 235, 227, 0.95);
+}
+
+.bp-main { min-width: 0; }
+
+.bp-section { margin-bottom: 2rem; scroll-margin-top: 1.5rem; }
+.bp-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.85rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.bp-section-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fffdfb;
+  flex-shrink: 0;
+  background: linear-gradient(145deg, #7a7268 0%, #5c564e 100%);
+  box-shadow: 0 2px 8px rgba(122, 114, 104, 0.22);
+}
+.bp-subsection-title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.bp-card {
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: rgba(253, 253, 252, 0.98);
+}
+.bp-p { margin: 0 0 0.85rem; color: var(--text); max-width: 72ch; }
+.bp-p:last-child { margin-bottom: 0; }
+.bp-lead {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+.bp-note {
+  margin: 0 0 0.85rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.bp-quote {
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--accent-dim);
+  color: var(--text);
+  font-weight: 600;
+}
+.bp-list, .bp-checklist {
+  margin: 0 0 0.85rem;
+  padding-left: 1.2rem;
+  color: var(--text);
+}
+.bp-checklist { list-style: none; padding-left: 0; }
+.bp-check {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-bottom: 0.45rem;
+}
+.bp-check-box {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.2rem;
+  border-radius: 4px;
+  border: 1px solid rgba(168, 163, 154, 0.38);
+  background: rgba(247, 247, 244, 0.98);
+  flex-shrink: 0;
+}
+.bp-table-wrap {
+  overflow-x: auto;
+  margin: 0 0 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.bp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.bp-table th,
+.bp-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.bp-table th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: rgba(238, 240, 234, 0.55);
+}
+.bp-table tr:last-child td { border-bottom: none; }
+.bp-table td strong { color: var(--accent-strong); }
+.bp-code {
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(247, 247, 244, 0.98);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--accent-strong);
+  overflow-x: auto;
+}
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(232, 235, 227, 0.65);
+  color: var(--accent-strong);
+}
+
+.bp-footer {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .bp-layout { grid-template-columns: 1fr; }
+  .bp-toc { position: static; }
+}
+
+@media print {
+  body { background: #fff; color: #2c2a26; }
+  .bp-hero { background: #f7f7f4; border-color: #e5e3de; }
+  .bp-hero__title { color: #2c2a26; background: none; -webkit-text-fill-color: #2c2a26; }
+  .bp-hero__glow { display: none; }
+  .bp-card, .bp-toc { background: #fdfdfc; border-color: #e5e3de; }
+  .bp-toc { display: none; }
+  .bp-section { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="bp-shell">
+  <header class="bp-hero">
+    <div class="bp-hero__glow" aria-hidden="true"></div>
+    <div class="bp-hero__inner">
+      <div class="bp-hero__brand">
+        <svg class="bp-logo" width="40" height="40" viewBox="0 0 48 48" aria-hidden="true">
+  <defs>
+    <linearGradient id="nl-grad" x1="8" y1="8" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7a7268" stop-opacity="0.45"/>
+      <stop offset="0.4" stop-color="#7a7268"/>
+      <stop offset="1" stop-color="#5c564e"/>
+    </linearGradient>
+    <linearGradient id="nl-route" x1="13" y1="14" x2="35" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7a7268" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#5c564e" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+  <circle cx="13.5" cy="14.5" r="2.1" fill="url(#nl-grad)" opacity="0.85"/>
+  <circle cx="34.5" cy="33.5" r="2.1" fill="url(#nl-grad)" opacity="0.85"/>
+  <path d="M 24 22 m -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0" fill="none" stroke="url(#nl-grad)" stroke-width="1.15" stroke-opacity="0.28"/>
+  <g stroke="url(#nl-grad)" stroke-width="1.1" stroke-linecap="round" stroke-opacity="0.38">
+    <path d="M 24 6.5 V 9.5"/><path d="M 24 34.5 V 37.5"/><path d="M 7.5 22 H 10.5"/><path d="M 37.5 22 H 40.5"/>
+  </g>
+  <path d="M 13.5 14.5 Q 24 27 34.5 33.5" fill="none" stroke="url(#nl-route)" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M 15 34 V 14 L 33 34 V 14" fill="none" stroke="url(#nl-grad)" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 6 40.5 Q 14 37.5 24 39.5 T 42 40.5" fill="none" stroke="url(#nl-grad)" stroke-width="1.65" stroke-linecap="round" stroke-opacity="0.55"/>
+</svg>
+        <p class="bp-hero__name">NaoLab</p>
+      </div>
+      <p class="bp-hero__eyebrow">Business Plan · Internal use</p>
+      <h1 class="bp-hero__title">Trade operations platform</h1>
+      <p class="bp-hero__subtitle">Supply chain management for logistics SMBs — orders, bookings, and trade setup without enterprise ERP.</p>
+      <div class="bp-hero__meta">
+        <span class="bp-badge bp-badge--accent">v1.1 · June 2026</span>
+        <span class="bp-badge bp-badge--live">March 2027 milestone</span>
+        <span class="bp-badge">Pablo Benéitez · naolab.io</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="bp-layout">
+    <nav class="bp-toc" aria-label="Table of contents">
+      <p class="bp-toc__label">Contents</p>
+      <ol><li><a href="#executive-summary">Executive summary</a></li>
+<li><a href="#problem-and-market">Problem and market</a></li>
+<li><a href="#product-and-roadmap">Product and roadmap</a></li>
+<li><a href="#business-model">Business model</a></li>
+<li><a href="#go-to-market">Go-to-market</a></li>
+<li><a href="#operations-and-execution">Operations and execution</a></li>
+<li><a href="#finance">Finance</a></li>
+<li><a href="#key-metrics">Key metrics</a></li>
+<li><a href="#long-term-vision">Long-term vision</a></li>
+<li><a href="#next-steps">Next steps</a></li></ol>
+    </nav>
+    <main class="bp-main">
+      <section class="bp-section" id="table-of-contents">
+<h2 class="bp-section-title">Table of contents</h2>
+<div class="bp-card">
+<p class="bp-p">01. Executive summary 02. Problem and market 03. Product and roadmap 04. Business model 05. Go-to-market 06. Operations and execution 07. Finance 08. Key metrics 09. Long-term vision 10. Next steps</p>
+<p class="bp-p"><strong>Reference milestone:</strong> March 2027 — sellable product, credible early traction, PMF in the export + bookings wedge.</p>
+</div></section>
+<section class="bp-section" id="version-history">
+<h2 class="bp-section-title">Version history</h2>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Version</th><th>Date</th><th>Main change</th></tr></thead><tbody><tr><td>1.0</td><td>Jun 2026</td><td>Initial BP (CargoLens / container visibility)</td></tr><tr><td>1.1</td><td>Jun 2026</td><td>Pivot to trade-ops; March 2027 milestone; merged document</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="executive-summary">
+<h2 class="bp-section-title"><span class="bp-section-num">01</span>Executive summary</h2>
+<div class="bp-card">
+<p class="bp-p">NaoLab is a SaaS <strong>commercial operations</strong> platform for small freight forwarders and importers/exporters — orders, bookings, and trade setup in one workspace, without enterprise ERP complexity or cost.</p>
+</div></section>
+<section class="bp-section" id="the-problem-in-one-sentence">
+<h3 class="bp-subsection-title">The problem in one sentence</h3>
+<div class="bp-card">
+<p class="bp-p">Logistics SMBs run <strong>orders and bookings</strong> on inadequate tools (Excel, email, WhatsApp) because market ERPs cost €500 to several thousand per month and take months to implement — while commercial data (client, shipper, consignee, booking) gets lost across operators.</p>
+</div></section>
+<section class="bp-section" id="the-solution">
+<h3 class="bp-subsection-title">The solution</h3>
+<div class="bp-card">
+<p class="bp-p">A tool <strong>focused on export and bookings</strong>, easy to adopt and affordable — built by someone who has lived the problem from the inside for 10+ years at Maersk, Kuehne+Nagel, and Noatum.</p>
+<p class="bp-p"><strong>Value proposition:</strong> export and booking operations in one place, with onboarding in hours, not months.</p>
+</div></section>
+<section class="bp-section" id="current-state-june-2026">
+<h3 class="bp-subsection-title">Current state (June 2026)</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Dimension</th><th>Status</th></tr></thead><tbody><tr><td><strong>Product</strong></td><td>Working MVP — export orders (PO), shipper bookings (SB), carrier bookings (CB), trade setup, partial client portal, messaging</td></tr><tr><td><strong>Stack</strong></td><td>React · Node.js · Express · MongoDB · CI/CD</td></tr><tr><td><strong>Team</strong></td><td>Solo founder — development, sales, product, support</td></tr><tr><td><strong>Legal</strong></td><td>Self-employed (in progress) — Kit Digital under evaluation</td></tr><tr><td><strong>Domain</strong></td><td>naolab.io / naolabs.com — being finalized</td></tr><tr><td><strong>Positioning</strong></td><td>Trade-ops for SMB forwarders — <strong>not</strong> container tracking as core</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="march-2027-target">
+<h3 class="bp-subsection-title">March 2027 target</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Metric</th><th>Target</th></tr></thead><tbody><tr><td>Paying customers</td><td>15–20</td></tr><tr><td>MRR</td><td>€1,000–2,000</td></tr><tr><td>Monthly churn</td><td>&lt; 6%</td></tr><tr><td>Time to value</td><td>&lt; 48 h (signup → first real PO or booking)</td></tr><tr><td>Testimonials</td><td>≥ 2 publishable</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="why-now">
+<h3 class="bp-subsection-title">Why now</h3>
+<div class="bp-card">
+<ul class="bp-list">
+<li>Spain’s logistics SMB segment (~2,000 forwarders, mostly SMBs) remains underserved by accessible software.</li>
+<li>The product already has <strong>live, sellable modules</strong>: PO → SB → CB with commercial masters.</li>
+<li>The founder combines <strong>domain credibility</strong> and technical delivery — the main risk is commercial, not concept.</li>
+</ul>
+</div></section>
+<section class="bp-section" id="what-we-do-not-do">
+<h3 class="bp-subsection-title">What we do not do</h3>
+<div class="bp-card">
+<ul class="bp-list">
+<li>We do not compete with CargoWise or commodity visibility tools.</li>
+<li>We do not promise a full ERP before validating the wedge with paying customers.</li>
+</ul>
+</div></section>
+<section class="bp-section" id="critical-next-step">
+<h3 class="bp-subsection-title">Critical next step</h3>
+<div class="bp-card">
+<p class="bp-p"><strong>2–3 real pilots before October 2026</strong> — symbolic price (€29/month), real operations, biweekly feedback.</p>
+</div></section>
+<section class="bp-section" id="problem-and-market">
+<h2 class="bp-section-title"><span class="bp-section-num">02</span>Problem and market</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="the-real-pain">
+<h3 class="bp-subsection-title">The real pain</h3>
+<div class="bp-card">
+<p class="bp-p">A small forwarder (5–20 people) juggles:</p>
+<ul class="bp-list">
+<li>Dozens of active <strong>orders and bookings</strong> across clients, shippers, and carriers</li>
+<li><strong>Scattered commercial data</strong> — PO in Excel, SB in email, CB on carrier portals</li>
+<li>Client communication on shipment status with no minimal portal</li>
+<li>No <strong>operational source of truth</strong> for shipper, consignee, and trade chain</li>
+<li>Reliance on calls, email, and one-off carrier portals</li>
+</ul>
+<p class="bp-p"><strong>Outcome:</strong> commercial data errors, rework, slow client responses, wasted operator time, and reputational risk.</p>
+</div></section>
+<section class="bp-section" id="target-market">
+<h3 class="bp-subsection-title">Target market</h3>
+<div class="bp-card">
+<p class="bp-p"><strong>Primary segment:</strong> independent freight forwarders with 3–30 employees in Spain. Medium term: Spanish-speaking and European markets.</p>
+</div></section>
+<section class="bp-section" id="market-indicators">
+<h3 class="bp-subsection-title">Market indicators</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Data point</th><th>Value</th></tr></thead><tbody><tr><td>Registered forwarders in Spain</td><td>~2,000 companies, mostly SMBs</td></tr><tr><td>SMB logistics software growth (Europe)</td><td>~8–10% annually</td></tr><tr><td>Global freight management software TAM</td><td>&gt;$5B — underserved SMB segment</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="primary-buyer-persona">
+<h3 class="bp-subsection-title">Primary buyer persona</h3>
+<div class="bp-card">
+<ul class="bp-list">
+<li>Operations manager or head of ops at a small forwarder</li>
+<li>35–55, logistics background, low tolerance for complex software</li>
+<li>Direct buyer — no long procurement cycle</li>
+<li>Price-sensitive but willing to pay when ROI is clear and fast (<strong>less Excel, fewer errors</strong>)</li>
+</ul>
+</div></section>
+<section class="bp-section" id="product-and-roadmap">
+<h2 class="bp-section-title"><span class="bp-section-num">03</span>Product and roadmap</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="value-proposition">
+<h3 class="bp-subsection-title">Value proposition</h3>
+<div class="bp-card">
+<blockquote class="bp-quote"><strong>Export and booking operations in one place, without enterprise ERP complexity or cost.</strong></blockquote>
+<p class="bp-p">NaoLab centralizes what today lives in Excel, email, and WhatsApp: <strong>orders (PO), shipper bookings (SB), carrier bookings (CB), contractual clients, and client portal collaboration</strong> — onboarding in hours, not months.</p>
+<p class="bp-p">We do not compete with CargoWise. <strong>We do the small forwarder’s operational flow very well</strong> for export and bookings.</p>
+</div></section>
+<section class="bp-section" id="mvp-capabilities-live-june-2026">
+<h3 class="bp-subsection-title">MVP capabilities (live — June 2026)</h3>
+<div class="bp-card">
+<p class="bp-lead">Staff (forwarder team)</p>
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Module</th><th>Status</th><th>Description</th></tr></thead><tbody><tr><td>Export orders (PO)</td><td>Live</td><td>CRUD, SKU lines, Excel import, commercial context</td></tr><tr><td>Shipper bookings (SB)</td><td>Live</td><td>Bookings, link to orders, Excel import</td></tr><tr><td>Carrier bookings (CB)</td><td>Live</td><td>Linked to SB; INTTRA flow (mock by default)</td></tr><tr><td>Trade setup</td><td>Live</td><td>Parties, facilities, relationships, master import</td></tr><tr><td>Invites</td><td>Live</td><td>Staff (company code) and clients (contractual code)</td></tr><tr><td>Messages</td><td>Live</td><td>Staff ↔ client portal</td></tr></tbody></table></div>
+<p class="bp-lead">Client portal</p>
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Module</th><th>Status</th><th>Description</th></tr></thead><tbody><tr><td>Trade setup</td><td>Partial</td><td>Parties and chains for their account</td></tr><tr><td>Messages</td><td>Live</td><td>Thread with forwarder</td></tr></tbody></table></div>
+<p class="bp-p"><strong>Out of product:</strong> container tracking, vessel maps, commodity visibility.</p>
+<p class="bp-p"><strong>Roadmap (placeholders, do not sell yet):</strong> import, warehouse, documents, operational finance, analytics.</p>
+</div></section>
+<section class="bp-section" id="what-naolab-is-not">
+<h3 class="bp-subsection-title">What NaoLab is not</h3>
+<div class="bp-card">
+<ul class="bp-list">
+<li>Not a full TMS/ERP (customs, warehouse, finance end-to-end).</li>
+<li>Not a tracking or fleet map tool.</li>
+<li>Does not replace live carrier portals until real credentials are integrated.</li>
+</ul>
+</div></section>
+<section class="bp-section" id="competitive-advantage">
+<h3 class="bp-subsection-title">Competitive advantage</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Factor</th><th>Why it matters</th></tr></thead><tbody><tr><td>Domain knowledge</td><td>10+ years in freight forwarding — real flows, not hypotheticals</td></tr><tr><td>Adoption speed</td><td>Signup → first PO or booking in the same session</td></tr><tr><td>SMB pricing</td><td>From €49/month — see chapter 04</td></tr><tr><td>Focus</td><td>Export + bookings + trade setup before expanding</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="product-roadmap-june-2026-to-march-2027">
+<h3 class="bp-subsection-title">Product roadmap — June 2026 to March 2027</h3>
+<div class="bp-card">
+<p class="bp-p"><strong>Principle:</strong> nothing enters development without a pilot or paying customer signal.</p>
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Phase</th><th>Period</th><th>Business goal</th><th>Deliverables</th></tr></thead><tbody><tr><td><strong>A — Alignment</strong></td><td>Jun–Jul 2026</td><td>Landing + 10 outreaches</td><td>PO→SB→CB demo; polished onboarding</td></tr><tr><td><strong>B — Pilots</strong></td><td>Aug–Oct 2026</td><td>2–3 pilots (€29/mo)</td><td>Sellable v1.1 client portal</td></tr><tr><td><strong>C — Paid</strong></td><td>Nov 2026–Jan 2027</td><td>8–12 Starter/Growth customers</td><td>v1.2 stability + 1 top integration</td></tr><tr><td><strong>D — Milestone</strong></td><td>Feb–Mar 2027</td><td>PMF; €1,000–2,000 MRR</td><td>v1.3 documents <strong>or</strong> email notifications</td></tr></tbody></table></div>
+<p class="bp-lead">v1.3 (after January 2027, pick one):</p>
+<ul class="bp-list">
+<li><strong>Option A:</strong> basic documents (BL, packing list, invoice on PO/SB)</li>
+<li><strong>Option B:</strong> client email notifications on operational milestones</li>
+</ul>
+<p class="bp-p"><strong>Deferred after March 2027:</strong> import, warehouse, analytics, tracking, native mobile app.</p>
+<pre class="bp-code">Jun–Jul 2026     Aug–Oct 2026        Nov 2026–Jan 2027      Feb–Mar 2027
+Alignment    →   Pilots v1.1     →   Paid + v1.2        →   PMF milestone</pre>
+</div></section>
+<section class="bp-section" id="business-model">
+<h2 class="bp-section-title"><span class="bp-section-num">04</span>Business model</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="pricing-to-validate-with-market">
+<h3 class="bp-subsection-title">Pricing (to validate with market)</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Plan</th><th>Price/mo</th><th>Target</th><th>Includes</th></tr></thead><tbody><tr><td><strong>Starter</strong></td><td>€49</td><td>1–3 users, basic ops</td><td>PO, SB, CB, trade setup, email support</td></tr><tr><td><strong>Growth</strong></td><td>€149</td><td>Up to 10 users</td><td>All Starter + client portal + integrations</td></tr><tr><td><strong>Pro</strong></td><td>€299</td><td>Teams &gt;10 users</td><td>All Growth + analytics + dedicated onboarding</td></tr></tbody></table></div>
+<p class="bp-p"><strong>Model:</strong> monthly or annual SaaS (2 months free on annual). No setup fees.</p>
+<p class="bp-p"><strong>Early adopter pilot:</strong> €29/month — full access to live modules in exchange for biweekly feedback.</p>
+</div></section>
+<section class="bp-section" id="target-unit-economics">
+<h3 class="bp-subsection-title">Target unit economics</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Metric</th><th>Target</th></tr></thead><tbody><tr><td>MRR target <strong>March 2027</strong></td><td>€1,000–2,000 (15–20 customers)</td></tr><tr><td>MRR target year 1 (Jun 2027)</td><td>€2,500–3,500 (~25–35 customers)</td></tr><tr><td>MRR target year 2</td><td>€15,000 (~100+ mixed customers)</td></tr><tr><td>Churn target</td><td>&lt; 6% monthly (v1.1)</td></tr><tr><td>CAC target</td><td>&lt; €300 (digital + referrals)</td></tr><tr><td>LTV target (24 months)</td><td>&gt; €1,500 per customer</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="go-to-market">
+<h2 class="bp-section-title"><span class="bp-section-num">05</span>Go-to-market</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="phase-0-validation-jun-aug-2026">
+<h3 class="bp-subsection-title">Phase 0 — Validation (Jun–Aug 2026)</h3>
+<div class="bp-card">
+<p class="bp-p"><strong>Goal:</strong> 2–3 real pilot customers at €29/month.</p>
+<ul class="bp-list">
+<li>Personal network (Maersk, Kuehne+Nagel, Noatum)</li>
+<li>LinkedIn outreach to ops managers at small forwarders in Spain</li>
+<li>Industry groups and forums (FETEIA, independent forwarders)</li>
+<li><strong>Early adopter</strong> offer with direct product input</li>
+<li>Demo: <strong>PO → SB → CB → client portal</strong> (15 min)</li>
+</ul>
+</div></section>
+<section class="bp-section" id="phase-1-early-traction-sep-2026-jan-2027">
+<h3 class="bp-subsection-title">Phase 1 — Early traction (Sep 2026 – Jan 2027)</h3>
+<div class="bp-card">
+<ul class="bp-list">
+<li>LinkedIn content: operational pain (Excel, bookings, commercial errors)</li>
+<li>Use case + pilot testimonial on landing</li>
+<li>Outreach: <strong>10 conversations/week</strong></li>
+<li>Basic SEO: <em>forwarder software</em>, <em>SMB export booking management</em>, <em>forwarder operations</em></li>
+</ul>
+</div></section>
+<section class="bp-section" id="phase-2-scale-feb-dec-2027">
+<h3 class="bp-subsection-title">Phase 2 — Scale (Feb–Dec 2027)</h3>
+<div class="bp-card">
+<ul class="bp-list">
+<li>Referrals: 1 free month per converted referral</li>
+<li>Partnerships (FETEIA, logistics cluster)</li>
+<li>Events: Logistics Spain, SIL Barcelona (if MRR &gt; €1,500)</li>
+<li>Logistics consultants as indirect channel</li>
+</ul>
+<p class="bp-p"><strong>Primary short-term channel:</strong> LinkedIn + direct outreach. No paid ads until churn is controlled and messaging is validated.</p>
+</div></section>
+<section class="bp-section" id="operations-and-execution">
+<h2 class="bp-section-title"><span class="bp-section-num">06</span>Operations and execution</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="priorities-next-90-days-jun-sep-2026">
+<h3 class="bp-subsection-title">Priorities — next 90 days (Jun–Sep 2026)</h3>
+<div class="bp-card">
+<p class="bp-lead">Weeks 1–4</p>
+<ul class="bp-checklist">
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Register as self-employed</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Finalize NaoLab domain and branding</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Public landing — <strong>trade-ops</strong> positioning (not tracking)</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Demo script PO → SB → CB → portal (15 min)</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>10 outreaches to industry contacts</li>
+</ul>
+<p class="bp-lead">Weeks 5–8</p>
+<ul class="bp-checklist">
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>1 active pilot on real operations</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Biweekly structured feedback → v1.1 backlog</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Client portal v1.1 if feedback confirms</li>
+</ul>
+<p class="bp-lead">Weeks 9–12</p>
+<ul class="bp-checklist">
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>2–3 active pilots</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>First paying Starter customers (target MRR &gt; €200)</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Evaluate Kit Digital as acquisition or funding channel</li>
+</ul>
+</div></section>
+<section class="bp-section" id="risk-management">
+<h3 class="bp-subsection-title">Risk management</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Risk</th><th>Prob.</th><th>Impact</th><th>Mitigation</th></tr></thead><tbody><tr><td>Long sales cycle</td><td>High</td><td>Medium</td><td>€29/mo pilot; concrete ops demo</td></tr><tr><td>Churn from missing integrations</td><td>Medium</td><td>High</td><td>Prioritize 1 top integration from pilots (INTTRA, email, Excel)</td></tr><tr><td>Large competitor enters SMB</td><td>Low</td><td>High</td><td>Speed, trade-ops focus, domain as moat</td></tr><tr><td>Limited capacity (solo founder)</td><td>High</td><td>Medium</td><td>Ruthless prioritization; zero scope creep</td></tr><tr><td>Product–message misalignment</td><td>Medium</td><td>High</td><td>BP v1.1 + landing + demo aligned; do not resell tracking</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="finance">
+<h2 class="bp-section-title"><span class="bp-section-num">07</span>Finance</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="cost-structure-initial-phase">
+<h3 class="bp-subsection-title">Cost structure (initial phase)</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Item</th><th>Cost/month</th></tr></thead><tbody><tr><td>Self-employed (flat rate, year 1)</td><td>~€85</td></tr><tr><td>Infrastructure (hosting, DB, domain)</td><td>~€50–80</td></tr><tr><td>Integrations / APIs (INTTRA, transactional email)</td><td>~€0–50 by volume</td></tr><tr><td>SaaS tools (design, marketing)</td><td>~€50</td></tr><tr><td><strong>EST. FIXED TOTAL</strong></td><td><strong>~€250–350/month</strong></td></tr></tbody></table></div>
+<p class="bp-note">v1.1 note: tracking API costs (Safecube/Sinay) removed — out of core.</p>
+<p class="bp-p"><strong>Operating break-even:</strong> ~8–10 Starter customers (€390–490 MRR). Achievable in Q4 2026 if Phase B (pilots) runs.</p>
+</div></section>
+<section class="bp-section" id="conservative-forecast-v1-1-revised">
+<h3 class="bp-subsection-title">Conservative forecast (v1.1 revised)</h3>
+<div class="bp-card">
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Date</th><th>Customers</th><th>Est. MRR</th><th>Notes</th></tr></thead><tbody><tr><td>Sep 2026</td><td>2–3 pilots</td><td>~€90</td><td>Symbolic price</td></tr><tr><td>Dec 2026</td><td>8–10</td><td>~€600–800</td><td>First Starter customers</td></tr><tr><td><strong>Mar 2027</strong></td><td><strong>15–20</strong></td><td><strong>€1,000–2,000</strong></td><td><strong>PMF milestone</strong></td></tr><tr><td>Jun 2027</td><td>25–35</td><td>€2,500–3,500</td><td>Scale GTM</td></tr><tr><td>Dec 2027</td><td>50–70</td><td>€5,000–7,000</td><td>Second product lever</td></tr></tbody></table></div>
+<p class="bp-note">Indicative projections. Update monthly with real data.</p>
+</div></section>
+<section class="bp-section" id="key-metrics">
+<h2 class="bp-section-title"><span class="bp-section-num">08</span>Key metrics</h2>
+<div class="bp-card">
+<p class="bp-p">Track from the first month with active customers:</p>
+<div class="bp-table-wrap"><table class="bp-table"><thead><tr><th>Metric</th><th>Description</th><th>Frequency</th><th>v1.1 target</th></tr></thead><tbody><tr><td>MRR and MoM growth</td><td>Recurring revenue and change</td><td>Monthly</td><td>Mar 2027: €1,000–2,000</td></tr><tr><td>Churn rate</td><td>% customers cancelling/month</td><td>Monthly</td><td>&lt; 6%</td></tr><tr><td>NPS / satisfaction</td><td>Retention signal</td><td>Quarterly</td><td>≥ 30 on pilots</td></tr><tr><td>CAC</td><td>Cost per acquired customer</td><td>Monthly</td><td>&lt; €300</td></tr><tr><td>Time to value</td><td>Signup → first real PO or booking</td><td>Monthly</td><td>&lt; 48 h</td></tr><tr><td>Most-used features</td><td>Roadmap prioritization</td><td>Weekly</td><td>PO, SB, CB, portal</td></tr><tr><td>Pilot → paid conversion</td><td>% pilots moving to Starter/Growth</td><td>Monthly</td><td>≥ 33%</td></tr></tbody></table></div>
+</div></section>
+<section class="bp-section" id="long-term-vision">
+<h2 class="bp-section-title"><span class="bp-section-num">09</span>Long-term vision</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="naolab-in-3-years">
+<h3 class="bp-subsection-title">NaoLab in 3 years</h3>
+<div class="bp-card">
+<ul class="bp-list">
+<li>Reference for <strong>commercial operations</strong> of logistics SMBs in Spain (&gt;500 active customers)</li>
+<li>Spanish-speaking expansion — LATAM with a huge gap in accessible tools</li>
+<li><strong>Platform</strong>, not just a tool: integrations with carriers, customs, and e-commerce</li>
+<li>Potential acquisition by a larger player, or Series A if traction justifies it</li>
+</ul>
+</div></section>
+<section class="bp-section" id="the-name">
+<h3 class="bp-subsection-title">The name</h3>
+<div class="bp-card">
+<p class="bp-p">The <em>nao</em> was the ship that connected worlds and opened impossible trade routes. <strong>NaoLab connects logistics operators with the unified commercial operations they deserve</strong> — orders, bookings, and clients in one place, without enterprise ERP weight.</p>
+</div></section>
+<section class="bp-section" id="next-steps">
+<h2 class="bp-section-title"><span class="bp-section-num">10</span>Next steps</h2>
+<div class="bp-card">
+</div></section>
+<section class="bp-section" id="this-week">
+<h3 class="bp-subsection-title">This week</h3>
+<div class="bp-card">
+<ul class="bp-checklist">
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Publish landing with trade-ops proposition (not tracking)</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Demo script: PO → SB → CB → client portal (15 min)</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Identify 10 contacts for pilot outreach</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Set pilot pricing (€29) and Starter (€49)</li>
+</ul>
+</div></section>
+<section class="bp-section" id="next-4-weeks">
+<h3 class="bp-subsection-title">Next 4 weeks</h3>
+<div class="bp-card">
+<ul class="bp-checklist">
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>First pilot on real operations</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Biweekly feedback structure for pilots</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>v1.1 client portal backlog prioritized from feedback</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Measure time-to-value from first external signup</li>
+</ul>
+</div></section>
+<section class="bp-section" id="before-september-2026">
+<h3 class="bp-subsection-title">Before September 2026</h3>
+<div class="bp-card">
+<ul class="bp-checklist">
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Minimum 2 active pilots</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Evaluate Kit Digital</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>First metrics report (even with 1–2 customers)</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Document decision: Option A (documents) vs B (notifications) for v1.3</li>
+</ul>
+</div></section>
+<section class="bp-section" id="before-march-2027">
+<h3 class="bp-subsection-title">Before March 2027</h3>
+<div class="bp-card">
+<ul class="bp-checklist">
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>15–20 paying customers</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>€1,000–2,000 MRR</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>2 publishable testimonials on landing</li>
+<li class="bp-check"><span class="bp-check-box" aria-hidden="true"></span>Monthly churn &lt; 6% for 3 consecutive months</li>
+</ul>
+<p class="bp-note">Living document — version 1.1 · Pablo Benéitez · naolab.io</p>
+<p class="bp-note">Update with each product iteration and pilot cycle.</p>
+</div></section>
+    </main>
+  </div>
+
+  <footer class="bp-footer">
+    <p>Living document — NaoLab Business Plan v1.1 · Pablo Benéitez · naolab.io</p>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.bp-toc a').forEach(a => {
+  a.addEventListener('click', e => {
+    document.querySelectorAll('.bp-toc a').forEach(x => x.classList.remove('is-active'));
+    a.classList.add('is-active');
+  });
+});
+</script>
+</body>
+</html>

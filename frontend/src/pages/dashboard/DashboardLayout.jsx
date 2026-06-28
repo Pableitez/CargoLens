@@ -30,7 +30,7 @@ function DashboardShell() {
   ) : null;
 
   return (
-    <MainLayout dataSource={null} title={headline} topbarExtra={topbarExtra}>
+    <MainLayout title={headline} topbarExtra={topbarExtra}>
       <div className="page-dash dash">
         <OnboardingBanner />
         {showPortalContext ? (

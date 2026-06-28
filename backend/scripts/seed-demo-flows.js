@@ -19,7 +19,6 @@ import { Facility } from "../src/models/Facility.js";
 import { SupplyChain } from "../src/models/SupplyChain.js";
 import { Order } from "../src/models/Order.js";
 import { ShipperBooking } from "../src/models/ShipperBooking.js";
-import { SavedContainer } from "../src/models/SavedContainer.js";
 import { Conversation } from "../src/models/Conversation.js";
 import { Message } from "../src/models/Message.js";
 import { generateClientInviteCode } from "../src/utils/clientInviteCode.js";
@@ -862,31 +861,6 @@ async function main() {
     ...FLOW.booking,
   });
   console.log(`  Shipper booking ${FLOW.booking.bookingReference}`);
-
-  if (peninsulaClientId) {
-    const mrsuContainers = await SavedContainer.find({
-      companyId,
-      containerNumber: { $regex: /^MRSU/i },
-    })
-      .limit(12)
-      .select("_id");
-
-    if (mrsuContainers.length > 0) {
-      const peninsulaName =
-        (await Party.findById(peninsulaClientId).select("legalName"))?.legalName ??
-        "Distribuidora Peninsular S.A.";
-      await SavedContainer.updateMany(
-        { _id: { $in: mrsuContainers.map((c) => c._id) } },
-        {
-          $set: {
-            contractualPartyId: peninsulaClientId,
-            clientName: peninsulaName,
-          },
-        }
-      );
-      console.log(`  ${mrsuContainers.length} contenedores MRSU → ${DEMO_CLIENT_BE.PENINSULA}`);
-    }
-  }
 
   const totalClients = await Party.countDocuments({ companyId, accountTier: "contractual" });
 

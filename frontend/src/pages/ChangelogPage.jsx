@@ -6,7 +6,7 @@ export function ChangelogPage() {
   const { t } = useTranslation();
 
   return (
-    <MainLayout title={t("changelog.pageTitle")} dataSource={null}>
+    <MainLayout title={t("changelog.pageTitle")}>
       <div className="legal-page changelog-page">
         <BackLink />
         <p className="legal-page__lead">{t("changelog.intro")}</p>
@@ -20,6 +20,8 @@ export function ChangelogPage() {
             <li>{t("changelog.itemTimezone")}</li>
             <li>{t("changelog.itemPrint")}</li>
             <li>{t("changelog.itemPwa")}</li>
+            <li>{t("changelog.itemLanding")}</li>
+            <li>{t("changelog.itemCarrierBookings")}</li>
           </ul>
         </section>
         <section className="legal-page__section">

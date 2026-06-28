@@ -26,13 +26,13 @@ export function BrandMark({ className, size = 40 }) {
     >
       <defs>
         <linearGradient id={gid} x1="8" y1="8" x2="40" y2="42" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#bae6fd" />
-          <stop offset="0.4" stopColor="#38bdf8" />
-          <stop offset="1" stopColor="#0369a1" />
+          <stop stopColor="var(--accent)" stopOpacity="0.45" />
+          <stop offset="0.4" stopColor="var(--accent)" />
+          <stop offset="1" stopColor="var(--accent-strong)" />
         </linearGradient>
         <linearGradient id={`${gid}-route`} x1="13" y1="14" x2="35" y2="34" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#7dd3fc" stopOpacity="0.15" />
-          <stop offset="1" stopColor="#0ea5e9" stopOpacity="0.55" />
+          <stop stopColor="var(--accent)" stopOpacity="0.15" />
+          <stop offset="1" stopColor="var(--accent-strong)" stopOpacity="0.55" />
         </linearGradient>
       </defs>
 

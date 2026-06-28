@@ -30,6 +30,7 @@ export function getSidebarSettingsGroup(staff) {
 
 export function getSidebarOpenInitial() {
   const initial = {
+    platform: false,
     documents: false,
     insights: false,
     settings: false,

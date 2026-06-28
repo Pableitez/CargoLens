@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { Party } from "../../models/Party.js";
-import { SavedContainer } from "../../models/SavedContainer.js";
 import { SupplyChain } from "../../models/SupplyChain.js";
 import { resolvePrimaryContractualParty, serializeContractualParty } from "./contractualPartyValidation.js";
 import { loadSupplyChainNetwork } from "./supplyChainNetwork.js";
@@ -19,11 +18,6 @@ export async function buildClientProfile(partyDoc, companyOid) {
     parentName = parent?.legalName ?? null;
   }
 
-  const savedContainerCount = await SavedContainer.countDocuments({
-    companyId: companyOid,
-    contractualPartyId: partyDoc._id,
-  });
-
   const subsidiaries =
     tier === "primary"
       ? await Party.find({ ...contractualFilter(companyOid), parentPartyId: partyDoc._id })
@@ -31,16 +25,8 @@ export async function buildClientProfile(partyDoc, companyOid) {
           .lean()
       : [];
 
-  const subsidiaryItems = await Promise.all(
-    subsidiaries.map(async (row) => {
-      const count = await SavedContainer.countDocuments({
-        companyId: companyOid,
-        contractualPartyId: row._id,
-      });
-      return {
-        ...serializeContractualParty(row, { parentName: partyDoc.legalName, savedContainerCount: count }),
-      };
-    })
+  const subsidiaryItems = subsidiaries.map((row) =>
+    serializeContractualParty(row, { parentName: partyDoc.legalName, savedContainerCount: 0 })
   );
 
   const chains =
@@ -72,7 +58,7 @@ export async function buildClientProfile(partyDoc, companyOid) {
   );
 
   return {
-    ...serializeContractualParty(partyDoc, { parentName, savedContainerCount }),
+    ...serializeContractualParty(partyDoc, { parentName, savedContainerCount: 0 }),
     primaryClientId: primaryParty ? String(primaryParty._id) : null,
     primaryClientName: primaryParty?.legalName ?? null,
     primaryClientCode: primaryParty?.code ?? null,
@@ -82,7 +68,7 @@ export async function buildClientProfile(partyDoc, companyOid) {
     sectionCounts: {
       subsidiaries: subsidiaryItems.length,
       supplyChains: chains.length,
-      containers: savedContainerCount,
+      containers: 0,
     },
   };
 }

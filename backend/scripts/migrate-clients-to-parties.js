@@ -10,7 +10,6 @@ import { Client } from "../src/models/Client.js";
 import { Party } from "../src/models/Party.js";
 import { SupplyChain } from "../src/models/SupplyChain.js";
 import { Order } from "../src/models/Order.js";
-import { SavedContainer } from "../src/models/SavedContainer.js";
 import { Conversation } from "../src/models/Conversation.js";
 
 async function migrateCollection(db, fromField, toField) {
@@ -84,13 +83,6 @@ async function main() {
   );
   console.log(`Orders: ${orderResult.modifiedCount} updated`);
   await Order.updateMany({}, { $unset: { clientId: "" } });
-
-  const containerResult = await SavedContainer.updateMany(
-    { clientId: { $exists: true }, contractualPartyId: { $exists: false } },
-    [{ $set: { contractualPartyId: "$clientId" } }]
-  );
-  console.log(`Containers: ${containerResult.modifiedCount} updated`);
-  await SavedContainer.updateMany({}, { $unset: { clientId: "" } });
 
   const convResult = await Conversation.updateMany(
     { clientId: { $exists: true }, contractualPartyId: { $exists: false } },

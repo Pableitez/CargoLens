@@ -146,5 +146,25 @@ describe("HTTP integration", () => {
       expect(res.status).toBe(403);
       expect(res.body.error).toBe("FORBIDDEN");
     });
+
+    it("POST /api/marketing/pilot-leads stores a pilot lead", async () => {
+      const res = await request(app).post("/api/marketing/pilot-leads").send({
+        email: "pilot@example.com",
+        companyName: "Acme Forwarding",
+        name: "Alex",
+        locale: "en",
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.ok).toBe(true);
+
+      const again = await request(app).post("/api/marketing/pilot-leads").send({
+        email: "pilot@example.com",
+        companyName: "Acme Forwarding SL",
+      });
+
+      expect(again.status).toBe(200);
+      expect(again.body.updated).toBe(true);
+    });
   });
 });

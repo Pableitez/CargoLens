@@ -3,11 +3,8 @@ import {
   INSIGHTS_MODULE,
   OPERATIONS_MODULES,
   SETTINGS_MODULE,
-  STAFF_TRACKING_CONTAINER_LINKS,
-  TRACKING_LINKS,
   type ModuleGroupDef,
 } from "../../config/moduleRegistry";
-import { useDashboardWorkspace } from "../../pages/dashboard/DashboardWorkspaceContext.jsx";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import { ModuleHubPage, ModulePlaceholderPage, OperationsIndexPage } from "./ModuleHubPage";
 
@@ -50,24 +47,6 @@ export function DashboardTasksHub() {
       breadcrumbs={[
         { label: t("modules.nav.home"), to: "/dashboard/home" },
         { label: t("modules.tasks.title") },
-      ]}
-    />
-  );
-}
-
-export function DashboardTrackingHub() {
-  const { isClientPortal } = useDashboardWorkspace();
-  const { t } = useAppTranslation();
-  return (
-    <ModuleHubPage
-      groupId="tracking"
-      titleKey="modules.tracking.title"
-      leadKey="modules.tracking.lead"
-      submodules={TRACKING_LINKS}
-      extraLinks={isClientPortal ? undefined : STAFF_TRACKING_CONTAINER_LINKS}
-      breadcrumbs={[
-        { label: t("modules.nav.home"), to: "/dashboard/home" },
-        { label: t("modules.tracking.title") },
       ]}
     />
   );

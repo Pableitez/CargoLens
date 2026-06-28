@@ -1,6 +1,5 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
-import { DASHBOARD_OVERVIEW_PATH } from "./config/paths.js";
 import { CommandPalette } from "./components/CommandPalette.jsx";
 import { RouteRecentHook } from "./components/RouteRecentHook.jsx";
 import { RouteScrollToTop } from "./components/RouteScrollToTop.jsx";
@@ -12,12 +11,10 @@ import { RouteFallback } from "./components/RouteFallback.jsx";
 import { MODULE_PLACEHOLDER_ROUTES } from "./modules/shared/modulePages.tsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx").then((m) => ({ default: m.HomePage })));
-const TrackPage = lazy(() => import("./pages/TrackPage.jsx").then((m) => ({ default: m.TrackPage })));
 const LoginPage = lazy(() => import("./pages/LoginPage.jsx").then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() =>
   import("./pages/RegisterPage.jsx").then((m) => ({ default: m.RegisterPage }))
 );
-const VesselsPage = lazy(() => import("./pages/VesselsPage.jsx").then((m) => ({ default: m.VesselsPage })));
 const PrivacyPolicyPage = lazy(() =>
   import("./pages/PrivacyPolicyPage.jsx").then((m) => ({ default: m.PrivacyPolicyPage }))
 );
@@ -29,24 +26,6 @@ const DashboardLayout = lazy(() =>
 );
 const DashboardHome = lazy(() =>
   import("./pages/dashboard/DashboardHome.jsx").then((m) => ({ default: m.DashboardHome }))
-);
-const DashboardOverview = lazy(() =>
-  import("./pages/dashboard/DashboardOverview.jsx").then((m) => ({ default: m.DashboardOverview }))
-);
-const DashboardAddContainer = lazy(() =>
-  import("./pages/dashboard/DashboardAddContainer.jsx").then((m) => ({ default: m.DashboardAddContainer }))
-);
-const DashboardImport = lazy(() =>
-  import("./pages/dashboard/DashboardImport.jsx").then((m) => ({ default: m.DashboardImport }))
-);
-const DashboardSavedList = lazy(() =>
-  import("./pages/dashboard/DashboardSavedList.jsx").then((m) => ({ default: m.DashboardSavedList }))
-);
-const DashboardActivity = lazy(() =>
-  import("./pages/dashboard/DashboardActivity.jsx").then((m) => ({ default: m.DashboardActivity }))
-);
-const DashboardAttention = lazy(() =>
-  import("./pages/dashboard/DashboardAttention.jsx").then((m) => ({ default: m.DashboardAttention }))
 );
 const NotFoundPage = lazy(() =>
   import("./pages/NotFoundPage.jsx").then((m) => ({ default: m.NotFoundPage }))
@@ -109,11 +88,23 @@ const DashboardShipperBookingsImport = lazy(() =>
     default: m.DashboardShipperBookingsImport,
   }))
 );
+const DashboardCarrierBookings = lazy(() =>
+  import("./features/carrierBookings/DashboardCarrierBookings.tsx").then((m) => ({
+    default: m.DashboardCarrierBookings,
+  }))
+);
+const DashboardCarrierBookingNew = lazy(() =>
+  import("./features/carrierBookings/DashboardCarrierBookingNew.tsx").then((m) => ({
+    default: m.DashboardCarrierBookingNew,
+  }))
+);
+const DashboardCarrierBookingDetail = lazy(() =>
+  import("./features/carrierBookings/DashboardCarrierBookingDetail.tsx").then((m) => ({
+    default: m.DashboardCarrierBookingDetail,
+  }))
+);
 const DashboardMessages = lazy(() =>
   import("./features/messages/DashboardMessages.jsx").then((m) => ({ default: m.DashboardMessages }))
-);
-const DashboardTrackingHub = lazy(() =>
-  import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardTrackingHub }))
 );
 const DashboardOperationalFinanceHub = lazy(() =>
   import("./modules/shared/modulePages.tsx").then((m) => ({ default: m.DashboardOperationalFinanceHub }))
@@ -163,11 +154,11 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/track" element={<TrackPage />} />
+      <Route path="/track" element={<Navigate to="/" replace />} />
+      <Route path="/vessels" element={<Navigate to="/" replace />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
-      <Route path="/vessels" element={<VesselsPage />} />
-      <Route path="/how-it-works" element={<Navigate to="/how-it-works/track" replace />} />
+      <Route path="/how-it-works" element={<Navigate to="/how-it-works/workspace" replace />} />
       <Route path="/how-it-works/:section" element={<HowItWorksPage />} />
       <Route path="/changelog" element={<ChangelogPage />} />
       <Route path="/login" element={<LoginPage />} />
@@ -182,9 +173,15 @@ function AppRoutes() {
       >
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<DashboardHome />} />
-        <Route path="tracking/overview" element={<DashboardOverview />} />
-        <Route path="overview" element={<Navigate to={DASHBOARD_OVERVIEW_PATH} replace />} />
-        <Route path="tracking" element={<DashboardTrackingHub />} />
+        <Route path="tracking/overview" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="overview" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="tracking" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="track" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="list" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="add" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="import" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="activity" element={<Navigate to="/dashboard/home" replace />} />
+        <Route path="attention" element={<Navigate to="/dashboard/home" replace />} />
         <Route
           path="operational-finance"
           element={
@@ -337,6 +334,46 @@ function AppRoutes() {
           }
         />
         <Route
+          path="operations/transport/carrier-booking/new/manual"
+          element={
+            <StaffRoute>
+              <DashboardCarrierBookingDetail />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/transport/carrier-booking/new/from-sb"
+          element={
+            <StaffRoute>
+              <DashboardCarrierBookingDetail />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/transport/carrier-booking/new"
+          element={
+            <StaffRoute>
+              <DashboardCarrierBookingNew />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/transport/carrier-booking/:id"
+          element={
+            <StaffRoute>
+              <DashboardCarrierBookingDetail />
+            </StaffRoute>
+          }
+        />
+        <Route
+          path="operations/transport/carrier-booking"
+          element={
+            <StaffRoute>
+              <DashboardCarrierBookings />
+            </StaffRoute>
+          }
+        />
+        <Route
           path="operations/warehouse"
           element={
             <StaffRoute>
@@ -392,7 +429,6 @@ function AppRoutes() {
             }
           />
         ))}
-        <Route path="track" element={<Navigate to={DASHBOARD_OVERVIEW_PATH} replace />} />
         <Route path="clients/new" element={<Navigate to="/dashboard/clients/parties?add=party" replace />} />
         <Route path="clients" element={<Navigate to="/dashboard/clients/parties" replace />} />
         <Route
@@ -400,39 +436,6 @@ function AppRoutes() {
           element={
             <StaffRoute>
               <RedirectClientToParty />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="add"
-          element={
-            <StaffRoute>
-              <DashboardAddContainer />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="import"
-          element={
-            <StaffRoute>
-              <DashboardImport />
-            </StaffRoute>
-          }
-        />
-        <Route path="list" element={<DashboardSavedList />} />
-        <Route
-          path="activity"
-          element={
-            <StaffRoute>
-              <DashboardActivity />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="attention"
-          element={
-            <StaffRoute>
-              <DashboardAttention />
             </StaffRoute>
           }
         />

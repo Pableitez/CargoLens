@@ -5,30 +5,24 @@ import { DASHBOARD_HOME_PATH } from "../config/paths.js";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../i18n/LanguageContext.jsx";
 
-const VALID_SECTIONS = new Set(["track", "vessels", "workspace", "list", "import", "clients", "activity"]);
+const VALID_SECTIONS = new Set(["workspace", "clients"]);
 
 const SECTIONS = [
-  { slug: "track", titleKey: "secTrackTitle", bodyKey: "secTrackBody", navKey: "navTrack" },
-  { slug: "vessels", titleKey: "secVesselsTitle", bodyKey: "secVesselsBody", navKey: "navVessels" },
   { slug: "workspace", titleKey: "secWorkspaceTitle", bodyKey: "secWorkspaceBody", navKey: "navWorkspace" },
-  { slug: "list", titleKey: "secListTitle", bodyKey: "secListBody", navKey: "navList" },
-  { slug: "import", titleKey: "secImportTitle", bodyKey: "secImportBody", navKey: "navImport" },
   { slug: "clients", titleKey: "secClientsTitle", bodyKey: "secClientsBody", navKey: "navClients" },
-  { slug: "activity", titleKey: "secActivityTitle", bodyKey: "secActivityBody", navKey: "navActivity" },
 ];
 
-// Guía por sección: /how-it-works/:section (tabs, sin página infinita).
 export function HowItWorksPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { section } = useParams();
 
   if (!section || !VALID_SECTIONS.has(section)) {
-    return <Navigate to="/how-it-works/track" replace />;
+    return <Navigate to="/how-it-works/workspace" replace />;
   }
 
   const meta = SECTIONS.find((s) => s.slug === section);
-  const isTrack = section === "track";
+  const isWorkspace = section === "workspace";
 
   return (
     <MainLayout title={t(`howItWorks.pageTitle.${section}`)}>
@@ -52,7 +46,7 @@ export function HowItWorksPage() {
           </ul>
         </nav>
 
-        {isTrack ? (
+        {isWorkspace ? (
           <section className="home-guest-promo how-it-works__intro" aria-label={t("howItWorks.title")}>
             <div className="home-guest-promo__inner">
               <div className="home-guest-promo__text">
@@ -101,7 +95,7 @@ export function HowItWorksPage() {
           </section>
         ) : null}
 
-        {!isTrack ? (
+        {!isWorkspace ? (
           <article className="how-it-works__single">
             <h2 className="how-it-works__section-title">{t(`howItWorks.${meta.titleKey}`)}</h2>
             <p className="how-it-works__section-body">{t(`howItWorks.${meta.bodyKey}`)}</p>
@@ -109,18 +103,20 @@ export function HowItWorksPage() {
         ) : null}
 
         <div className="how-it-works__cta-row">
-          <Link to="/track" className="btn btn--primary">
-            {t("howItWorks.ctaTrack")}
-          </Link>
           {user ? (
-            <Link to={DASHBOARD_HOME_PATH} className="btn btn--secondary">
+            <Link to={DASHBOARD_HOME_PATH} className="btn btn--primary">
               {t("howItWorks.ctaDashboard")}
             </Link>
           ) : (
-            <Link to="/register" className="btn btn--secondary">
+            <Link to="/register" className="btn btn--primary">
               {t("howItWorks.ctaRegister")}
             </Link>
           )}
+          {!user ? (
+            <Link to="/login" className="btn btn--secondary">
+              {t("howItWorks.ctaLogin")}
+            </Link>
+          ) : null}
         </div>
       </div>
     </MainLayout>

@@ -9,7 +9,7 @@ export function AuthSplitLayout({ children }) {
   const { t } = useTranslation();
 
   return (
-    <MainLayout dataSource={null}>
+    <MainLayout>
       <div className="auth-page auth-page--split">
         <aside className="auth-promo breakout" aria-label={t("auth.panelAria")}>
           <div className="breakout__glow" aria-hidden />
@@ -27,9 +27,6 @@ export function AuthSplitLayout({ children }) {
               <li>{t("auth.panelF3")}</li>
             </ul>
             <p className="auth-promo__free">{t("auth.panelFree")}</p>
-            <Link to="/track" className="auth-promo__track-link">
-              {t("auth.panelTrackLink")} →
-            </Link>
           </div>
         </aside>
         <div className="auth-panel">{children}</div>

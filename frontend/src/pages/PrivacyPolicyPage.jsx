@@ -7,12 +7,10 @@ export function PrivacyPolicyPage() {
   const { t } = useTranslation();
 
   return (
-    <MainLayout title={t("pageTitle.privacy")} dataSource={null}>
+    <MainLayout title={t("pageTitle.privacy")}>
       <div className="legal-page">
         <BackLink />
-        <p className="legal-page__lead">
-          {t("legal.privacyLead", { appName })}
-        </p>
+        <p className="legal-page__lead">{t("legal.privacyLead", { appName })}</p>
         <section className="legal-page__section">
           <h2 className="legal-page__h">{t("legal.dataTitle")}</h2>
           <p>{t("legal.dataBody")}</p>

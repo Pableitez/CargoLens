@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { isDbConnected } from "../db.js";
 import { Party } from "../models/Party.js";
-import { SavedContainer } from "../models/SavedContainer.js";
 import { SupplyChain } from "../models/SupplyChain.js";
 import { logWorkspaceActivity } from "../services/workspaceActivityLog.js";
 import { generateClientInviteCode } from "../utils/clientInviteCode.js";
@@ -32,11 +31,7 @@ async function partyResponseItem(row, companyOid) {
     const parent = await Party.findById(row.parentPartyId).select("legalName").lean();
     parentName = parent?.legalName ?? null;
   }
-  const count = await SavedContainer.countDocuments({
-    companyId: companyOid,
-    contractualPartyId: row._id,
-  });
-  return serializeContractualParty(row, { parentName, savedContainerCount: count });
+  return serializeContractualParty(row, { parentName, savedContainerCount: 0 });
 }
 
 async function serializeClientListRows(rows, companyOid) {
@@ -57,17 +52,10 @@ async function serializeClientListRows(rows, companyOid) {
     : [];
   const parentNameById = new Map(parents.map((p) => [String(p._id), p.legalName]));
 
-  const partyIds = rows.map((r) => r._id);
-  const counts = await SavedContainer.aggregate([
-    { $match: { companyId: companyOid, contractualPartyId: { $in: partyIds } } },
-    { $group: { _id: "$contractualPartyId", count: { $sum: 1 } } },
-  ]);
-  const countByParty = new Map(counts.map((c) => [String(c._id), c.count]));
-
   return rows.map((r) =>
     serializeContractualParty(r, {
       parentName: r.parentPartyId ? (parentNameById.get(String(r.parentPartyId)) ?? null) : null,
-      savedContainerCount: countByParty.get(String(r._id)) ?? 0,
+      savedContainerCount: 0,
     })
   );
 }
@@ -232,13 +220,6 @@ export async function updateClient(req, res) {
 
     await party.save();
 
-    if (validated.legalName !== undefined) {
-      await SavedContainer.updateMany(
-        { companyId: companyOid, contractualPartyId: party._id },
-        { $set: { clientName: party.legalName } }
-      );
-    }
-
     void logWorkspaceActivity({
       companyId,
       userId: req.user.userId,
@@ -290,17 +271,6 @@ export async function deleteClient(req, res) {
       return res.status(409).json({
         error: "IN_USE",
         message: "Remove supply chains before deleting this client party.",
-      });
-    }
-
-    const inUse = await SavedContainer.countDocuments({
-      companyId: companyOid,
-      contractualPartyId: party._id,
-    });
-    if (inUse > 0) {
-      return res.status(409).json({
-        error: "IN_USE",
-        message: "Remove or reassign saved containers before deleting this client.",
       });
     }
 

@@ -48,7 +48,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", theme === "light" ? "#f8fafc" : "#070a0e");
+      meta.setAttribute("content", theme === "light" ? "#f7f7f4" : "#121110");
     }
   }, [theme]);
 

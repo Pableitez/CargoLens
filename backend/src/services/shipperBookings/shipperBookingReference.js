@@ -3,6 +3,7 @@ import { CompanyBookingCounter } from "../../models/CompanyBookingCounter.js";
 
 export const BOOKING_REF_PREFIX = "SB";
 export const BOOKING_REF_SEQ_WIDTH = 5;
+export const BOOKING_COUNTER_KIND = "shipper";
 
 export function parseBookingReferenceSequence(bookingReference, year) {
   const raw = String(bookingReference ?? "").trim();

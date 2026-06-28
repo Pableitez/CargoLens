@@ -109,9 +109,14 @@ export function DashboardShipperBookings() {
   return (
     <ModuleListPage
       headingId="shipper-bookings-heading"
+      title={t("shipperBookingsPage.title")}
+      lead={t("shipperBookingsPage.lead")}
+      panelClassName="panel--orders"
+      searchPlaceholder={t("shipperBookingsPage.searchPlaceholder")}
       wideTable
       loadingLabel={t("shipperBookingsPage.loading")}
       emptyTitle={t("shipperBookingsPage.emptyTitle")}
+      emptyBody={t("shipperBookingsPage.emptyBody")}
       tableColCount={BOOKING_TABLE_COL_COUNT}
       filterColumns={filterColumns}
       list={list}

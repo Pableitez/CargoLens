@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { isDbConnected } from "../db.js";
+import { CarrierBookingRequest } from "../models/CarrierBookingRequest.js";
 import { ShipperBooking } from "../models/ShipperBooking.js";
 import { ShipperBookingEvent } from "../models/ShipperBookingEvent.js";
 import {
@@ -279,9 +280,22 @@ export async function deleteShipperBooking(req, res) {
   }
 
   try {
+    const companyOid = companyObjectId(req.user.companyId);
+    const sbOid = new mongoose.Types.ObjectId(id);
+    const linkedCarrierBookings = await CarrierBookingRequest.countDocuments({
+      companyId: companyOid,
+      $or: [{ shipperBookingId: sbOid }, { shipperBookingIds: sbOid }],
+    });
+    if (linkedCarrierBookings > 0) {
+      return res.status(409).json({
+        error: "LINKED_CARRIER_BOOKINGS",
+        message: "Cannot delete a shipper booking that has linked carrier bookings.",
+      });
+    }
+
     const bookingDoc = await ShipperBooking.findOneAndDelete({
       _id: id,
-      companyId: companyObjectId(req.user.companyId),
+      companyId: companyOid,
     });
     if (!bookingDoc) {
       return res.status(404).json({ error: "NOT_FOUND", message: "Shipper booking not found." });

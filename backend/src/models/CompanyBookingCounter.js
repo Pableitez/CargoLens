@@ -8,12 +8,18 @@ const companyBookingCounterSchema = new mongoose.Schema(
       required: true,
     },
     year: { type: Number, required: true },
+    kind: {
+      type: String,
+      enum: ["shipper", "carrier"],
+      default: "shipper",
+      required: true,
+    },
     seq: { type: Number, required: true, default: 0, min: 0 },
   },
   { timestamps: true }
 );
 
-companyBookingCounterSchema.index({ companyId: 1, year: 1 }, { unique: true });
+companyBookingCounterSchema.index({ companyId: 1, year: 1, kind: 1 }, { unique: true });
 
 export const CompanyBookingCounter =
   mongoose.models.CompanyBookingCounter ??

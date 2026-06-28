@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as ordersApi from "../../api/orders";
 import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
+import { ReadOnlyFieldValue } from "../../components/ReadOnlyFieldValue";
 import { TimelineModal } from "../../components/TimelineModal";
 import { useAppToast } from "../../hooks/useAppToast";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
@@ -63,6 +64,13 @@ function toInputDate(value: string | null): string {
   return d.toISOString().slice(0, 10);
 }
 
+function displayInputDate(value: string): string {
+  if (!value) return "—";
+  const d = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
 function lineToForm(line: Order["lines"][number]): OrderLineFormState {
   return {
     lineKey: line.lineKey,
@@ -106,6 +114,7 @@ export function DashboardOrderDetail() {
   const [eventMessage, setEventMessage] = useState("");
   const [addingEvent, setAddingEvent] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(isNew);
   const [error, setError] = useState("");
   const [chainDefaults, setChainDefaults] = useState<OrderChainDefaults | null>(null);
 
@@ -134,6 +143,8 @@ export function DashboardOrderDetail() {
   }, []);
 
   const { usesTradeMasters, loading: loadingTradeContext } = useOrderTradeContext();
+
+  const readOnly = !isNew && !isEditing;
 
   const pageTitle = useMemo(
     () => (isNew ? t("ordersPage.createTitle") : t("ordersPage.detailTitle")),
@@ -184,6 +195,10 @@ export function DashboardOrderDetail() {
     load().catch(() => {});
   }, [load]);
 
+  useEffect(() => {
+    setIsEditing(isNew);
+  }, [id, isNew]);
+
   function updateLine(index: number, patch: Partial<OrderLineFormState>) {
     setLines((prev) => prev.map((line, i) => (i === index ? { ...line, ...patch } : line)));
   }
@@ -198,7 +213,7 @@ export function DashboardOrderDetail() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!form.orderNumber.trim()) return;
+    if (readOnly || !form.orderNumber.trim()) return;
 
     setSaving(true);
     setError("");
@@ -243,6 +258,7 @@ export function DashboardOrderDetail() {
         navigate(`${ORDER_BASE}/${item.id}`, { replace: true });
       } else {
         await load();
+        setIsEditing(false);
       }
     } catch (err) {
       setError(messageFromApiErrorOrKey(err, t, "ordersPage.saveFailed"));
@@ -271,6 +287,12 @@ export function DashboardOrderDetail() {
     } finally {
       setAddingEvent(false);
     }
+  }
+
+  async function handleCancelEdit() {
+    setIsEditing(false);
+    setError("");
+    await load();
   }
 
   async function handleDelete() {
@@ -337,13 +359,20 @@ export function DashboardOrderDetail() {
         </h2>
         {!isNew && (
           <div className="dash-form__actions dash-form__actions--start">
+            {readOnly ? (
+              <button type="button" className="btn btn--primary" onClick={() => setIsEditing(true)}>
+                {t("ordersPage.edit")}
+              </button>
+            ) : null}
             <button type="button" className="btn btn--secondary" onClick={() => setTimelineOpen(true)}>
               {t("ordersPage.openTimeline")}
               {events.length > 0 && <span className="timeline-trigger__count">{events.length}</span>}
             </button>
-            <button type="button" className="btn btn--ghost btn--danger" onClick={() => handleDelete()}>
-              {t("ordersPage.delete")}
-            </button>
+            {readOnly ? (
+              <button type="button" className="btn btn--ghost btn--danger" onClick={() => handleDelete()}>
+                {t("ordersPage.delete")}
+              </button>
+            ) : null}
           </div>
         )}
       </div>
@@ -366,34 +395,42 @@ export function DashboardOrderDetail() {
         </p>
       )}
 
-      <form className="order-form" onSubmit={handleSubmit}>
+      <form className={`order-form${readOnly ? " order-form--readonly" : ""}`} onSubmit={handleSubmit}>
         <section className="order-section" aria-labelledby="order-parties-heading">
           <h3 id="order-parties-heading" className="order-section__title">
             {t("tradeField.tradeContextSection")}
           </h3>
           <div className="order-section__grid">
             <div className="field">
-              <label className="field__label" htmlFor="order-number">
-                {t("ordersPage.orderNumberLabel")} <span className="field__req">*</span>
+              <label className="field__label" htmlFor={readOnly ? undefined : "order-number"}>
+                {t("ordersPage.orderNumberLabel")} {!readOnly ? <span className="field__req">*</span> : null}
               </label>
-              <input
-                id="order-number"
-                className="field__input order-code"
-                value={form.orderNumber}
-                onChange={(e) => setForm((prev) => ({ ...prev, orderNumber: e.target.value }))}
-                required
-              />
+              {readOnly ? (
+                <ReadOnlyFieldValue id="order-number">{form.orderNumber}</ReadOnlyFieldValue>
+              ) : (
+                <input
+                  id="order-number"
+                  className="field__input order-code"
+                  value={form.orderNumber}
+                  onChange={(e) => setForm((prev) => ({ ...prev, orderNumber: e.target.value }))}
+                  required
+                />
+              )}
             </div>
             <div className="field">
-              <label className="field__label" htmlFor="order-external-id">
+              <label className="field__label" htmlFor={readOnly ? undefined : "order-external-id"}>
                 {t("ordersPage.externalIdLabel")}
               </label>
-              <input
-                id="order-external-id"
-                className="field__input"
-                value={form.externalBusinessId}
-                onChange={(e) => setForm((prev) => ({ ...prev, externalBusinessId: e.target.value }))}
-              />
+              {readOnly ? (
+                <ReadOnlyFieldValue id="order-external-id">{form.externalBusinessId}</ReadOnlyFieldValue>
+              ) : (
+                <input
+                  id="order-external-id"
+                  className="field__input"
+                  value={form.externalBusinessId}
+                  onChange={(e) => setForm((prev) => ({ ...prev, externalBusinessId: e.target.value }))}
+                />
+              )}
             </div>
             {usesTradeMasters ? (
               <OrderTradeFields
@@ -401,55 +438,67 @@ export function DashboardOrderDetail() {
                 onChange={updateTradeSelection}
                 onChainDefaults={applyChainDefaults}
                 disabled={saving}
+                readOnly={readOnly}
               />
             ) : (
               <>
                 <div className="field">
-                  <label className="field__label" htmlFor="order-customer">
-                    {t("tradeField.contractualCustomer")} <span className="field__req">*</span>
+                  <label className="field__label" htmlFor={readOnly ? undefined : "order-customer"}>
+                    {t("tradeField.contractualCustomer")}{" "}
+                    {!readOnly ? <span className="field__req">*</span> : null}
                   </label>
-                  <input
-                    id="order-customer"
-                    className="field__input order-code"
-                    value={form.customer}
-                    onChange={(e) => setForm((prev) => ({ ...prev, customer: e.target.value }))}
-                    required
-                  />
+                  {readOnly ? (
+                    <ReadOnlyFieldValue id="order-customer">{form.customer}</ReadOnlyFieldValue>
+                  ) : (
+                    <input
+                      id="order-customer"
+                      className="field__input order-code"
+                      value={form.customer}
+                      onChange={(e) => setForm((prev) => ({ ...prev, customer: e.target.value }))}
+                      required
+                    />
+                  )}
                 </div>
                 <div className="field">
-                  <label className="field__label" htmlFor="order-shipper">
-                    {t("tradeField.shipper")} <span className="field__req">*</span>
+                  <label className="field__label" htmlFor={readOnly ? undefined : "order-shipper"}>
+                    {t("tradeField.shipper")} {!readOnly ? <span className="field__req">*</span> : null}
                   </label>
-                  <input
-                    id="order-shipper"
-                    className="field__input order-code"
-                    value={form.shipper}
-                    onChange={(e) => setForm((prev) => ({ ...prev, shipper: e.target.value }))}
-                    required
-                  />
+                  {readOnly ? (
+                    <ReadOnlyFieldValue id="order-shipper">{form.shipper}</ReadOnlyFieldValue>
+                  ) : (
+                    <input
+                      id="order-shipper"
+                      className="field__input order-code"
+                      value={form.shipper}
+                      onChange={(e) => setForm((prev) => ({ ...prev, shipper: e.target.value }))}
+                      required
+                    />
+                  )}
                 </div>
                 <div className="field">
-                  <label className="field__label" htmlFor="order-consignee">
-                    {t("tradeField.consignee")} <span className="field__req">*</span>
+                  <label className="field__label" htmlFor={readOnly ? undefined : "order-consignee"}>
+                    {t("tradeField.consignee")} {!readOnly ? <span className="field__req">*</span> : null}
                   </label>
-                  <input
-                    id="order-consignee"
-                    className="field__input order-code"
-                    value={form.consignee}
-                    onChange={(e) => setForm((prev) => ({ ...prev, consignee: e.target.value }))}
-                    required
-                  />
+                  {readOnly ? (
+                    <ReadOnlyFieldValue id="order-consignee">{form.consignee}</ReadOnlyFieldValue>
+                  ) : (
+                    <input
+                      id="order-consignee"
+                      className="field__input order-code"
+                      value={form.consignee}
+                      onChange={(e) => setForm((prev) => ({ ...prev, consignee: e.target.value }))}
+                      required
+                    />
+                  )}
                 </div>
               </>
             )}
             <div className="field">
-              <label className="field__label" htmlFor="order-status">
-                {t("ordersPage.statusLabel")}
-              </label>
-              {isBookingDerivedOrderStatus(form.status) ? (
+              <span className="field__label">{t("ordersPage.statusLabel")}</span>
+              {isBookingDerivedOrderStatus(form.status) || readOnly ? (
                 <div className="field__derived-status">
                   <span className={orderStatusClass(form.status)}>{orderStatusLabel(form.status, t)}</span>
-                  <p className="field__hint">{t("ordersPage.statusDerivedNote")}</p>
+                  {!readOnly ? <p className="field__hint">{t("ordersPage.statusDerivedNote")}</p> : null}
                 </div>
               ) : (
                 <select
@@ -475,69 +524,81 @@ export function DashboardOrderDetail() {
           </h3>
           <div className="order-section__grid">
             <div className="field">
-              <label className="field__label" htmlFor="order-window-start">
-                {t("ordersPage.windowStartLabel")}
-              </label>
-              <input
-                id="order-window-start"
-                type="date"
-                className="field__input"
-                value={form.shippingWindowStart}
-                onChange={(e) => setForm((prev) => ({ ...prev, shippingWindowStart: e.target.value }))}
-              />
+              <span className="field__label">{t("ordersPage.windowStartLabel")}</span>
+              {readOnly ? (
+                <ReadOnlyFieldValue>{displayInputDate(form.shippingWindowStart)}</ReadOnlyFieldValue>
+              ) : (
+                <input
+                  id="order-window-start"
+                  type="date"
+                  className="field__input"
+                  value={form.shippingWindowStart}
+                  onChange={(e) => setForm((prev) => ({ ...prev, shippingWindowStart: e.target.value }))}
+                />
+              )}
             </div>
             <div className="field">
-              <label className="field__label" htmlFor="order-window-end">
-                {t("ordersPage.windowEndLabel")}
-              </label>
-              <input
-                id="order-window-end"
-                type="date"
-                className="field__input"
-                value={form.shippingWindowEnd}
-                onChange={(e) => setForm((prev) => ({ ...prev, shippingWindowEnd: e.target.value }))}
-              />
+              <span className="field__label">{t("ordersPage.windowEndLabel")}</span>
+              {readOnly ? (
+                <ReadOnlyFieldValue>{displayInputDate(form.shippingWindowEnd)}</ReadOnlyFieldValue>
+              ) : (
+                <input
+                  id="order-window-end"
+                  type="date"
+                  className="field__input"
+                  value={form.shippingWindowEnd}
+                  onChange={(e) => setForm((prev) => ({ ...prev, shippingWindowEnd: e.target.value }))}
+                />
+              )}
             </div>
             <div className="field">
-              <label className="field__label" htmlFor="order-transport-mode">
-                {t("ordersPage.transportModeLabel")}
-              </label>
-              <select
-                id="order-transport-mode"
-                className="field__input"
-                value={form.transportMode}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    transportMode: e.target.value as OrderTransportMode | "",
-                  }))
-                }
-              >
-                <option value="">{t("ordersPage.transportModePlaceholder")}</option>
-                {ORDER_TRANSPORT_MODES.filter(Boolean).map((mode) => (
-                  <option key={mode} value={mode}>
-                    {transportModeLabel(mode, t)}
-                  </option>
-                ))}
-              </select>
+              <span className="field__label">{t("ordersPage.transportModeLabel")}</span>
+              {readOnly ? (
+                <ReadOnlyFieldValue>
+                  {form.transportMode ? transportModeLabel(form.transportMode, t) : "—"}
+                </ReadOnlyFieldValue>
+              ) : (
+                <select
+                  id="order-transport-mode"
+                  className="field__input"
+                  value={form.transportMode}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      transportMode: e.target.value as OrderTransportMode | "",
+                    }))
+                  }
+                >
+                  <option value="">{t("ordersPage.transportModePlaceholder")}</option>
+                  {ORDER_TRANSPORT_MODES.filter(Boolean).map((mode) => (
+                    <option key={mode} value={mode}>
+                      {transportModeLabel(mode, t)}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="field">
-              <label className="field__label" htmlFor="order-incoterm">
-                {t("ordersPage.incotermLabel")}
-              </label>
-              <select
-                id="order-incoterm"
-                className="field__input"
-                value={form.incoterm}
-                onChange={(e) => setForm((prev) => ({ ...prev, incoterm: e.target.value as Incoterm | "" }))}
-              >
-                <option value="">{t("ordersPage.incotermPlaceholder")}</option>
-                {INCOTERM_OPTIONS.filter(Boolean).map((term) => (
-                  <option key={term} value={term}>
-                    {term}
-                  </option>
-                ))}
-              </select>
+              <span className="field__label">{t("ordersPage.incotermLabel")}</span>
+              {readOnly ? (
+                <ReadOnlyFieldValue>{form.incoterm || "—"}</ReadOnlyFieldValue>
+              ) : (
+                <select
+                  id="order-incoterm"
+                  className="field__input"
+                  value={form.incoterm}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, incoterm: e.target.value as Incoterm | "" }))
+                  }
+                >
+                  <option value="">{t("ordersPage.incotermPlaceholder")}</option>
+                  {INCOTERM_OPTIONS.filter(Boolean).map((term) => (
+                    <option key={term} value={term}>
+                      {term}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <OrderLocationFields
               usesTradeMasters={!!usesTradeMasters}
@@ -547,18 +608,21 @@ export function DashboardOrderDetail() {
               onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
               chainDefaults={chainDefaults}
               disabled={saving}
+              readOnly={readOnly}
             />
             <div className="field field--full">
-              <label className="field__label" htmlFor="order-notes">
-                {t("ordersPage.notesLabel")}
-              </label>
-              <textarea
-                id="order-notes"
-                className="field__input"
-                rows={2}
-                value={form.notes}
-                onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-              />
+              <span className="field__label">{t("ordersPage.notesLabel")}</span>
+              {readOnly ? (
+                <ReadOnlyFieldValue>{form.notes}</ReadOnlyFieldValue>
+              ) : (
+                <textarea
+                  id="order-notes"
+                  className="field__input"
+                  rows={2}
+                  value={form.notes}
+                  onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
+                />
+              )}
             </div>
           </div>
         </section>
@@ -574,108 +638,137 @@ export function DashboardOrderDetail() {
             <table className="order-lines-table">
               <thead>
                 <tr>
-                  <th>{t("ordersPage.lineKeyLabel")} *</th>
-                  <th>{t("ordersPage.skuLabel")} *</th>
+                  <th>
+                    {t("ordersPage.lineKeyLabel")}
+                    {!readOnly ? " *" : ""}
+                  </th>
+                  <th>
+                    {t("ordersPage.skuLabel")}
+                    {!readOnly ? " *" : ""}
+                  </th>
                   <th>{t("ordersPage.descriptionLabel")}</th>
-                  <th>{t("ordersPage.quantityLabel")} *</th>
-                  <th>{t("ordersPage.uomLabel")} *</th>
+                  <th>
+                    {t("ordersPage.quantityLabel")}
+                    {!readOnly ? " *" : ""}
+                  </th>
+                  <th>
+                    {t("ordersPage.uomLabel")}
+                    {!readOnly ? " *" : ""}
+                  </th>
                   <th>{t("ordersPage.originLabel")}</th>
                   <th>{t("ordersPage.weightLabel")}</th>
                   <th>{t("ordersPage.cbmLabel")}</th>
-                  <th className="order-lines-table__actions" />
+                  {!readOnly ? <th className="order-lines-table__actions" /> : null}
                 </tr>
               </thead>
               <tbody>
                 {lines.map((line, index) => (
                   <tr key={index}>
-                    <td>
-                      <input
-                        className="field__input order-code"
-                        value={line.lineKey}
-                        onChange={(e) => updateLine(index, { lineKey: e.target.value })}
-                        required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input order-code"
-                        value={line.sku}
-                        onChange={(e) => updateLine(index, { sku: e.target.value })}
-                        required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input"
-                        value={line.description}
-                        onChange={(e) => updateLine(index, { description: e.target.value })}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--num"
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={line.quantity}
-                        onChange={(e) => updateLine(index, { quantity: e.target.value })}
-                        required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--num"
-                        value={line.uom}
-                        onChange={(e) => updateLine(index, { uom: e.target.value })}
-                        required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--num"
-                        value={line.countryOfOrigin}
-                        onChange={(e) => updateLine(index, { countryOfOrigin: e.target.value })}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--num"
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={line.totalGrossWeight}
-                        onChange={(e) => updateLine(index, { totalGrossWeight: e.target.value })}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--num"
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={line.totalCbm}
-                        onChange={(e) => updateLine(index, { totalCbm: e.target.value })}
-                      />
-                    </td>
-                    <td className="order-lines-table__actions">
-                      <button
-                        type="button"
-                        className="order-lines-table__remove"
-                        aria-label={t("ordersPage.removeLine")}
-                        onClick={() => removeLine(index)}
-                      >
-                        ×
-                      </button>
-                    </td>
+                    {readOnly ? (
+                      <>
+                        <td>{line.lineKey || "—"}</td>
+                        <td>{line.sku || "—"}</td>
+                        <td>{line.description || "—"}</td>
+                        <td>{line.quantity || "—"}</td>
+                        <td>{line.uom || "—"}</td>
+                        <td>{line.countryOfOrigin || "—"}</td>
+                        <td>{line.totalGrossWeight || "—"}</td>
+                        <td>{line.totalCbm || "—"}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td>
+                          <input
+                            className="field__input order-code"
+                            value={line.lineKey}
+                            onChange={(e) => updateLine(index, { lineKey: e.target.value })}
+                            required
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="field__input order-code"
+                            value={line.sku}
+                            onChange={(e) => updateLine(index, { sku: e.target.value })}
+                            required
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="field__input"
+                            value={line.description}
+                            onChange={(e) => updateLine(index, { description: e.target.value })}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="field__input field__input--num"
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={line.quantity}
+                            onChange={(e) => updateLine(index, { quantity: e.target.value })}
+                            required
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="field__input field__input--num"
+                            value={line.uom}
+                            onChange={(e) => updateLine(index, { uom: e.target.value })}
+                            required
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="field__input field__input--num"
+                            value={line.countryOfOrigin}
+                            onChange={(e) => updateLine(index, { countryOfOrigin: e.target.value })}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="field__input field__input--num"
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={line.totalGrossWeight}
+                            onChange={(e) => updateLine(index, { totalGrossWeight: e.target.value })}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="field__input field__input--num"
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={line.totalCbm}
+                            onChange={(e) => updateLine(index, { totalCbm: e.target.value })}
+                          />
+                        </td>
+                        <td className="order-lines-table__actions">
+                          <button
+                            type="button"
+                            className="order-lines-table__remove"
+                            aria-label={t("ordersPage.removeLine")}
+                            onClick={() => removeLine(index)}
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <div className="dash-form__actions dash-form__actions--start">
-            <button type="button" className="btn btn--secondary" onClick={addLine}>
-              {t("ordersPage.addLine")}
-            </button>
+            {!readOnly ? (
+              <button type="button" className="btn btn--secondary" onClick={addLine}>
+                {t("ordersPage.addLine")}
+              </button>
+            ) : null}
           </div>
         </section>
 
@@ -683,9 +776,23 @@ export function DashboardOrderDetail() {
           <Link to={ORDER_BASE} className="btn btn--ghost">
             {t("ordersPage.cancel")}
           </Link>
-          <button type="submit" className="btn btn--primary" disabled={saving}>
-            {saving ? t("ordersPage.saving") : t("ordersPage.save")}
-          </button>
+          {!readOnly ? (
+            <>
+              {!isNew ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  disabled={saving}
+                  onClick={() => void handleCancelEdit()}
+                >
+                  {t("ordersPage.cancelEdit")}
+                </button>
+              ) : null}
+              <button type="submit" className="btn btn--primary" disabled={saving}>
+                {saving ? t("ordersPage.saving") : t("ordersPage.save")}
+              </button>
+            </>
+          ) : null}
         </div>
       </form>
 

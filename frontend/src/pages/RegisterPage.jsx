@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthSplitLayout } from "../components/AuthSplitLayout.jsx";
 import { useAuth } from "../contexts/AuthContext";
 import { messageFromApiErrorOrKey } from "../i18n/apiMessage.js";
@@ -9,10 +9,11 @@ export function RegisterPage() {
   const { t } = useTranslation();
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
-  const [companyName, setCompanyName] = useState("");
+  const [companyName, setCompanyName] = useState(() => searchParams.get("company") ?? "");
   const [companyInviteCode, setCompanyInviteCode] = useState("");
   const [clientInviteCode, setClientInviteCode] = useState("");
   const [error, setError] = useState("");

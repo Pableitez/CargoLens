@@ -21,9 +21,9 @@ Taxonomía oficial del producto. **No reordenar** submódulos entre áreas sin a
 Ruta base: `/dashboard/operations/export`
 
 | Submódulo       | ID               |
-| --------------- | ---------------- |
+| --------------- | ---------------- | ---------------------------------------------------- |
 | Order           | `order`          |
-| Shipper booking | `shipperBooking` |
+| Shipper booking | `shipperBooking` | **Live** — export bookings (SB), lines, import Excel |
 | Export customs  | `exportCustoms`  |
 
 ## Transport
@@ -31,8 +31,8 @@ Ruta base: `/dashboard/operations/export`
 Ruta base: `/dashboard/operations/transport`
 
 | Submódulo              | ID                      |
-| ---------------------- | ----------------------- |
-| Carrier booking        | `carrierBooking`        |
+| ---------------------- | ----------------------- | --------------------------------------------------------------------------------------- |
+| Carrier booking        | `carrierBooking`        | **Live** — INTTRA-oriented requests linked to shipper bookings (mock submit by default) |
 | Shipping instructions  | `shippingInstructions`  |
 | Verified gross mass    | `verifiedGrossMass`     |
 | Schedules              | `schedules`             |
@@ -90,4 +90,4 @@ Ruta base: `/dashboard/insights`
 
 ## Estado de implementación
 
-Ver `implemented: true` en `frontend/src/config/moduleRegistry.ts`. Hoy: **orders** (export PO, CRUD + import Excel), **cases** (CRUD + timeline + vínculo embarques), **shipments** (parcial), **tracking** (parcial vía overview/list/vessels), **settings**, **home** (overview).
+Ver `implemented: true` en `frontend/src/config/moduleRegistry.ts`. Hoy live: **orders** (export PO, CRUD + import Excel), **shipper bookings** (export SB), **carrier bookings** (transport CB / INTTRA mock), **cases** (CRUD + timeline), **tracking** (parcial vía overview/list/vessels), **settings**, **home**.

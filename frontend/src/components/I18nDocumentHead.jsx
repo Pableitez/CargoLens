@@ -30,11 +30,11 @@ export function I18nDocumentHead() {
     if (ogDesc) ogDesc.setAttribute("content", desc);
 
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) {
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const base = siteUrl || origin;
-      if (base)
-        ogUrl.setAttribute("content", `${base}${pathname.startsWith("/") ? pathname : `/${pathname}`}`);
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const base = siteUrl || origin;
+
+    if (ogUrl && base) {
+      ogUrl.setAttribute("content", `${base}${pathname.startsWith("/") ? pathname : `/${pathname}`}`);
     }
 
     const twTitle = document.querySelector('meta[name="twitter:title"]');
@@ -42,6 +42,14 @@ export function I18nDocumentHead() {
 
     const twDesc = document.querySelector('meta[name="twitter:description"]');
     if (twDesc) twDesc.setAttribute("content", desc);
+
+    const ogImagePath = "/images/home-value-workspace.png";
+    const ogImageUrl = base ? `${base}${ogImagePath}` : ogImagePath;
+
+    for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
+      const node = document.querySelector(selector);
+      if (node) node.setAttribute("content", ogImageUrl);
+    }
   }, [locale, pathname, t, user?.isClientPortal]);
 
   return null;

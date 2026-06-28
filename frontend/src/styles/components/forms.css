@@ -153,8 +153,8 @@
 }
 
 .entity-code-fields__function-btn--trm.entity-code-fields__function-btn--active {
-  border-color: color-mix(in srgb, #38bdf8 70%, var(--accent));
-  background: color-mix(in srgb, #38bdf8 12%, var(--bg-elevated));
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--field-input-border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated));
 }
 
 .entity-code-fields__function-code {
@@ -172,6 +172,6 @@
 }
 
 .entity-code-fields__segment--trm {
-  border-color: color-mix(in srgb, #38bdf8 55%, var(--accent));
-  background: color-mix(in srgb, #38bdf8 14%, var(--bg-elevated));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--field-input-border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-elevated));
 }
