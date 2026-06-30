@@ -13,7 +13,7 @@ import bcrypt from "bcryptjs";
 import { Company } from "../src/models/Company.js";
 import { User } from "../src/models/User.js";
 import { Party } from "../src/models/Party.js";
-import { suggestBeCode } from "../shared/domain/beCode.js";
+import { suggestBeCode } from "../../shared/domain/beCode.js";
 import { generateClientInviteCode } from "../src/utils/clientInviteCode.js";
 import { DEMO_CLIENT_CONTRACT_BY_NAME, DEMO_EXTRA_CLIENTS } from "./demoBeCodes.js";
 

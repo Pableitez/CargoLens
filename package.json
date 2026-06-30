@@ -4,6 +4,9 @@
   "description": "Scripts raíz (Sonar, calidad, etc.); apps en frontend/ y backend/",
   "scripts": {
     "prepare": "husky",
+    "dev": "concurrently -k -n api,web -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:api": "npm run dev --prefix backend",
+    "dev:web": "npm run dev --prefix frontend",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "npm run lint --prefix frontend",
@@ -17,6 +20,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "concurrently": "^9.1.2",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "prettier": "^3.5.3"

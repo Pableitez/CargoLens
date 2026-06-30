@@ -1,6 +1,9 @@
 /**
  * Regenerates locales/en/*.js and locales/es/*.js from the composed en.js / es.js tree.
  * Run: node scripts/split-locales.mjs
+ *
+ * Note: en.js / es.js must already import modules + marketing. This script only splits
+ * core, ui, and pages chunks used for maintenance — not a full locale generator.
  */
 import fs from "fs";
 import path from "path";
@@ -34,6 +37,8 @@ const enApiErrors = {
   INVALID_FILE: "Could not read the file.",
   EMPTY: "The sheet has no data rows.",
   FORBIDDEN: "You don't have permission.",
+  LINKED_CARRIER_BOOKINGS:
+    "Cannot delete this shipper booking because one or more carrier bookings are linked to it.",
 };
 
 const esApiErrors = {
@@ -52,40 +57,8 @@ const esApiErrors = {
   INVALID_FILE: "No se pudo leer el archivo.",
   EMPTY: "La hoja no tiene filas de datos.",
   FORBIDDEN: "No tienes permiso.",
-};
-
-const enSavedPicker = {
-  label: "From saved containers",
-  placeholderLoading: "Loading saved containers…",
-  placeholderSearch: "Search {{count}} saved… (number, client, notes)",
-  placeholderEmpty: "No saved containers yet",
-  loading: "Loading…",
-  emptyHintBefore: "None yet — save them from the",
-  workspaceList: "workspace list",
-  emptyHintAfter: ".",
-  typeHint: "Type to filter — avoids loading a long dropdown.",
-  noMatch: "No saved containers match “{{query}}”.",
-  capHint: "Showing first {{max}} matches — narrow your search.",
-  listAria: "Matching saved containers",
-  clearAria: "Clear search",
-  clearButton: "Clear",
-};
-
-const esSavedPicker = {
-  label: "Desde contenedores guardados",
-  placeholderLoading: "Cargando contenedores guardados…",
-  placeholderSearch: "Buscar entre {{count}} guardados… (número, cliente, notas)",
-  placeholderEmpty: "Aún no hay contenedores guardados",
-  loading: "Cargando…",
-  emptyHintBefore: "Aún no hay — guárdalos desde la",
-  workspaceList: "lista del espacio",
-  emptyHintAfter: ".",
-  typeHint: "Escribe para filtrar — evita un desplegable largo.",
-  noMatch: "Ningún contenedor guardado coincide con «{{query}}».",
-  capHint: "Mostrando las primeras {{max}} coincidencias — acota la búsqueda.",
-  listAria: "Contenedores guardados coincidentes",
-  clearAria: "Borrar búsqueda",
-  clearButton: "Borrar",
+  LINKED_CARRIER_BOOKINGS:
+    "No se puede eliminar esta reserva shipper porque tiene reservas naviera vinculadas.",
 };
 
 async function loadDefault(file) {
@@ -108,9 +81,12 @@ async function main() {
   const en = await loadDefault("en.js");
   const es = await loadDefault("es.js");
 
-  const coreEn = pick(en, [
+  const coreKeys = [
     "brand",
+    "seo",
+    "howItWorks",
     "sidebar",
+    "accountModal",
     "language",
     "workspace",
     "auth",
@@ -120,79 +96,37 @@ async function main() {
     "error",
     "skipLink",
     "onboarding",
+    "apiBanner",
+    "commandPalette",
+    "notifications",
+    "backgroundJobs",
+    "changelog",
+    "legal",
     "notFound",
-  ]);
+  ];
+
+  const coreEn = pick(en, coreKeys);
   coreEn.apiErrors = enApiErrors;
   coreEn.routeLoading = en.routeLoading;
 
-  const trackingEn = pick(en, ["overview", "track", "dashboard"]);
-  const uiEn = pick(en, ["components", "overviewSnapshot", "overviewMap"]);
-  uiEn.components = { ...uiEn.components, savedPicker: enSavedPicker };
-  const pagesEn = pick(en, ["dashboardPage"]);
-
-  const coreEs = pick(es, [
-    "brand",
-    "sidebar",
-    "language",
-    "workspace",
-    "auth",
-    "mainLayout",
-    "toast",
-    "pageTitle",
-    "error",
-    "skipLink",
-    "onboarding",
-    "notFound",
-  ]);
+  const coreEs = pick(es, coreKeys);
   coreEs.apiErrors = esApiErrors;
   coreEs.routeLoading = es.routeLoading;
 
-  const trackingEs = pick(es, ["overview", "track", "dashboard"]);
-  const uiEs = pick(es, ["components", "overviewSnapshot", "overviewMap"]);
-  uiEs.components = { ...uiEs.components, savedPicker: esSavedPicker };
-  const pagesEs = pick(es, ["dashboardPage"]);
+  const uiEn = pick(en, ["components", "moduleList"]);
+  const uiEs = pick(es, ["components", "moduleList"]);
+
+  const pagesEn = pick(en, ["dashboardHome", "messagesPage"]);
+  const pagesEs = pick(es, ["dashboardHome", "messagesPage"]);
 
   emit("en", "core", coreEn);
-  emit("en", "tracking", trackingEn);
   emit("en", "ui", uiEn);
-  emit("en", "pages", pagesEs);
+  emit("en", "pages", pagesEn);
   emit("es", "core", coreEs);
-  emit("es", "tracking", trackingEs);
   emit("es", "ui", uiEs);
   emit("es", "pages", pagesEs);
 
-  const aggEn = `import core from "./en/core.js";
-import tracking from "./en/tracking.js";
-import ui from "./en/ui.js";
-import pages from "./en/pages.js";
-
-/** Default UI language — English (composed from ./en/*) */
-export default {
-  ...core,
-  ...tracking,
-  ...ui,
-  ...pages,
-};
-`;
-
-  const aggEs = `import core from "./es/core.js";
-import tracking from "./es/tracking.js";
-import ui from "./es/ui.js";
-import pages from "./es/pages.js";
-
-/** Spanish UI (composed from ./es/*) */
-export default {
-  ...core,
-  ...tracking,
-  ...ui,
-  ...pages,
-};
-`;
-
-  fs.writeFileSync(path.join(localesDir, "en.js"), aggEn);
-  fs.writeFileSync(path.join(localesDir, "es.js"), aggEs);
-
-  console.log("Locale split OK: en/es core, tracking, ui, pages + en.js / es.js aggregators.");
+  console.log("Locale split OK: en/es core, ui, pages (modules + marketing unchanged in en.js / es.js).");
 }
 
 main().catch((e) => {

@@ -1,7 +1,7 @@
 {
   "name": "NaoLab",
   "short_name": "NaoLab",
-  "description": "Trade operations platform — export orders, shipper bookings, and container visibility.",
+  "description": "Trade operations platform — export orders, shipper bookings, carrier coordination, and trade setup.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#070a0e",

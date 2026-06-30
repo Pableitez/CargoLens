@@ -9,7 +9,7 @@ export function isDbConnected() {
 export async function connectDb() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    console.warn("[db] MONGODB_URI not set — registration and saved containers are disabled.");
+    console.warn("[db] MONGODB_URI not set — auth, orders, and workspace data are disabled.");
     return false;
   }
   try {

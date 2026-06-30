@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Order } from "../../models/Order.js";
+import { ShipperBooking } from "../../models/ShipperBooking.js";
 import { findOrderByNumber, normalizeOrderNumber } from "../orders/orderLineAvailability.js";
 import { getTradeAccess, portalClientObjectId } from "../tradeMasters/tradeScope.js";
 
@@ -83,6 +84,56 @@ export async function canAccessShipperBooking(booking, companyId, portalClientId
   for (const line of booking?.lines ?? []) {
     const order = await findOrderByNumber(companyOid, normalizeOrderNumber(line.orderNumber));
     if (order && String(order.contractualPartyId) === portalClientId) return true;
+  }
+  return false;
+}
+
+/** Restrict carrier booking list queries for portal users. */
+export async function applyCarrierBookingListFilter(q, req) {
+  const { isClientPortal, portalClientId } = getTradeAccess(req);
+  if (!isClientPortal) return q;
+
+  const clientOid = portalClientObjectId(portalClientId);
+  const companyOid = new mongoose.Types.ObjectId(req.user.companyId);
+  const sbQuery = await applyShipperBookingListFilter({ companyId: companyOid }, req);
+  const shipperBookings = await ShipperBooking.find(sbQuery).select("_id").lean();
+  const sbIds = shipperBookings.map((row) => row._id);
+
+  const or = [];
+  if (clientOid) {
+    or.push({ contractualPartyId: clientOid });
+  }
+  if (sbIds.length > 0) {
+    or.push({ shipperBookingId: { $in: sbIds } });
+    or.push({ shipperBookingIds: { $in: sbIds } });
+  }
+
+  if (or.length === 0) {
+    return { ...q, _id: { $in: [] } };
+  }
+  return { ...q, $or: or };
+}
+
+export async function canAccessCarrierBooking(carrierBooking, companyId, portalClientId) {
+  if (!portalClientId) return true;
+  if (carrierBooking?.contractualPartyId && String(carrierBooking.contractualPartyId) === portalClientId) {
+    return true;
+  }
+
+  const companyOid = new mongoose.Types.ObjectId(companyId);
+  const sbIds = [carrierBooking?.shipperBookingId, ...(carrierBooking?.shipperBookingIds ?? [])]
+    .filter(Boolean)
+    .map((id) => new mongoose.Types.ObjectId(String(id)));
+
+  if (sbIds.length === 0) return false;
+
+  const shipperBookings = await ShipperBooking.find({
+    _id: { $in: sbIds },
+    companyId: companyOid,
+  }).lean();
+
+  for (const sb of shipperBookings) {
+    if (await canAccessShipperBooking(sb, companyId, portalClientId)) return true;
   }
   return false;
 }

@@ -46,11 +46,26 @@ export function formatCarrierBookingDate(value: string | null | undefined): stri
 }
 
 export function canEditCarrierBooking(status: CarrierBookingStatus): boolean {
-  return status === "draft" || status === "rejected" || status === "failed";
+  return (
+    status === "draft" ||
+    status === "rejected" ||
+    status === "failed" ||
+    status === "acknowledged" ||
+    status === "confirmed"
+  );
 }
 
 export function canSubmitCarrierBooking(status: CarrierBookingStatus): boolean {
-  return status === "draft" || status === "rejected" || status === "failed";
+  return canEditCarrierBooking(status);
+}
+
+export function hasUnsentCarrierAmendments(item: CarrierBookingRequest): boolean {
+  if (!item.submittedAt) return false;
+  if (item.status !== "acknowledged" && item.status !== "confirmed") return false;
+  const submitted = new Date(item.submittedAt).getTime();
+  const updated = new Date(item.updatedAt).getTime();
+  if (Number.isNaN(submitted) || Number.isNaN(updated)) return false;
+  return updated > submitted;
 }
 
 export function canDeleteCarrierBooking(status: CarrierBookingStatus): boolean {

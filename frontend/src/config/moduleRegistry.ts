@@ -45,6 +45,24 @@ export function getClientDashboardNav(): NavModuleDef[] {
   return [
     SIDEBAR_HOME,
     {
+      id: "order",
+      route: "/dashboard/operations/export/order",
+      i18nKey: "modules.export.order",
+      implemented: true,
+    },
+    {
+      id: "shipperBooking",
+      route: "/dashboard/operations/export/shipper-booking",
+      i18nKey: "modules.export.shipperBooking",
+      implemented: true,
+    },
+    {
+      id: "carrierBooking",
+      route: "/dashboard/operations/transport/carrier-booking",
+      i18nKey: "modules.transport.carrierBooking",
+      implemented: true,
+    },
+    {
       id: "tradeSetup",
       route: "/dashboard/trade-setup",
       i18nKey: "modules.clientAccount.tradeSetup",

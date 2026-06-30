@@ -11,12 +11,8 @@ test.describe("public app", () => {
   test("marketing home shows hero and primary CTAs", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: /Start free workspace|Crear espacio gratis/i })
-    ).toBeVisible();
-    await expect(page.getByRole("link", { name: /Sign in|Iniciar sesión/i })).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: /Try container visibility|Probar visibilidad/i })
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /Create workspace|Crear workspace/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Sign in|Iniciar sesión/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /How it works|Cómo funciona/i }).first()).toBeVisible();
   });
 });

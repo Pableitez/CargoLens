@@ -16,6 +16,7 @@ type TimelineModalProps = {
   addingEvent: boolean;
   messageInputId: string;
   children: ReactNode;
+  allowAddEvent?: boolean;
 };
 
 export function TimelineModal({
@@ -33,6 +34,7 @@ export function TimelineModal({
   addingEvent,
   messageInputId,
   children,
+  allowAddEvent = true,
 }: TimelineModalProps) {
   return (
     <Modal
@@ -42,25 +44,31 @@ export function TimelineModal({
       closeLabel={closeLabel}
       className="app-modal--timeline"
     >
-      <form className="timeline-modal__add dash-form" onSubmit={onAddEvent}>
-        <div className="field">
-          <label className="field__label" htmlFor={messageInputId}>
-            {addEventLabel}
-          </label>
-          <input
-            id={messageInputId}
-            className="field__input"
-            value={eventMessage}
-            onChange={(event) => onEventMessageChange(event.target.value)}
-            placeholder={addEventPlaceholder}
-          />
-        </div>
-        <div className="dash-form__actions dash-form__actions--start">
-          <button type="submit" className="btn btn--secondary" disabled={addingEvent || !eventMessage.trim()}>
-            {addingEvent ? addingEventButton : addEventButton}
-          </button>
-        </div>
-      </form>
+      {allowAddEvent ? (
+        <form className="timeline-modal__add dash-form" onSubmit={onAddEvent}>
+          <div className="field">
+            <label className="field__label" htmlFor={messageInputId}>
+              {addEventLabel}
+            </label>
+            <input
+              id={messageInputId}
+              className="field__input"
+              value={eventMessage}
+              onChange={(event) => onEventMessageChange(event.target.value)}
+              placeholder={addEventPlaceholder}
+            />
+          </div>
+          <div className="dash-form__actions dash-form__actions--start">
+            <button
+              type="submit"
+              className="btn btn--secondary"
+              disabled={addingEvent || !eventMessage.trim()}
+            >
+              {addingEvent ? addingEventButton : addEventButton}
+            </button>
+          </div>
+        </form>
+      ) : null}
       {children}
     </Modal>
   );

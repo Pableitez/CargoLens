@@ -6,11 +6,15 @@ import { BookFromOrderModal } from "../../components/BookFromOrderModal";
 import { LocationCombobox } from "../../components/LocationCombobox";
 import { TimelineModal } from "../../components/TimelineModal";
 import { useAppToast } from "../../hooks/useAppToast";
+import { useIsClientPortal } from "../../hooks/useIsClientPortal";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import { resolveLocationCode } from "../../utils/locationUtils";
 import { ShipperBookingTimeline } from "./ShipperBookingTimeline";
 import { LinkedCarrierBookings } from "./LinkedCarrierBookings";
+import { carrierBookingStatusClass, carrierBookingStatusLabel } from "../carrierBookings/carrierBookingUtils";
+import type { CarrierBookingStatus } from "../carrierBookings/types";
+import type { LinkedCarrierBookingSummary } from "./types";
 import { OrderLinesPicker } from "./OrderLinesPicker";
 import {
   type BookFromOrdersLocationState,
@@ -120,6 +124,8 @@ export function DashboardShipperBookingDetail() {
   const location = useLocation();
   const { t } = useAppTranslation();
   const { showToast } = useAppToast();
+  const isClientPortal = useIsClientPortal();
+  const viewOnly = isClientPortal && !isNew;
   const bulkInitRef = useRef(false);
 
   const [form, setForm] = useState<ShipperBookingFormState>(EMPTY_FORM);
@@ -133,8 +139,15 @@ export function DashboardShipperBookingDetail() {
   const [bookFromOrderOpen, setBookFromOrderOpen] = useState(false);
   const [error, setError] = useState("");
   const [chainDefaults, setChainDefaults] = useState<OrderChainDefaults | null>(null);
+  const [linkedCarrierSummary, setLinkedCarrierSummary] = useState<LinkedCarrierBookingSummary | null>(null);
 
   const { usesTradeMasters, loading: loadingTradeContext } = useOrderTradeContext();
+
+  useEffect(() => {
+    if (isClientPortal && isNew) {
+      navigate(BOOKING_BASE, { replace: true });
+    }
+  }, [isClientPortal, isNew, navigate]);
 
   const tradeSelection = useMemo<OrderTradeSelection>(
     () => ({
@@ -245,6 +258,7 @@ export function DashboardShipperBookingDetail() {
       const withMax = await enrichLinesWithMaxQuantities(mappedLines, id);
       setLines(withMax);
       setEvents(timeline);
+      setLinkedCarrierSummary(item.linkedCarrierBookingSummary ?? null);
     } catch (err) {
       setError(messageFromApiErrorOrKey(err, t, "shipperBookingsPage.loadFailed"));
     } finally {
@@ -499,12 +513,20 @@ export function DashboardShipperBookingDetail() {
       aria-labelledby="shipper-booking-detail-heading"
     >
       <PageBreadcrumb
-        items={[
-          { label: t("modules.nav.home"), to: "/dashboard/home" },
-          { label: t("modules.export.title"), to: "/dashboard/operations/export" },
-          { label: t("modules.export.shipperBooking"), to: BOOKING_BASE },
-          { label: pageTitle },
-        ]}
+        items={
+          isClientPortal
+            ? [
+                { label: t("modules.nav.home"), to: "/dashboard/home" },
+                { label: t("modules.export.shipperBooking"), to: BOOKING_BASE },
+                { label: pageTitle },
+              ]
+            : [
+                { label: t("modules.nav.home"), to: "/dashboard/home" },
+                { label: t("modules.export.title"), to: "/dashboard/operations/export" },
+                { label: t("modules.export.shipperBooking"), to: BOOKING_BASE },
+                { label: pageTitle },
+              ]
+        }
       />
       <div className="panel__head-row">
         <h2 id="shipper-booking-detail-heading" className="panel__title panel__title--section">
@@ -512,19 +534,23 @@ export function DashboardShipperBookingDetail() {
         </h2>
         {!isNew && (
           <div className="dash-form__actions dash-form__actions--start">
-            <Link
-              to={`/dashboard/operations/transport/carrier-booking/new/from-sb?shipperBookingIds=${id}`}
-              className="btn btn--secondary"
-            >
-              {t("shipperBookingsPage.createCarrierBooking")}
-            </Link>
+            {!isClientPortal ? (
+              <Link
+                to={`/dashboard/operations/transport/carrier-booking/new/from-sb?shipperBookingIds=${id}`}
+                className="btn btn--secondary"
+              >
+                {t("shipperBookingsPage.createCarrierBooking")}
+              </Link>
+            ) : null}
             <button type="button" className="btn btn--secondary" onClick={() => setTimelineOpen(true)}>
               {t("shipperBookingsPage.openTimeline")}
               {events.length > 0 && <span className="timeline-trigger__count">{events.length}</span>}
             </button>
-            <button type="button" className="btn btn--ghost btn--danger" onClick={() => handleDelete()}>
-              {t("shipperBookingsPage.delete")}
-            </button>
+            {!isClientPortal ? (
+              <button type="button" className="btn btn--ghost btn--danger" onClick={() => handleDelete()}>
+                {t("shipperBookingsPage.delete")}
+              </button>
+            ) : null}
           </div>
         )}
       </div>
@@ -533,6 +559,29 @@ export function DashboardShipperBookingDetail() {
         <p className="panel__subhead">
           <strong>{form.bookingReference}</strong> ·{" "}
           <span className={bookingStatusClass(form.status)}>{bookingStatusLabel(form.status, t)}</span>
+          {linkedCarrierSummary ? (
+            <>
+              {" · "}
+              <span className="panel__subhead-meta">
+                {t("shipperBookingsPage.linkedCarrierBookingBadge")}:{" "}
+              </span>
+              <Link
+                to={`/dashboard/operations/transport/carrier-booking/${linkedCarrierSummary.carrierBookingId}`}
+                className="dash-table__link order-code"
+              >
+                {linkedCarrierSummary.requestReference}
+              </Link>
+              {" — "}
+              <span
+                className={carrierBookingStatusClass(linkedCarrierSummary.status as CarrierBookingStatus)}
+              >
+                {carrierBookingStatusLabel(linkedCarrierSummary.status as CarrierBookingStatus, t)}
+              </span>
+              {linkedCarrierSummary.count > 1
+                ? ` (${t("shipperBookingsPage.linkedCarrierBookingCount", { count: linkedCarrierSummary.count })})`
+                : null}
+            </>
+          ) : null}
         </p>
       )}
 
@@ -552,390 +601,396 @@ export function DashboardShipperBookingDetail() {
         </p>
       )}
 
-      <form className="order-form" onSubmit={handleSubmit}>
-        <section className="order-section" aria-labelledby="booking-parties-heading">
-          <h3 id="booking-parties-heading" className="order-section__title">
-            {t("tradeField.tradeContextSection")}
-          </h3>
-          <div className="order-section__grid">
-            <div className="field">
-              <label className="field__label" htmlFor="booking-reference">
-                {t("shipperBookingsPage.bookingReferenceLabel")} <span className="field__req">*</span>
-              </label>
-              <input
-                id="booking-reference"
-                className={`field__input order-code${isNew ? " field__input--readonly" : ""}`}
-                value={form.bookingReference}
-                onChange={(e) => setForm((prev) => ({ ...prev, bookingReference: e.target.value }))}
-                readOnly={isNew}
-                required
-              />
-              {isNew && <p className="field__hint">{t("shipperBookingsPage.bookingReferenceAutoHint")}</p>}
+      <form className={`order-form${viewOnly ? " order-form--readonly" : ""}`} onSubmit={handleSubmit}>
+        <fieldset disabled={viewOnly} className="order-form__fieldset">
+          <section className="order-section" aria-labelledby="booking-parties-heading">
+            <h3 id="booking-parties-heading" className="order-section__title">
+              {t("tradeField.tradeContextSection")}
+            </h3>
+            <div className="order-section__grid">
+              <div className="field">
+                <label className="field__label" htmlFor="booking-reference">
+                  {t("shipperBookingsPage.bookingReferenceLabel")} <span className="field__req">*</span>
+                </label>
+                <input
+                  id="booking-reference"
+                  className={`field__input order-code${isNew ? " field__input--readonly" : ""}`}
+                  value={form.bookingReference}
+                  onChange={(e) => setForm((prev) => ({ ...prev, bookingReference: e.target.value }))}
+                  readOnly={isNew}
+                  required
+                />
+                {isNew && <p className="field__hint">{t("shipperBookingsPage.bookingReferenceAutoHint")}</p>}
+              </div>
+              <div className="field">
+                <label className="field__label" htmlFor="customer-reference">
+                  {t("shipperBookingsPage.customerReferenceLabel")}
+                </label>
+                <input
+                  id="customer-reference"
+                  className="field__input"
+                  value={form.customerReferenceNumber}
+                  onChange={(e) => setForm((prev) => ({ ...prev, customerReferenceNumber: e.target.value }))}
+                />
+              </div>
+              {usesTradeMasters ? (
+                <OrderTradeFields
+                  value={tradeSelection}
+                  onChange={updateTradeSelection}
+                  onChainDefaults={applyChainDefaults}
+                  disabled={saving}
+                />
+              ) : (
+                <>
+                  <div className="field">
+                    <label className="field__label" htmlFor="booking-customer">
+                      {t("tradeField.contractualCustomer")} <span className="field__req">*</span>
+                    </label>
+                    <input
+                      id="booking-customer"
+                      className="field__input order-code"
+                      value={form.customer}
+                      onChange={(e) => setForm((prev) => ({ ...prev, customer: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="booking-shipper">
+                      {t("tradeField.shipper")} <span className="field__req">*</span>
+                    </label>
+                    <input
+                      id="booking-shipper"
+                      className="field__input order-code"
+                      value={form.shipper}
+                      onChange={(e) => setForm((prev) => ({ ...prev, shipper: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="booking-consignee">
+                      {t("tradeField.consignee")} <span className="field__req">*</span>
+                    </label>
+                    <input
+                      id="booking-consignee"
+                      className="field__input order-code"
+                      value={form.consignee}
+                      onChange={(e) => setForm((prev) => ({ ...prev, consignee: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+              <div className="field">
+                <label className="field__label" htmlFor="booking-status">
+                  {t("shipperBookingsPage.statusLabel")}
+                </label>
+                <select
+                  id="booking-status"
+                  className="field__input"
+                  value={form.status}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, status: e.target.value as ShipperBookingStatus }))
+                  }
+                >
+                  {SHIPPER_BOOKING_STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {bookingStatusLabel(status, t)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="field">
-              <label className="field__label" htmlFor="customer-reference">
-                {t("shipperBookingsPage.customerReferenceLabel")}
-              </label>
-              <input
-                id="customer-reference"
-                className="field__input"
-                value={form.customerReferenceNumber}
-                onChange={(e) => setForm((prev) => ({ ...prev, customerReferenceNumber: e.target.value }))}
-              />
-            </div>
-            {usesTradeMasters ? (
-              <OrderTradeFields
-                value={tradeSelection}
-                onChange={updateTradeSelection}
-                onChainDefaults={applyChainDefaults}
+          </section>
+
+          <section className="order-section" aria-labelledby="booking-logistics-heading">
+            <h3 id="booking-logistics-heading" className="order-section__title">
+              {t("shipperBookingsPage.logisticsTitle")}
+            </h3>
+            <div className="order-section__grid">
+              <div className="field">
+                <label className="field__label" htmlFor="cargo-ready-date">
+                  {t("shipperBookingsPage.cargoReadyDateLabel")}
+                </label>
+                <input
+                  id="cargo-ready-date"
+                  type="date"
+                  className="field__input"
+                  value={form.cargoReadyDate}
+                  onChange={(e) => setForm((prev) => ({ ...prev, cargoReadyDate: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label className="field__label" htmlFor="expected-receipt-date">
+                  {t("shipperBookingsPage.expectedReceiptDateLabel")}
+                </label>
+                <input
+                  id="expected-receipt-date"
+                  type="date"
+                  className="field__input"
+                  value={form.expectedReceiptDate}
+                  onChange={(e) => setForm((prev) => ({ ...prev, expectedReceiptDate: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label className="field__label" htmlFor="expected-delivery-date">
+                  {t("shipperBookingsPage.expectedDeliveryDateLabel")}
+                </label>
+                <input
+                  id="expected-delivery-date"
+                  type="date"
+                  className="field__input"
+                  value={form.expectedDeliveryDate}
+                  onChange={(e) => setForm((prev) => ({ ...prev, expectedDeliveryDate: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label className="field__label" htmlFor="booking-transport-mode">
+                  {t("shipperBookingsPage.transportModeLabel")}
+                </label>
+                <select
+                  id="booking-transport-mode"
+                  className="field__input"
+                  value={form.transportMode}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      transportMode: e.target.value as ShipperBookingTransportMode | "",
+                    }))
+                  }
+                >
+                  <option value="">{t("shipperBookingsPage.transportModePlaceholder")}</option>
+                  {SHIPPER_BOOKING_TRANSPORT_MODES.filter(Boolean).map((mode) => (
+                    <option key={mode} value={mode}>
+                      {transportModeLabel(mode, t)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label className="field__label" htmlFor="booking-incoterm">
+                  {t("shipperBookingsPage.incotermLabel")}
+                </label>
+                <select
+                  id="booking-incoterm"
+                  className="field__input"
+                  value={form.incoterm}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, incoterm: e.target.value as Incoterm | "" }))
+                  }
+                >
+                  <option value="">{t("shipperBookingsPage.incotermPlaceholder")}</option>
+                  {INCOTERM_OPTIONS.filter(Boolean).map((term) => (
+                    <option key={term} value={term}>
+                      {term}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label className="field__label" htmlFor="incoterm-location">
+                  {t("shipperBookingsPage.incotermLocationLabel")}
+                </label>
+                <LocationCombobox
+                  id="incoterm-location"
+                  value={form.incotermLocation}
+                  onChange={(code) => setForm((prev) => ({ ...prev, incotermLocation: code }))}
+                />
+              </div>
+              <OrderLocationFields
+                usesTradeMasters={!!usesTradeMasters}
+                operatingShipperPartyId={form.operatingShipperPartyId}
+                operatingConsigneePartyId={form.operatingConsigneePartyId}
+                value={form}
+                onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
+                chainDefaults={chainDefaults}
                 disabled={saving}
               />
-            ) : (
-              <>
-                <div className="field">
-                  <label className="field__label" htmlFor="booking-customer">
-                    {t("tradeField.contractualCustomer")} <span className="field__req">*</span>
-                  </label>
-                  <input
-                    id="booking-customer"
-                    className="field__input order-code"
-                    value={form.customer}
-                    onChange={(e) => setForm((prev) => ({ ...prev, customer: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="booking-shipper">
-                    {t("tradeField.shipper")} <span className="field__req">*</span>
-                  </label>
-                  <input
-                    id="booking-shipper"
-                    className="field__input order-code"
-                    value={form.shipper}
-                    onChange={(e) => setForm((prev) => ({ ...prev, shipper: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="booking-consignee">
-                    {t("tradeField.consignee")} <span className="field__req">*</span>
-                  </label>
-                  <input
-                    id="booking-consignee"
-                    className="field__input order-code"
-                    value={form.consignee}
-                    onChange={(e) => setForm((prev) => ({ ...prev, consignee: e.target.value }))}
-                    required
-                  />
-                </div>
-              </>
-            )}
-            <div className="field">
-              <label className="field__label" htmlFor="booking-status">
-                {t("shipperBookingsPage.statusLabel")}
-              </label>
-              <select
-                id="booking-status"
-                className="field__input"
-                value={form.status}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, status: e.target.value as ShipperBookingStatus }))
-                }
-              >
-                {SHIPPER_BOOKING_STATUS_OPTIONS.map((status) => (
-                  <option key={status} value={status}>
-                    {bookingStatusLabel(status, t)}
-                  </option>
-                ))}
-              </select>
+              <div className="field field--full">
+                <label className="field__label" htmlFor="booking-remarks">
+                  {t("shipperBookingsPage.remarksLabel")}
+                </label>
+                <textarea
+                  id="booking-remarks"
+                  className="field__input"
+                  rows={2}
+                  value={form.remarks}
+                  onChange={(e) => setForm((prev) => ({ ...prev, remarks: e.target.value }))}
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="order-section" aria-labelledby="booking-logistics-heading">
-          <h3 id="booking-logistics-heading" className="order-section__title">
-            {t("shipperBookingsPage.logisticsTitle")}
-          </h3>
-          <div className="order-section__grid">
-            <div className="field">
-              <label className="field__label" htmlFor="cargo-ready-date">
-                {t("shipperBookingsPage.cargoReadyDateLabel")}
-              </label>
-              <input
-                id="cargo-ready-date"
-                type="date"
-                className="field__input"
-                value={form.cargoReadyDate}
-                onChange={(e) => setForm((prev) => ({ ...prev, cargoReadyDate: e.target.value }))}
-              />
+          <section className="order-section order-lines" aria-labelledby="booking-lines-heading">
+            <div className="order-lines__head">
+              <h3 id="booking-lines-heading" className="order-section__title">
+                {t("shipperBookingsPage.linesTitle")}
+              </h3>
+              <div className="order-lines__head-actions">
+                <p className="order-lines__meta">
+                  {t("shipperBookingsPage.linesCount", { count: lines.length })}
+                </p>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  onClick={() => setBookFromOrderOpen(true)}
+                >
+                  {t("shipperBookingsPage.bookFromOrderTitle")}
+                </button>
+              </div>
             </div>
-            <div className="field">
-              <label className="field__label" htmlFor="expected-receipt-date">
-                {t("shipperBookingsPage.expectedReceiptDateLabel")}
-              </label>
-              <input
-                id="expected-receipt-date"
-                type="date"
-                className="field__input"
-                value={form.expectedReceiptDate}
-                onChange={(e) => setForm((prev) => ({ ...prev, expectedReceiptDate: e.target.value }))}
-              />
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="expected-delivery-date">
-                {t("shipperBookingsPage.expectedDeliveryDateLabel")}
-              </label>
-              <input
-                id="expected-delivery-date"
-                type="date"
-                className="field__input"
-                value={form.expectedDeliveryDate}
-                onChange={(e) => setForm((prev) => ({ ...prev, expectedDeliveryDate: e.target.value }))}
-              />
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="booking-transport-mode">
-                {t("shipperBookingsPage.transportModeLabel")}
-              </label>
-              <select
-                id="booking-transport-mode"
-                className="field__input"
-                value={form.transportMode}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    transportMode: e.target.value as ShipperBookingTransportMode | "",
-                  }))
-                }
-              >
-                <option value="">{t("shipperBookingsPage.transportModePlaceholder")}</option>
-                {SHIPPER_BOOKING_TRANSPORT_MODES.filter(Boolean).map((mode) => (
-                  <option key={mode} value={mode}>
-                    {transportModeLabel(mode, t)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="booking-incoterm">
-                {t("shipperBookingsPage.incotermLabel")}
-              </label>
-              <select
-                id="booking-incoterm"
-                className="field__input"
-                value={form.incoterm}
-                onChange={(e) => setForm((prev) => ({ ...prev, incoterm: e.target.value as Incoterm | "" }))}
-              >
-                <option value="">{t("shipperBookingsPage.incotermPlaceholder")}</option>
-                {INCOTERM_OPTIONS.filter(Boolean).map((term) => (
-                  <option key={term} value={term}>
-                    {term}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="incoterm-location">
-                {t("shipperBookingsPage.incotermLocationLabel")}
-              </label>
-              <LocationCombobox
-                id="incoterm-location"
-                value={form.incotermLocation}
-                onChange={(code) => setForm((prev) => ({ ...prev, incotermLocation: code }))}
-              />
-            </div>
-            <OrderLocationFields
-              usesTradeMasters={!!usesTradeMasters}
-              operatingShipperPartyId={form.operatingShipperPartyId}
-              operatingConsigneePartyId={form.operatingConsigneePartyId}
-              value={form}
-              onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
-              chainDefaults={chainDefaults}
-              disabled={saving}
-            />
-            <div className="field field--full">
-              <label className="field__label" htmlFor="booking-remarks">
-                {t("shipperBookingsPage.remarksLabel")}
-              </label>
-              <textarea
-                id="booking-remarks"
-                className="field__input"
-                rows={2}
-                value={form.remarks}
-                onChange={(e) => setForm((prev) => ({ ...prev, remarks: e.target.value }))}
-              />
-            </div>
-          </div>
-        </section>
 
-        <section className="order-section order-lines" aria-labelledby="booking-lines-heading">
-          <div className="order-lines__head">
-            <h3 id="booking-lines-heading" className="order-section__title">
-              {t("shipperBookingsPage.linesTitle")}
-            </h3>
-            <div className="order-lines__head-actions">
-              <p className="order-lines__meta">
-                {t("shipperBookingsPage.linesCount", { count: lines.length })}
-              </p>
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
-                onClick={() => setBookFromOrderOpen(true)}
-              >
-                {t("shipperBookingsPage.bookFromOrderTitle")}
-              </button>
-            </div>
-          </div>
+            <BookFromOrderModal
+              open={bookFromOrderOpen}
+              onClose={() => setBookFromOrderOpen(false)}
+              title={t("shipperBookingsPage.bookFromOrderTitle")}
+              closeLabel={t("toast.close")}
+            >
+              <OrderLinesPicker
+                embedded
+                excludeBookingId={isNew ? undefined : id}
+                existingLineKeys={existingLineKeys}
+                onAddLines={addLinesFromOrder}
+                onPrefillFromOrder={prefillFromOrder}
+              />
+            </BookFromOrderModal>
 
-          <BookFromOrderModal
-            open={bookFromOrderOpen}
-            onClose={() => setBookFromOrderOpen(false)}
-            title={t("shipperBookingsPage.bookFromOrderTitle")}
-            closeLabel={t("toast.close")}
-          >
-            <OrderLinesPicker
-              embedded
-              excludeBookingId={isNew ? undefined : id}
-              existingLineKeys={existingLineKeys}
-              onAddLines={addLinesFromOrder}
-              onPrefillFromOrder={prefillFromOrder}
-            />
-          </BookFromOrderModal>
-
-          <div className="order-lines-table-wrap">
-            <table className="order-lines-table order-lines-table--booking">
-              <thead>
-                <tr>
-                  <th>{t("shipperBookingsPage.lineKeyLabel")} *</th>
-                  <th>{t("shipperBookingsPage.orderNumberLabel")}</th>
-                  <th>{t("shipperBookingsPage.skuLabel")} *</th>
-                  <th>{t("shipperBookingsPage.bookedQuantityLabel")} *</th>
-                  <th>{t("shipperBookingsPage.quantityUnitLabel")} *</th>
-                  <th>{t("shipperBookingsPage.descriptionLabel")}</th>
-                  <th>{t("shipperBookingsPage.originLabel")}</th>
-                  <th>{t("shipperBookingsPage.volumeLabel")}</th>
-                  <th>{t("shipperBookingsPage.weightLabel")}</th>
-                  <th className="order-lines-table__actions" aria-hidden="true" />
-                </tr>
-              </thead>
-              <tbody>
-                {lines.map((line, index) => (
-                  <tr key={index}>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        value={line.lineKey}
-                        onChange={(e) => updateLine(index, { lineKey: e.target.value })}
-                        required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        value={line.orderNumber}
-                        onChange={(e) => updateLine(index, { orderNumber: e.target.value })}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        value={line.sku}
-                        onChange={(e) => updateLine(index, { sku: e.target.value })}
-                        required
-                      />
-                    </td>
-                    <td>
-                      <div className="order-line-qty">
+            <div className="order-lines-table-wrap">
+              <table className="order-lines-table order-lines-table--booking">
+                <thead>
+                  <tr>
+                    <th>{t("shipperBookingsPage.lineKeyLabel")} *</th>
+                    <th>{t("shipperBookingsPage.orderNumberLabel")}</th>
+                    <th>{t("shipperBookingsPage.skuLabel")} *</th>
+                    <th>{t("shipperBookingsPage.bookedQuantityLabel")} *</th>
+                    <th>{t("shipperBookingsPage.quantityUnitLabel")} *</th>
+                    <th>{t("shipperBookingsPage.descriptionLabel")}</th>
+                    <th>{t("shipperBookingsPage.originLabel")}</th>
+                    <th>{t("shipperBookingsPage.volumeLabel")}</th>
+                    <th>{t("shipperBookingsPage.weightLabel")}</th>
+                    <th className="order-lines-table__actions" aria-hidden="true" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {lines.map((line, index) => (
+                    <tr key={index}>
+                      <td>
+                        <input
+                          className="field__input field__input--table"
+                          value={line.lineKey}
+                          onChange={(e) => updateLine(index, { lineKey: e.target.value })}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="field__input field__input--table"
+                          value={line.orderNumber}
+                          onChange={(e) => updateLine(index, { orderNumber: e.target.value })}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="field__input field__input--table"
+                          value={line.sku}
+                          onChange={(e) => updateLine(index, { sku: e.target.value })}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <div className="order-line-qty">
+                          <input
+                            className="field__input field__input--table"
+                            type="number"
+                            min="0.0001"
+                            step="any"
+                            max={line.maxBookedQuantity || undefined}
+                            value={line.bookedQuantity}
+                            onChange={(e) => updateLine(index, { bookedQuantity: e.target.value })}
+                            required
+                            aria-describedby={line.maxBookedQuantity ? `booking-qty-max-${index}` : undefined}
+                          />
+                          {line.maxBookedQuantity && (
+                            <span id={`booking-qty-max-${index}`} className="order-line-qty__hint">
+                              {t("shipperBookingsPage.maxQtyHint", { max: line.maxBookedQuantity })}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          className="field__input field__input--table"
+                          value={line.quantityUnit}
+                          onChange={(e) => updateLine(index, { quantityUnit: e.target.value })}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="field__input field__input--table"
+                          value={line.description}
+                          onChange={(e) => updateLine(index, { description: e.target.value })}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="field__input field__input--table"
+                          value={line.countryOfOrigin}
+                          onChange={(e) => updateLine(index, { countryOfOrigin: e.target.value })}
+                        />
+                      </td>
+                      <td>
                         <input
                           className="field__input field__input--table"
                           type="number"
-                          min="0.0001"
+                          min="0"
                           step="any"
-                          max={line.maxBookedQuantity || undefined}
-                          value={line.bookedQuantity}
-                          onChange={(e) => updateLine(index, { bookedQuantity: e.target.value })}
-                          required
-                          aria-describedby={line.maxBookedQuantity ? `booking-qty-max-${index}` : undefined}
+                          value={line.bookedVolume}
+                          onChange={(e) => updateLine(index, { bookedVolume: e.target.value })}
                         />
-                        {line.maxBookedQuantity && (
-                          <span id={`booking-qty-max-${index}`} className="order-line-qty__hint">
-                            {t("shipperBookingsPage.maxQtyHint", { max: line.maxBookedQuantity })}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        value={line.quantityUnit}
-                        onChange={(e) => updateLine(index, { quantityUnit: e.target.value })}
-                        required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        value={line.description}
-                        onChange={(e) => updateLine(index, { description: e.target.value })}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        value={line.countryOfOrigin}
-                        onChange={(e) => updateLine(index, { countryOfOrigin: e.target.value })}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={line.bookedVolume}
-                        onChange={(e) => updateLine(index, { bookedVolume: e.target.value })}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="field__input field__input--table"
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={line.bookedWeight}
-                        onChange={(e) => updateLine(index, { bookedWeight: e.target.value })}
-                      />
-                    </td>
-                    <td className="order-lines-table__actions">
-                      <button
-                        type="button"
-                        className="order-lines-table__remove"
-                        onClick={() => removeLine(index)}
-                        aria-label={t("shipperBookingsPage.removeLine")}
-                      >
-                        ×
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="order-lines__actions">
-            <button type="button" className="btn btn--ghost" onClick={() => addLine()}>
-              {t("shipperBookingsPage.addDirectLine")}
-            </button>
-          </div>
-        </section>
+                      </td>
+                      <td>
+                        <input
+                          className="field__input field__input--table"
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={line.bookedWeight}
+                          onChange={(e) => updateLine(index, { bookedWeight: e.target.value })}
+                        />
+                      </td>
+                      <td className="order-lines-table__actions">
+                        <button
+                          type="button"
+                          className="order-lines-table__remove"
+                          onClick={() => removeLine(index)}
+                          aria-label={t("shipperBookingsPage.removeLine")}
+                        >
+                          ×
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="order-lines__actions">
+              <button type="button" className="btn btn--ghost" onClick={() => addLine()}>
+                {t("shipperBookingsPage.addDirectLine")}
+              </button>
+            </div>
+          </section>
 
-        <div className="dash-form__actions">
-          <Link to={BOOKING_BASE} className="btn btn--ghost">
-            {t("shipperBookingsPage.cancel")}
-          </Link>
-          <button type="submit" className="btn btn--primary" disabled={saving}>
-            {saving ? t("shipperBookingsPage.saving") : t("shipperBookingsPage.save")}
-          </button>
-        </div>
+          <div className="dash-form__actions">
+            <Link to={BOOKING_BASE} className="btn btn--ghost">
+              {t("shipperBookingsPage.cancel")}
+            </Link>
+            {!viewOnly ? (
+              <button type="submit" className="btn btn--primary" disabled={saving}>
+                {saving ? t("shipperBookingsPage.saving") : t("shipperBookingsPage.save")}
+              </button>
+            ) : null}
+          </div>
+        </fieldset>
       </form>
 
       {!isNew && (
@@ -953,6 +1008,7 @@ export function DashboardShipperBookingDetail() {
           onAddEvent={handleAddEvent}
           addingEvent={addingEvent}
           messageInputId="booking-event-message"
+          allowAddEvent={!isClientPortal}
         >
           <ShipperBookingTimeline events={events} emptyLabel={t("shipperBookingsPage.timelineEmpty")} />
         </TimelineModal>

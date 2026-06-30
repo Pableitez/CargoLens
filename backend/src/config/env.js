@@ -48,5 +48,9 @@ export function getEnv() {
     carrierBookingMode: String(process.env.CARRIER_BOOKING_MODE ?? "mock")
       .trim()
       .toLowerCase(),
+    /** mock only: acknowledged | confirmed | rejected | failed */
+    mockInttraOutcome: String(process.env.MOCK_INTTRA_OUTCOME ?? "acknowledged")
+      .trim()
+      .toLowerCase(),
   };
 }

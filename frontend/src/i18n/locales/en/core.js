@@ -266,6 +266,7 @@ export default {
     viewAll: "View all activity",
     dismiss: "Mark as read",
     empty: "No activity yet",
+    loadFailed: "Could not load activity.",
   },
   backgroundJobs: {
     tabProcesses: "Processes",

@@ -1,3 +1,5 @@
+import { resolveCarrierBookingRoutingLegs } from "./carrierBookingRoutingLegs.js";
+
 function serializeEquipment(row) {
   return {
     quantity: row.quantity,
@@ -79,6 +81,7 @@ export function serializeCarrierBooking(doc) {
     portOfDischarge: doc.portOfDischarge ?? "",
     placeOfReceipt: doc.placeOfReceipt ?? "",
     placeOfDelivery: doc.placeOfDelivery ?? "",
+    routingLegs: resolveCarrierBookingRoutingLegs(doc),
     cargoReadyDate: doc.cargoReadyDate ?? null,
     expectedReceiptDate: doc.expectedReceiptDate ?? null,
     expectedDeliveryDate: doc.expectedDeliveryDate ?? null,

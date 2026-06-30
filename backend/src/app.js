@@ -21,6 +21,7 @@ export function createApp() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many requests" },
+    skip: () => (process.env.NODE_ENV ?? "development") === "development",
   });
 
   app.get("/health", (_req, res) => {

@@ -47,12 +47,35 @@ const STAFF_QUICK_LINKS = [
 
 const PORTAL_QUICK_LINKS = [
   {
+    id: "orders",
+    route: "/dashboard/operations/export/order",
+    titleKey: "dashboardHome.quickOrders",
+    descKey: "dashboardHome.quickOrdersDesc",
+    moduleId: "order",
+    primary: true,
+  },
+  {
+    id: "bookings",
+    route: "/dashboard/operations/export/shipper-booking",
+    titleKey: "dashboardHome.quickBookings",
+    descKey: "dashboardHome.quickBookingsDesc",
+    moduleId: "shipperBooking",
+    primary: true,
+  },
+  {
+    id: "carrierBookings",
+    route: "/dashboard/operations/transport/carrier-booking",
+    titleKey: "dashboardHome.quickCarrierBookings",
+    descKey: "dashboardHome.quickCarrierBookingsDesc",
+    moduleId: "carrierBooking",
+    primary: true,
+  },
+  {
     id: "tradeSetup",
     route: "/dashboard/trade-setup",
     titleKey: "dashboardHome.quickTradeSetupPortal",
     descKey: "dashboardHome.quickTradeSetupPortalDesc",
     moduleId: "tradeSetupPortal",
-    primary: true,
   },
   {
     id: "messages",

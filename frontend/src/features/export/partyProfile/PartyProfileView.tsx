@@ -238,16 +238,16 @@ export function PartyProfileView() {
                   {isClientParty ? (
                     <>
                       <div>
-                        <dt>{t("dashboardPage.clients.contractualTierLabel")}</dt>
+                        <dt>{t("partyProfile.contractualTierLabel")}</dt>
                         <dd>
                           {t(
-                            `dashboardPage.clients.tier${(profile.contractualTier ?? "primary") === "subsidiary" ? "Subsidiary" : "Primary"}`
+                            `tradeSetup.tier${(profile.contractualTier ?? "primary") === "subsidiary" ? "Subsidiary" : "Primary"}`
                           )}
                         </dd>
                       </div>
                       {profile.parentPartyId ? (
                         <div className="party-profile__detail-grid--wide">
-                          <dt>{t("dashboardPage.clients.thParent")}</dt>
+                          <dt>{t("partyProfile.parentAccount")}</dt>
                           <dd>
                             <Link
                               to={`${tradeBase}/parties/${profile.parentPartyId}`}

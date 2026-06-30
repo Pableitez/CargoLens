@@ -4,14 +4,17 @@ import * as carrierBookingsApi from "../../api/carrierBookings";
 import { LocationCell } from "../../components/LocationCombobox";
 import { ModuleListPage } from "../../components/ModuleListPage";
 import { useModuleListPage } from "../../hooks/useModuleListPage";
+import { useIsClientPortal } from "../../hooks/useIsClientPortal";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import type { ColumnFilterDef } from "../../utils/facetFilters";
 import {
   buildDateFilterColumn,
   buildDiscreteFilterColumn,
+  buildPartyFilterColumns,
   buildRouteLocationFilterColumns,
   buildTextFilterColumn,
 } from "../../utils/moduleFilterColumns";
+import { CarrierBookingStatusQuickFilters } from "./CarrierBookingStatusQuickFilters";
 import {
   carrierBookingStatusClass,
   carrierBookingStatusLabel,
@@ -25,6 +28,7 @@ const TABLE_COL_COUNT = 8;
 
 export function DashboardCarrierBookings() {
   const { t } = useAppTranslation();
+  const isClientPortal = useIsClientPortal();
   const fetchItems = useCallback(() => carrierBookingsApi.fetchCarrierBookings(), []);
 
   const filterColumns = useMemo<ColumnFilterDef<CarrierBookingRequest>[]>(
@@ -32,7 +36,13 @@ export function DashboardCarrierBookings() {
       buildTextFilterColumn(
         "requestReference",
         t("carrierBookingsPage.thRequestReference"),
-        (row) => [row.requestReference, row.shipperBookingReference, row.externalReference].join(" "),
+        (row) =>
+          [
+            row.requestReference,
+            row.shipperBookingReference,
+            row.externalReference,
+            row.inttraTransactionId,
+          ].join(" "),
         (row) => [row.requestReference]
       ),
       buildTextFilterColumn(
@@ -41,6 +51,20 @@ export function DashboardCarrierBookings() {
         (row) => row.shipperBookingReference,
         (row) => [row.shipperBookingReference]
       ),
+      buildTextFilterColumn(
+        "externalReference",
+        t("carrierBookingsPage.thExternalReference"),
+        (row) => [row.externalReference, row.inttraTransactionId].join(" "),
+        (row) => [row.externalReference, row.inttraTransactionId].filter(Boolean)
+      ),
+      ...buildPartyFilterColumns<CarrierBookingRequest>({
+        customer: t("tradeField.contractualCustomer"),
+        shipper: t("tradeField.shipper"),
+        consignee: t("tradeField.consignee"),
+        getCustomer: (row) => row.customer,
+        getShipper: (row) => row.shipper,
+        getConsignee: (row) => row.consignee,
+      }),
       buildDiscreteFilterColumn(
         "carrier",
         t("carrierBookingsPage.thCarrier"),
@@ -80,11 +104,18 @@ export function DashboardCarrierBookings() {
 
   const list = useModuleListPage(fetchItems, "carrierBookingsPage.loadFailed", filterColumns);
 
+  const handleToggleStatus = useCallback(
+    (label: string) => {
+      list.toggleOption("status", label);
+    },
+    [list]
+  );
+
   return (
     <ModuleListPage
       headingId="carrier-bookings-heading"
       title={t("carrierBookingsPage.title")}
-      lead={t("carrierBookingsPage.lead")}
+      lead={isClientPortal ? t("carrierBookingsPage.leadPortal") : t("carrierBookingsPage.lead")}
       panelClassName="panel--orders"
       searchPlaceholder={t("carrierBookingsPage.searchPlaceholder")}
       wideTable
@@ -94,15 +125,25 @@ export function DashboardCarrierBookings() {
       tableColCount={TABLE_COL_COUNT}
       filterColumns={filterColumns}
       list={list}
+      toolbarExtra={
+        <CarrierBookingStatusQuickFilters
+          statusFilter={list.filters.status}
+          onToggleStatus={handleToggleStatus}
+        />
+      }
       trailingActions={
-        <Link to={`${CARRIER_BOOKING_BASE}/new`} className="btn btn--primary btn--sm">
-          {t("carrierBookingsPage.create")}
-        </Link>
+        isClientPortal ? null : (
+          <Link to={`${CARRIER_BOOKING_BASE}/new`} className="btn btn--primary btn--sm">
+            {t("carrierBookingsPage.create")}
+          </Link>
+        )
       }
       emptyActions={
-        <Link to={`${CARRIER_BOOKING_BASE}/new`} className="btn btn--primary">
-          {t("carrierBookingsPage.create")}
-        </Link>
+        isClientPortal ? null : (
+          <Link to={`${CARRIER_BOOKING_BASE}/new`} className="btn btn--primary">
+            {t("carrierBookingsPage.create")}
+          </Link>
+        )
       }
       tableHead={
         <>
@@ -124,6 +165,9 @@ export function DashboardCarrierBookings() {
               <Link to={`${CARRIER_BOOKING_BASE}/${row.id}`} className="dash-table__link order-code">
                 {row.requestReference}
               </Link>
+              {row.externalReference ? (
+                <span className="dash-table__meta"> · {row.externalReference}</span>
+              ) : null}
             </td>
             <td>
               <ShipperBookingRefLinks row={row} />

@@ -5,6 +5,7 @@ import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
 import { ReadOnlyFieldValue } from "../../components/ReadOnlyFieldValue";
 import { TimelineModal } from "../../components/TimelineModal";
 import { useAppToast } from "../../hooks/useAppToast";
+import { useIsClientPortal } from "../../hooks/useIsClientPortal";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import { OrderTimeline } from "./OrderTimeline";
@@ -105,6 +106,7 @@ export function DashboardOrderDetail() {
   const navigate = useNavigate();
   const { t } = useAppTranslation();
   const { showToast } = useAppToast();
+  const isClientPortal = useIsClientPortal();
 
   const [form, setForm] = useState<OrderFormState>(EMPTY_FORM);
   const [lines, setLines] = useState<OrderLineFormState[]>([{ ...EMPTY_ORDER_LINE }]);
@@ -144,7 +146,13 @@ export function DashboardOrderDetail() {
 
   const { usesTradeMasters, loading: loadingTradeContext } = useOrderTradeContext();
 
-  const readOnly = !isNew && !isEditing;
+  const readOnly = isClientPortal || (!isNew && !isEditing);
+
+  useEffect(() => {
+    if (isClientPortal && isNew) {
+      navigate(ORDER_BASE, { replace: true });
+    }
+  }, [isClientPortal, isNew, navigate]);
 
   const pageTitle = useMemo(
     () => (isNew ? t("ordersPage.createTitle") : t("ordersPage.detailTitle")),
@@ -346,12 +354,20 @@ export function DashboardOrderDetail() {
   return (
     <section className="panel panel--dash-form panel--orders" aria-labelledby="order-detail-heading">
       <PageBreadcrumb
-        items={[
-          { label: t("modules.nav.home"), to: "/dashboard/home" },
-          { label: t("modules.export.title"), to: "/dashboard/operations/export" },
-          { label: t("modules.export.order"), to: ORDER_BASE },
-          { label: pageTitle },
-        ]}
+        items={
+          isClientPortal
+            ? [
+                { label: t("modules.nav.home"), to: "/dashboard/home" },
+                { label: t("modules.export.order"), to: ORDER_BASE },
+                { label: pageTitle },
+              ]
+            : [
+                { label: t("modules.nav.home"), to: "/dashboard/home" },
+                { label: t("modules.export.title"), to: "/dashboard/operations/export" },
+                { label: t("modules.export.order"), to: ORDER_BASE },
+                { label: pageTitle },
+              ]
+        }
       />
       <div className="panel__head-row">
         <h2 id="order-detail-heading" className="panel__title panel__title--section">
@@ -359,7 +375,7 @@ export function DashboardOrderDetail() {
         </h2>
         {!isNew && (
           <div className="dash-form__actions dash-form__actions--start">
-            {readOnly ? (
+            {readOnly && !isClientPortal ? (
               <button type="button" className="btn btn--primary" onClick={() => setIsEditing(true)}>
                 {t("ordersPage.edit")}
               </button>
@@ -368,7 +384,7 @@ export function DashboardOrderDetail() {
               {t("ordersPage.openTimeline")}
               {events.length > 0 && <span className="timeline-trigger__count">{events.length}</span>}
             </button>
-            {readOnly ? (
+            {readOnly && !isClientPortal ? (
               <button type="button" className="btn btn--ghost btn--danger" onClick={() => handleDelete()}>
                 {t("ordersPage.delete")}
               </button>
@@ -811,6 +827,7 @@ export function DashboardOrderDetail() {
           onAddEvent={handleAddEvent}
           addingEvent={addingEvent}
           messageInputId="order-event-message"
+          allowAddEvent={!isClientPortal}
         >
           <OrderTimeline events={events} emptyLabel={t("ordersPage.timelineEmpty")} />
         </TimelineModal>

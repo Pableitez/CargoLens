@@ -25,7 +25,7 @@ function serializeLine(line) {
   };
 }
 
-export function serializeShipperBooking(doc) {
+export function serializeShipperBooking(doc, { linkedCarrierBookingSummary = null } = {}) {
   return {
     id: doc._id,
     bookingReference: doc.bookingReference ?? "",
@@ -54,6 +54,7 @@ export function serializeShipperBooking(doc) {
     portOfDischargeFacilityId: doc.portOfDischargeFacilityId ? String(doc.portOfDischargeFacilityId) : null,
     placeOfDeliveryFacilityId: doc.placeOfDeliveryFacilityId ? String(doc.placeOfDeliveryFacilityId) : null,
     remarks: doc.remarks ?? "",
+    linkedCarrierBookingSummary,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };

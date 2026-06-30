@@ -127,7 +127,133 @@ describe("HTTP integration", () => {
       const res = await request(app).get("/api/shipper-bookings").set(authHeader(portalToken));
 
       expect(res.status).toBe(200);
-      expect(res.body.items).toHaveLength(0);
+      expect(res.body.items).toHaveLength(1);
+      expect(res.body.items[0].bookingReference).toBe("SB-PORTAL-A");
+    });
+
+    it("scopes carrier booking lists to the portal client", async () => {
+      const fixtures = await seedPortalAccessFixtures();
+      const portalToken = signTestToken({
+        userId: fixtures.portalUserId,
+        companyId: fixtures.company._id,
+        clientId: fixtures.clientA._id,
+      });
+
+      const res = await request(app).get("/api/carrier-bookings").set(authHeader(portalToken));
+
+      expect(res.status).toBe(200);
+      expect(res.body.items).toHaveLength(1);
+      expect(res.body.items[0].requestReference).toBe("CB-PORTAL-A");
+    });
+
+    it("hides another client's carrier booking from portal users", async () => {
+      const fixtures = await seedPortalAccessFixtures();
+      const portalToken = signTestToken({
+        userId: fixtures.portalUserId,
+        companyId: fixtures.company._id,
+        clientId: fixtures.clientA._id,
+      });
+
+      const res = await request(app)
+        .get(`/api/carrier-bookings/${fixtures.carrierBookingB._id}`)
+        .set(authHeader(portalToken));
+
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe("NOT_FOUND");
+    });
+
+    it("creates and submits a carrier booking via mock INTTRA", async () => {
+      const fixtures = await seedPortalAccessFixtures();
+      const staffToken = signTestToken({
+        userId: fixtures.staffUserId,
+        companyId: fixtures.company._id,
+      });
+
+      const createRes = await request(app)
+        .post("/api/carrier-bookings")
+        .set(authHeader(staffToken))
+        .send({
+          shipperBookingIds: [String(fixtures.bookingA._id)],
+          carrierScac: "MAEU",
+          freightPaymentTerms: "prepaid",
+          equipment: [{ quantity: 1, equipmentType: "20GP" }],
+        });
+
+      expect(createRes.status).toBe(201);
+      expect(createRes.body.item.status).toBe("draft");
+      expect(createRes.body.item.shipperBookingReference).toBe("SB-PORTAL-A");
+
+      const cbId = createRes.body.item.id;
+      const submitRes = await request(app)
+        .post(`/api/carrier-bookings/${cbId}/submit`)
+        .set(authHeader(staffToken));
+
+      expect(submitRes.status).toBe(200);
+      expect(submitRes.body.item.status).toBe("acknowledged");
+      expect(submitRes.body.item.inttraTransactionId).toMatch(/^MOCK-INTTRA-/);
+      expect(submitRes.body.source).toBe("mock");
+    });
+
+    it("links and unlinks shipper bookings on carrier booking update", async () => {
+      const fixtures = await seedPortalAccessFixtures();
+      const staffToken = signTestToken({
+        userId: fixtures.staffUserId,
+        companyId: fixtures.company._id,
+      });
+
+      const createRes = await request(app)
+        .post("/api/carrier-bookings")
+        .set(authHeader(staffToken))
+        .send({
+          shipperBookingIds: [String(fixtures.bookingA._id)],
+          carrierScac: "MAEU",
+          freightPaymentTerms: "prepaid",
+          equipment: [{ quantity: 1, equipmentType: "20GP" }],
+        });
+
+      expect(createRes.status).toBe(201);
+      const cbId = createRes.body.item.id;
+
+      const unlinkRes = await request(app)
+        .patch(`/api/carrier-bookings/${cbId}`)
+        .set(authHeader(staffToken))
+        .send({
+          shipperBookingIds: [],
+          carrierScac: "MAEU",
+          equipment: [{ quantity: 1, equipmentType: "20GP" }],
+        });
+
+      expect(unlinkRes.status).toBe(200);
+      expect(unlinkRes.body.item.shipperBookingIds).toEqual([]);
+
+      const relinkRes = await request(app)
+        .patch(`/api/carrier-bookings/${cbId}`)
+        .set(authHeader(staffToken))
+        .send({
+          shipperBookingIds: [String(fixtures.bookingA._id)],
+          refreshFromShipperBookings: true,
+          carrierScac: "MAEU",
+          equipment: [{ quantity: 1, equipmentType: "20GP" }],
+        });
+
+      expect(relinkRes.status).toBe(200);
+      expect(relinkRes.body.item.shipperBookingReference).toBe("SB-PORTAL-A");
+
+      const eventsRes = await request(app)
+        .get(`/api/carrier-bookings/${cbId}/events`)
+        .set(authHeader(staffToken));
+
+      expect(eventsRes.status).toBe(200);
+      const messages = eventsRes.body.events.map((event) => event.message);
+      expect(messages.some((message) => message.includes("Unlinked shipper booking"))).toBe(true);
+      expect(messages.some((message) => message.includes("Linked shipper booking"))).toBe(true);
+
+      const sbRes = await request(app)
+        .get(`/api/shipper-bookings/${fixtures.bookingA._id}`)
+        .set(authHeader(staffToken));
+
+      expect(sbRes.status).toBe(200);
+      expect(sbRes.body.item.linkedCarrierBookingSummary?.requestReference).toBeTruthy();
     });
 
     it("blocks portal users from staff-only mutations", async () => {

@@ -12,7 +12,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon-tab.svg", "icons/**/*.svg"],
-      devOptions: { enabled: true },
+      devOptions: { enabled: false },
       manifest: {
         name: "NaoLab",
         short_name: "NaoLab",

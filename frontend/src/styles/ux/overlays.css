@@ -739,6 +739,55 @@ a.overview-kpi-strip__card--link:focus-visible {
   max-height: min(90vh, 760px);
 }
 
+.app-modal--sb-link {
+  width: min(100%, 46rem);
+  height: min(78vh, 640px);
+  max-height: min(78vh, 640px);
+}
+
+.app-modal--sb-link .app-modal__body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  min-height: 0;
+}
+
+.carrier-sb-link-modal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.carrier-sb-link-modal__intro {
+  flex-shrink: 0;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.carrier-sb-link-modal__selection {
+  margin: 0.35rem 0 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.carrier-sb-link-modal__picker {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.carrier-sb-link-modal__actions {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
 .app-modal--tm-import {
   width: min(100%, 56rem);
   max-height: min(92vh, 860px);

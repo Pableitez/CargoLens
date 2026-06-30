@@ -1,4 +1,4 @@
-/* ——— App shell: left rail (Safecube-style) + top bar ——— */
+/* ——— App shell: left rail + top bar ——— */
 /* Must override .layout { flex-direction: column } so rail + content sit in a row */
 .layout.layout--shell {
   flex-direction: row;

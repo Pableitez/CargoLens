@@ -69,6 +69,8 @@ function parseShipperBookingIds(raw) {
   return [...new Set(ids)];
 }
 
+export { parseShipperBookingIds };
+
 export function validateCarrierBookingEquipmentInput(equipment, { index = 0 } = {}) {
   const errors = [];
   const prefix = `equipment[${index}]`;
@@ -146,6 +148,70 @@ function parseOptionalObjectId(value) {
   const key = String(value ?? "").trim();
   if (!key) return null;
   return key;
+}
+
+const ROUTING_LEG_MODES = new Set(["road", "ocean", "rail", "transshipment"]);
+
+function validateRoutingLegsInput(rawLegs) {
+  if (!Array.isArray(rawLegs)) {
+    return { errors: ["routingLegs must be an array"], data: undefined };
+  }
+
+  const errors = [];
+  const legs = [];
+
+  rawLegs.forEach((leg, index) => {
+    const prefix = `routingLegs[${index}]`;
+    let transportMode = String(leg?.transportMode ?? "ocean")
+      .trim()
+      .toLowerCase();
+    if (!ROUTING_LEG_MODES.has(transportMode)) transportMode = "ocean";
+
+    const originCode = String(leg?.originCode ?? leg?.portOfLoading ?? "")
+      .trim()
+      .toUpperCase()
+      .slice(0, 20);
+    const destinationCode = String(leg?.destinationCode ?? leg?.portOfDischarge ?? "")
+      .trim()
+      .toUpperCase()
+      .slice(0, 20);
+    const portOfLoading = String(leg?.portOfLoading ?? originCode)
+      .trim()
+      .toUpperCase()
+      .slice(0, 20);
+    const portOfDischarge = String(leg?.portOfDischarge ?? destinationCode)
+      .trim()
+      .toUpperCase()
+      .slice(0, 20);
+
+    if (!originCode) errors.push(`${prefix}.originCode is required`);
+    if (!destinationCode) errors.push(`${prefix}.destinationCode is required`);
+
+    const isOcean = transportMode === "ocean" || transportMode === "transshipment";
+
+    legs.push({
+      sequence: Number(leg?.sequence) > 0 ? Number(leg.sequence) : index + 1,
+      transportMode,
+      originCode,
+      destinationCode,
+      portOfLoading,
+      portOfDischarge,
+      vesselName: isOcean
+        ? String(leg?.vesselName ?? "")
+            .trim()
+            .slice(0, 120)
+        : "",
+      voyageNumber: isOcean
+        ? String(leg?.voyageNumber ?? "")
+            .trim()
+            .slice(0, 80)
+        : "",
+      etd: isOcean ? parseOptionalDate(leg?.etd) : null,
+      eta: isOcean ? parseOptionalDate(leg?.eta) : null,
+    });
+  });
+
+  return { errors, data: legs };
 }
 
 export function validateCarrierBookingInput(body, { partial = false, requireShipperBookings = true } = {}) {
@@ -227,6 +293,13 @@ export function validateCarrierBookingInput(body, { partial = false, requireShip
     if (row.errors.length === 0) cargoLines.push(row.data);
   }
 
+  let routingLegs;
+  if (raw.routingLegs !== undefined) {
+    const routingResult = validateRoutingLegsInput(raw.routingLegs);
+    errors.push(...routingResult.errors);
+    routingLegs = routingResult.data;
+  }
+
   const data = {
     shipperBookingIds,
     shipperBookingId: shipperBookingIds[0],
@@ -301,7 +374,13 @@ export function validateCarrierBookingInput(body, { partial = false, requireShip
     idempotencyKey: String(raw.idempotencyKey ?? "")
       .trim()
       .slice(0, 120),
+    shipperBookingIdsProvided: Array.isArray(raw?.shipperBookingIds),
+    refreshFromShipperBookings: raw?.refreshFromShipperBookings === true,
   };
+
+  if (routingLegs !== undefined) {
+    data.routingLegs = routingLegs;
+  }
 
   return { errors, data };
 }

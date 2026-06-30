@@ -11,6 +11,26 @@ const carrierBookingEquipmentSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const carrierBookingRoutingLegSchema = new mongoose.Schema(
+  {
+    sequence: { type: Number, required: true, min: 1 },
+    transportMode: {
+      type: String,
+      enum: ["road", "ocean", "rail", "transshipment"],
+      default: "ocean",
+    },
+    originCode: { type: String, trim: true, default: "" },
+    destinationCode: { type: String, trim: true, default: "" },
+    portOfLoading: { type: String, trim: true, default: "" },
+    portOfDischarge: { type: String, trim: true, default: "" },
+    vesselName: { type: String, trim: true, default: "" },
+    voyageNumber: { type: String, trim: true, default: "" },
+    etd: { type: Date, default: null },
+    eta: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const carrierBookingCargoLineSchema = new mongoose.Schema(
   {
     sourceShipperBookingReference: { type: String, trim: true, default: "" },
@@ -135,6 +155,7 @@ const carrierBookingRequestSchema = new mongoose.Schema(
     portOfLoading: { type: String, trim: true, default: "" },
     portOfDischarge: { type: String, trim: true, default: "" },
     placeOfDelivery: { type: String, trim: true, default: "" },
+    routingLegs: { type: [carrierBookingRoutingLegSchema], default: [] },
     cargoReadyDate: { type: Date, default: null },
     expectedReceiptDate: { type: Date, default: null },
     expectedDeliveryDate: { type: Date, default: null },

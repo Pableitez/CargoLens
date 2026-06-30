@@ -25,7 +25,9 @@ export type CarrierBookingEventKind =
   | "status_change"
   | "note"
   | "submission"
-  | "provider_response";
+  | "provider_response"
+  | "sb_linked"
+  | "sb_unlinked";
 
 export type CarrierBookingEquipment = {
   quantity: number;
@@ -37,6 +39,21 @@ export type CarrierBookingEquipment = {
 
 export type CarrierBookingCargoLine = ShipperBookingLine & {
   sourceShipperBookingReference: string;
+};
+
+export type CarrierBookingRoutingLegMode = "road" | "ocean" | "rail" | "transshipment";
+
+export type CarrierBookingRoutingLeg = {
+  sequence: number;
+  transportMode: CarrierBookingRoutingLegMode;
+  originCode: string;
+  destinationCode: string;
+  portOfLoading?: string;
+  portOfDischarge?: string;
+  vesselName?: string;
+  voyageNumber?: string;
+  etd?: string | null;
+  eta?: string | null;
 };
 
 export type CarrierBookingRequest = {
@@ -76,6 +93,7 @@ export type CarrierBookingRequest = {
   portOfDischarge: string;
   placeOfReceipt: string;
   placeOfDelivery: string;
+  routingLegs: CarrierBookingRoutingLeg[];
   cargoReadyDate: string | null;
   expectedReceiptDate: string | null;
   expectedDeliveryDate: string | null;
@@ -141,6 +159,7 @@ export type CarrierBookingFormState = {
   portOfDischarge: string;
   placeOfReceipt: string;
   placeOfDelivery: string;
+  routingLegs: CarrierBookingRoutingLeg[];
   cargoReadyDate: string;
   expectedReceiptDate: string;
   expectedDeliveryDate: string;
@@ -194,6 +213,7 @@ export function emptyCarrierBookingForm(): CarrierBookingFormState {
     portOfDischarge: "",
     placeOfReceipt: "",
     placeOfDelivery: "",
+    routingLegs: [],
     cargoReadyDate: "",
     expectedReceiptDate: "",
     expectedDeliveryDate: "",

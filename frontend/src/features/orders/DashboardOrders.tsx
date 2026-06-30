@@ -4,6 +4,7 @@ import * as ordersApi from "../../api/orders";
 import { LocationCell } from "../../components/LocationCombobox";
 import { ModuleListPage } from "../../components/ModuleListPage";
 import { useModuleListPage } from "../../hooks/useModuleListPage";
+import { useIsClientPortal } from "../../hooks/useIsClientPortal";
 import { useAppToast } from "../../hooks/useAppToast";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import type { ColumnFilterDef } from "../../utils/facetFilters";
@@ -28,6 +29,7 @@ function formatOrderField(value: string): string {
 
 export function DashboardOrders() {
   const { t } = useAppTranslation();
+  const isClientPortal = useIsClientPortal();
   const navigate = useNavigate();
   const { showToast } = useAppToast();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -166,34 +168,40 @@ export function DashboardOrders() {
   return (
     <ModuleListPage
       headingId="orders-heading"
+      title={t("ordersPage.title")}
+      lead={isClientPortal ? t("ordersPage.leadPortal") : t("ordersPage.lead")}
       wideTable
       loadingLabel={t("ordersPage.loading")}
       emptyTitle={t("ordersPage.emptyTitle")}
-      tableColCount={ORDER_TABLE_COL_COUNT}
+      tableColCount={isClientPortal ? ORDER_TABLE_COL_COUNT - 1 : ORDER_TABLE_COL_COUNT}
       filterColumns={filterColumns}
       list={list}
       trailingActions={
-        <>
-          <Link to={`${ORDER_BASE}/import`} className="btn btn--ghost btn--sm">
-            {t("ordersPage.importExcel")}
-          </Link>
-          <Link to={`${ORDER_BASE}/new`} className="btn btn--primary btn--sm">
-            {t("ordersPage.newOrder")}
-          </Link>
-        </>
+        isClientPortal ? null : (
+          <>
+            <Link to={`${ORDER_BASE}/import`} className="btn btn--ghost btn--sm">
+              {t("ordersPage.importExcel")}
+            </Link>
+            <Link to={`${ORDER_BASE}/new`} className="btn btn--primary btn--sm">
+              {t("ordersPage.newOrder")}
+            </Link>
+          </>
+        )
       }
       emptyActions={
-        <>
-          <Link to={`${ORDER_BASE}/new`} className="btn btn--primary">
-            {t("ordersPage.newOrder")}
-          </Link>
-          <Link to={`${ORDER_BASE}/import`} className="btn btn--ghost">
-            {t("ordersPage.importExcel")}
-          </Link>
-        </>
+        isClientPortal ? null : (
+          <>
+            <Link to={`${ORDER_BASE}/new`} className="btn btn--primary">
+              {t("ordersPage.newOrder")}
+            </Link>
+            <Link to={`${ORDER_BASE}/import`} className="btn btn--ghost">
+              {t("ordersPage.importExcel")}
+            </Link>
+          </>
+        )
       }
       toolbarExtra={
-        selectedIds.size > 0 ? (
+        !isClientPortal && selectedIds.size > 0 ? (
           <div className="module-list-toolbar__selection">
             <p className="module-list-toolbar__meta">
               {t("ordersPage.selectedCount", { count: selectedIds.size })}
@@ -214,15 +222,17 @@ export function DashboardOrders() {
       }
       tableHead={
         <>
-          <th scope="col" className="dash-table__check-col">
-            <input
-              type="checkbox"
-              checked={allVisibleSelected}
-              disabled={visibleSelectable.length === 0}
-              onChange={() => toggleSelectAllVisible()}
-              aria-label={t("ordersPage.selectAllVisible")}
-            />
-          </th>
+          {!isClientPortal ? (
+            <th scope="col" className="dash-table__check-col">
+              <input
+                type="checkbox"
+                checked={allVisibleSelected}
+                disabled={visibleSelectable.length === 0}
+                onChange={() => toggleSelectAllVisible()}
+                aria-label={t("ordersPage.selectAllVisible")}
+              />
+            </th>
+          ) : null}
           <th scope="col">{t("ordersPage.thOrderNumber")}</th>
           <th scope="col">{t("tradeField.contractualCustomer")}</th>
           <th scope="col">{t("ordersPage.placeOfReceiptLabel")}</th>
@@ -249,16 +259,18 @@ export function DashboardOrders() {
 
           return (
             <tr key={row.id} className={selectedIds.has(row.id) ? "dash-table__row--selected" : undefined}>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(row.id)}
-                  disabled={!selectable}
-                  title={disabledReason}
-                  onChange={() => toggleOrderSelection(row)}
-                  aria-label={t("ordersPage.selectOrder", { orderNumber: row.orderNumber })}
-                />
-              </td>
+              {!isClientPortal ? (
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(row.id)}
+                    disabled={!selectable}
+                    title={disabledReason}
+                    onChange={() => toggleOrderSelection(row)}
+                    aria-label={t("ordersPage.selectOrder", { orderNumber: row.orderNumber })}
+                  />
+                </td>
+              ) : null}
               <td>
                 <Link to={`${ORDER_BASE}/${row.id}`} className="dash-table__link order-code">
                   {row.orderNumber}

@@ -33,7 +33,7 @@ export function PartyProfileHero() {
               <span
                 className={`party-profile__badge party-profile__badge--${isPrimaryClient ? "primary" : "subsidiary"}`}
               >
-                {t(`dashboardPage.clients.tier${isPrimaryClient ? "Primary" : "Subsidiary"}`)}
+                {t(`tradeSetup.tier${isPrimaryClient ? "Primary" : "Subsidiary"}`)}
               </span>
             </>
           ) : (
@@ -60,7 +60,7 @@ export function PartyProfileHero() {
       <dl className="party-profile__meta-grid">
         {isClientParty && profile.parentPartyId ? (
           <div className="party-profile__meta-grid--wide">
-            <dt>{t("dashboardPage.clients.thParent")}</dt>
+            <dt>{t("partyProfile.parentAccount")}</dt>
             <dd>
               <Link to={`${tradeBase}/parties/${profile.parentPartyId}`} className="party-profile-link">
                 {clients.find((c) => c.id === profile.parentPartyId)?.name ?? profile.parentPartyId}

@@ -68,6 +68,17 @@ export default [
     },
   },
   {
+    files: [
+      "**/playwright.config.ts",
+      "**/playwright.config.js",
+      "**/playwright.global-setup.js",
+      "**/e2e/**/*.{js,ts}",
+    ],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
     files: ["**/contexts/**/*.{js,jsx}", "**/*Context.jsx"],
     rules: {
       "react-refresh/only-export-components": "off",

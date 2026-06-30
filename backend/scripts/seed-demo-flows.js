@@ -19,6 +19,8 @@ import { Facility } from "../src/models/Facility.js";
 import { SupplyChain } from "../src/models/SupplyChain.js";
 import { Order } from "../src/models/Order.js";
 import { ShipperBooking } from "../src/models/ShipperBooking.js";
+import { CarrierBookingRequest } from "../src/models/CarrierBookingRequest.js";
+import { CarrierBookingEvent } from "../src/models/CarrierBookingEvent.js";
 import { Conversation } from "../src/models/Conversation.js";
 import { Message } from "../src/models/Message.js";
 import { generateClientInviteCode } from "../src/utils/clientInviteCode.js";
@@ -154,6 +156,7 @@ const FLOW = {
       defaultTransportMode: "ocean",
       defaultPortOfLoading: "ESVLC",
       defaultPortOfDischarge: "NLRTM",
+      nodes: [{ partyKey: "consigneeRtm", role: "consignee" }],
     },
     {
       key: "usImport",
@@ -257,6 +260,7 @@ const FLOW = {
     defaultTransportMode: "ocean",
     defaultPortOfLoading: "ESVLC",
     defaultPortOfDischarge: "NLRTM",
+    nodes: [{ partyKey: "penConsignee", role: "consignee" }],
   },
   acmeOrder: {
     orderNumber: "ORD-DEMO-2026-005",
@@ -307,6 +311,19 @@ const FLOW = {
         description: "Industrial widget A",
       },
     ],
+  },
+  carrierBookingDraft: {
+    requestReference: "CB-DEMO-2026-001",
+    carrierScac: "MAEU",
+    carrierName: "Maersk",
+    status: "draft",
+    provider: "inttra",
+    environment: "mock",
+    serviceType: "FCL",
+    freightPaymentTerms: "prepaid",
+    portOfLoading: "ESVLC",
+    portOfDischarge: "NLRTM",
+    equipment: [{ quantity: 1, equipmentType: "20GP", weightKg: 18000, volumeCbm: 28, shipperOwned: false }],
   },
   peninsulaMessages: [
     {
@@ -542,6 +559,11 @@ async function cleanupFlowData(companyId) {
   await User.deleteMany({ email: { $in: [DEMO_PORTAL_EMAIL, DEMO_PORTAL_PENINSULA_EMAIL] } });
   await Order.deleteMany({ companyId, orderNumber: FLOW.acmeOrder.orderNumber });
   await ShipperBooking.deleteMany({ companyId, bookingReference: FLOW.booking.bookingReference });
+  await CarrierBookingEvent.deleteMany({ companyId });
+  await CarrierBookingRequest.deleteMany({
+    companyId,
+    requestReference: FLOW.carrierBookingDraft.requestReference,
+  });
   await SupplyChain.deleteMany({ _id: { $in: demoChainIds } });
   await Facility.deleteMany({
     companyId,
@@ -581,6 +603,20 @@ async function cleanupFlowData(companyId) {
   }
 }
 
+async function syncLegacyConversationIndexes() {
+  await Conversation.deleteMany({
+    $or: [{ contractualPartyId: null }, { contractualPartyId: { $exists: false } }],
+  });
+
+  const indexes = await Conversation.collection.indexes();
+  for (const idx of indexes) {
+    if (Object.prototype.hasOwnProperty.call(idx.key ?? {}, "clientId")) {
+      await Conversation.collection.dropIndex(idx.name).catch(() => {});
+    }
+  }
+  await Conversation.syncIndexes();
+}
+
 async function main() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
@@ -589,6 +625,7 @@ async function main() {
   }
 
   await mongoose.connect(uri);
+  await syncLegacyConversationIndexes();
 
   const staff = await User.findOne({ email: DEMO_STAFF_EMAIL });
   if (!staff) {
@@ -738,6 +775,12 @@ async function main() {
       defaultTransportMode: row.defaultTransportMode ?? "",
       defaultPortOfLoading: row.defaultPortOfLoading ?? "",
       defaultPortOfDischarge: row.defaultPortOfDischarge ?? "",
+      nodes: (row.nodes ?? [])
+        .map((node) => ({
+          partyId: partyIds[node.partyKey],
+          role: node.role,
+        }))
+        .filter((node) => node.partyId),
     });
     chainIds[row.key] = doc._id;
     console.log(`  Cadena ${row.code} — ${row.name} (primary ${row.primaryPartyKey})`);
@@ -757,30 +800,46 @@ async function main() {
       defaultTransportMode: pen.defaultTransportMode ?? "",
       defaultPortOfLoading: pen.defaultPortOfLoading ?? "",
       defaultPortOfDischarge: pen.defaultPortOfDischarge ?? "",
+      nodes: (pen.nodes ?? [])
+        .map((node) => ({
+          partyId: partyIds[node.partyKey],
+          role: node.role,
+        }))
+        .filter((node) => node.partyId),
     });
     chainIds.penExport = penChain._id;
     console.log(`  Cadena ${pen.code} — ${pen.name} (primary ${pen.primaryPartyKey})`);
   }
 
   const portalHash = await bcrypt.hash(DEMO_PASSWORD, SALT_ROUNDS);
-  const portalAcme = await User.create({
-    email: DEMO_PORTAL_EMAIL,
-    passwordHash: portalHash,
-    companyId,
-    clientId: clientIds.acmePrimary,
-    displayName: "Acme Portal User",
-  });
+  const portalAcme = await User.findOneAndUpdate(
+    { email: DEMO_PORTAL_EMAIL },
+    {
+      $set: {
+        passwordHash: portalHash,
+        companyId,
+        clientId: clientIds.acmePrimary,
+        displayName: "Acme Portal User",
+      },
+    },
+    { upsert: true, new: true }
+  );
   console.log(`  Portal Acme: ${DEMO_PORTAL_EMAIL}`);
 
   let portalPeninsula = null;
   if (peninsulaClientId) {
-    portalPeninsula = await User.create({
-      email: DEMO_PORTAL_PENINSULA_EMAIL,
-      passwordHash: portalHash,
-      companyId,
-      clientId: peninsulaClientId,
-      displayName: "Península Portal User",
-    });
+    portalPeninsula = await User.findOneAndUpdate(
+      { email: DEMO_PORTAL_PENINSULA_EMAIL },
+      {
+        $set: {
+          passwordHash: portalHash,
+          companyId,
+          clientId: peninsulaClientId,
+          displayName: "Península Portal User",
+        },
+      },
+      { upsert: true, new: true }
+    );
     console.log(`  Portal Península: ${DEMO_PORTAL_PENINSULA_EMAIL}`);
   }
 
@@ -826,9 +885,10 @@ async function main() {
   }
 
   const acmeRow = FLOW.acmeOrder;
-  const acmeOrder = await Order.create({
+  const acmeOrderSet = {
     companyId,
     orderNumber: acmeRow.orderNumber,
+    poNumber: acmeRow.orderNumber,
     externalBusinessId: acmeRow.externalBusinessId,
     customer: acmeRow.customer,
     shipper: acmeRow.shipper,
@@ -848,19 +908,82 @@ async function main() {
     supplyChainId: chainIds.euExport,
     operatingShipperPartyId: partyIds.shipperVal,
     operatingConsigneePartyId: partyIds.consigneeRtm,
-  });
-  await Order.collection.updateOne({ _id: acmeOrder._id }, { $set: { poNumber: acmeRow.orderNumber } });
+    updatedAt: new Date(),
+  };
+  await Order.collection.updateOne(
+    { companyId, orderNumber: acmeRow.orderNumber },
+    { $set: acmeOrderSet, $setOnInsert: { createdAt: new Date() } },
+    { upsert: true }
+  );
   console.log(`  Pedido ${acmeRow.orderNumber} creado (${DEMO_CLIENT_BE.ACME} + DEMO-EU-EXP)`);
 
   if (linkedOrders === 0) {
     console.log("  (Sin pedidos ORD-DEMO-* — ejecuta npm run seed:orders)");
   }
 
-  await ShipperBooking.create({
-    companyId,
-    ...FLOW.booking,
-  });
+  await ShipperBooking.findOneAndUpdate(
+    { companyId, bookingReference: FLOW.booking.bookingReference },
+    {
+      $set: {
+        companyId,
+        ...FLOW.booking,
+        contractualPartyId: clientIds.acmePrimary,
+        supplyChainId: chainIds.euExport,
+        operatingShipperPartyId: partyIds.shipperVal,
+        operatingConsigneePartyId: partyIds.consigneeRtm,
+      },
+    },
+    { upsert: true }
+  );
   console.log(`  Shipper booking ${FLOW.booking.bookingReference}`);
+
+  const demoSb = await ShipperBooking.findOne({
+    companyId,
+    bookingReference: FLOW.booking.bookingReference,
+  }).lean();
+  const cbRow = FLOW.carrierBookingDraft;
+  const demoCb = await CarrierBookingRequest.findOneAndUpdate(
+    { companyId, requestReference: cbRow.requestReference },
+    {
+      $set: {
+        companyId,
+        ...cbRow,
+        shipperBookingId: demoSb?._id ?? null,
+        shipperBookingIds: demoSb?._id ? [demoSb._id] : [],
+        shipperBookingReference: demoSb?.bookingReference ?? "",
+        shipperBookingReferences: demoSb?.bookingReference ? [demoSb.bookingReference] : [],
+        customer: FLOW.booking.customer,
+        shipper: FLOW.booking.shipper,
+        consignee: FLOW.booking.consignee,
+        contractualPartyId: clientIds.acmePrimary,
+        supplyChainId: chainIds.euExport,
+        operatingShipperPartyId: partyIds.shipperVal,
+        operatingConsigneePartyId: partyIds.consigneeRtm,
+        cargoLines: FLOW.booking.lines.map((line) => ({
+          sourceShipperBookingReference: FLOW.booking.bookingReference,
+          lineKey: line.lineKey,
+          orderNumber: line.orderNumber,
+          sku: line.sku,
+          bookedQuantity: line.bookedQuantity,
+          quantityUnit: line.quantityUnit,
+          description: line.description,
+        })),
+        idempotencyKey: cbRow.requestReference,
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  await CarrierBookingEvent.create({
+    companyId,
+    carrierBookingRequestId: demoCb._id,
+    kind: "created",
+    message: `Carrier booking ${cbRow.requestReference} created from SB ${FLOW.booking.bookingReference}`,
+    actorEmail: DEMO_STAFF_EMAIL,
+    visibleToClient: true,
+  });
+  console.log(
+    `  Carrier booking draft ${cbRow.requestReference} (linked to ${FLOW.booking.bookingReference})`
+  );
 
   const totalClients = await Party.countDocuments({ companyId, accountTier: "contractual" });
 

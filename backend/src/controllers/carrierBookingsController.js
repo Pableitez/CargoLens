@@ -14,15 +14,32 @@ import {
 } from "../services/carrierBookings/carrierBookingReference.js";
 import { serializeCarrierBooking } from "../services/carrierBookings/serializeCarrierBooking.js";
 import { submitCarrierBookingRequest } from "../services/carrierBookings/submitCarrierBooking.js";
-import { aggregateShipperBookingsForCarrierBooking } from "../services/carrierBookings/aggregateShipperBookings.js";
+import {
+  aggregateShipperBookingsForCarrierBooking,
+  assertCompatibleShipperBookings,
+} from "../services/carrierBookings/aggregateShipperBookings.js";
+import {
+  applyShipperBookingLinkChanges,
+  logShipperBookingLinkEvents,
+} from "../services/carrierBookings/linkedShipperBookingUpdates.js";
+import { syncShipperBookingsFromCarrierBooking } from "../services/carrierBookings/syncShipperBookingsFromCarrierBooking.js";
 import { applyOrderTradeResolution } from "../services/orders/applyOrderTradeResolution.js";
-import { validateCarrierBookingInput } from "../services/carrierBookings/carrierBookingValidation.js";
+import {
+  validateCarrierBookingInput,
+  parseShipperBookingIds,
+} from "../services/carrierBookings/carrierBookingValidation.js";
 import { logWorkspaceActivity } from "../services/workspaceActivityLog.js";
 import { devError } from "../utils/devLog.js";
+import {
+  applyCarrierBookingListFilter,
+  canAccessCarrierBooking,
+} from "../services/portal/contractualAccess.js";
+import { getTradeAccess } from "../services/tradeMasters/tradeScope.js";
 import { paginatedFind, parseListQuery } from "../utils/listQuery.js";
 import { companyObjectId, dbUnavailable } from "./controllerHelpers.js";
 
-const SUBMITTABLE_STATUSES = new Set(["draft", "rejected", "failed"]);
+const EDITABLE_STATUSES = new Set(["draft", "rejected", "failed", "acknowledged", "confirmed"]);
+const SUBMITTABLE_STATUSES = new Set(["draft", "rejected", "failed", "acknowledged", "confirmed"]);
 
 const CARRIER_BOOKING_ASSIGNABLE_FIELDS = [
   "carrierScac",
@@ -52,6 +69,7 @@ const CARRIER_BOOKING_ASSIGNABLE_FIELDS = [
   "portOfDischarge",
   "placeOfReceipt",
   "placeOfDelivery",
+  "routingLegs",
   "cargoReadyDate",
   "expectedReceiptDate",
   "expectedDeliveryDate",
@@ -137,14 +155,21 @@ export async function listCarrierBookings(req, res) {
   const status = String(req.query.status ?? "").trim();
   if (status) q.status = status;
   const shipperBookingId = String(req.query.shipperBookingId ?? "").trim();
-  if (shipperBookingId && mongoose.isValidObjectId(shipperBookingId)) {
-    q.$or = [
-      { shipperBookingId: new mongoose.Types.ObjectId(shipperBookingId) },
-      { shipperBookingIds: new mongoose.Types.ObjectId(shipperBookingId) },
-    ];
-  }
+  const shipperBookingFilter =
+    shipperBookingId && mongoose.isValidObjectId(shipperBookingId)
+      ? {
+          $or: [
+            { shipperBookingId: new mongoose.Types.ObjectId(shipperBookingId) },
+            { shipperBookingIds: new mongoose.Types.ObjectId(shipperBookingId) },
+          ],
+        }
+      : null;
 
   try {
+    q = await applyCarrierBookingListFilter(q, req);
+    if (shipperBookingFilter) {
+      q = { $and: [q, shipperBookingFilter] };
+    }
     const { limit, skip } = parseListQuery(req.query);
     const page = await paginatedFind(CarrierBookingRequest, q, {
       limit,
@@ -175,6 +200,11 @@ export async function getCarrierBooking(req, res) {
       return res.status(404).json({ error: "NOT_FOUND", message: "Carrier booking not found." });
     }
 
+    const { portalClientId } = getTradeAccess(req);
+    if (!(await canAccessCarrierBooking(row, req.user.companyId, portalClientId))) {
+      return res.status(404).json({ error: "NOT_FOUND", message: "Carrier booking not found." });
+    }
+
     const events = await listCarrierBookingEvents(row._id);
     return res.json({ item: serializeCarrierBooking(row), events });
   } catch (err) {
@@ -186,10 +216,33 @@ export async function getCarrierBooking(req, res) {
 export async function createCarrierBooking(req, res) {
   if (!isDbConnected()) return dbUnavailable(res);
 
-  const { errors: tradeErrors, data: tradeBody } = await applyOrderTradeResolution(
-    req.user.companyId,
-    req.body ?? {}
-  );
+  const companyOid = companyObjectId(req.user.companyId);
+  let body = req.body ?? {};
+
+  const earlySbIds = parseShipperBookingIds(body);
+  if (earlySbIds.length > 0) {
+    const earlyBookings = await loadShipperBookingsForCompany(companyOid, earlySbIds);
+    if (earlyBookings.length === earlySbIds.length) {
+      const oceanError = assertOceanShipperBookings(earlyBookings);
+      if (oceanError) {
+        return res.status(400).json({ error: "INVALID_INPUT", message: oceanError });
+      }
+      const compatError = assertCompatibleShipperBookings(earlyBookings);
+      if (compatError) {
+        return res.status(400).json({ error: "INVALID_INPUT", message: compatError });
+      }
+      const aggregated = aggregateShipperBookingsForCarrierBooking(earlyBookings);
+      body = {
+        ...aggregated,
+        ...body,
+        shipperBookingIds: earlySbIds,
+        shipperBookingReferences: aggregated.shipperBookingReferences,
+        shipperBookingReference: aggregated.shipperBookingReference,
+      };
+    }
+  }
+
+  const { errors: tradeErrors, data: tradeBody } = await applyOrderTradeResolution(req.user.companyId, body);
   if (tradeErrors.length > 0) {
     return res.status(400).json({ error: "INVALID_INPUT", message: tradeErrors.join(" ") });
   }
@@ -199,7 +252,6 @@ export async function createCarrierBooking(req, res) {
     return res.status(400).json({ error: "INVALID_INPUT", message: errors.join(" ") });
   }
 
-  const companyOid = companyObjectId(req.user.companyId);
   const hasShipperBookings = data.shipperBookingIds.length > 0;
   let shipperBookings = [];
   if (hasShipperBookings) {
@@ -213,6 +265,11 @@ export async function createCarrierBooking(req, res) {
     const oceanError = assertOceanShipperBookings(shipperBookings);
     if (oceanError) {
       return res.status(400).json({ error: "INVALID_INPUT", message: oceanError });
+    }
+
+    const compatError = assertCompatibleShipperBookings(shipperBookings);
+    if (compatError) {
+      return res.status(400).json({ error: "INVALID_INPUT", message: compatError });
     }
   }
 
@@ -262,6 +319,7 @@ export async function createCarrierBooking(req, res) {
       portOfLoading: merged.portOfLoading,
       portOfDischarge: merged.portOfDischarge,
       placeOfDelivery: merged.placeOfDelivery,
+      routingLegs: merged.routingLegs ?? [],
       cargoReadyDate: merged.cargoReadyDate,
       expectedReceiptDate: merged.expectedReceiptDate,
       expectedDeliveryDate: merged.expectedDeliveryDate,
@@ -340,44 +398,67 @@ export async function updateCarrierBooking(req, res) {
       return res.status(404).json({ error: "NOT_FOUND", message: "Carrier booking not found." });
     }
 
-    if (!SUBMITTABLE_STATUSES.has(existing.status)) {
+    if (!EDITABLE_STATUSES.has(existing.status)) {
       return res.status(409).json({
         error: "CONFLICT",
-        message: "Only draft, rejected, or failed requests can be edited.",
+        message: "This carrier booking cannot be edited in its current status.",
       });
     }
 
-    if (existing.status !== "draft" && data.status && data.status !== existing.status) {
+    if (data.status && data.status !== existing.status) {
       return res.status(409).json({
         error: "CONFLICT",
-        message: "Reset to draft before editing a submitted request.",
+        message: "Status cannot be changed via update — use submit to send to the carrier.",
       });
     }
 
     const before = existing.toObject();
+    const previousIds = (existing.shipperBookingIds ?? []).map((value) => String(value));
+    const previousRefsById = new Map(
+      previousIds.map((id, index) => [id, existing.shipperBookingReferences?.[index] ?? ""])
+    );
+    let linkChanges = { linkedRefs: [], unlinkedRefs: [] };
 
-    if (data.shipperBookingIds?.length) {
-      const shipperBookings = await loadShipperBookingsForCompany(companyOid, data.shipperBookingIds);
-      if (shipperBookings.length !== data.shipperBookingIds.length) {
-        return res
-          .status(400)
-          .json({ error: "INVALID_INPUT", message: "One or more shipper bookings were not found." });
-      }
-      const oceanError = assertOceanShipperBookings(shipperBookings);
-      if (oceanError) {
-        return res.status(400).json({ error: "INVALID_INPUT", message: oceanError });
-      }
-      const aggregated = aggregateShipperBookingsForCarrierBooking(shipperBookings);
-      existing.shipperBookingIds = aggregated.shipperBookingIds;
-      existing.shipperBookingId = shipperBookings[0]._id;
-      existing.shipperBookingReferences = aggregated.shipperBookingReferences;
-      existing.shipperBookingReference = aggregated.shipperBookingReference;
-      if (!data.cargoLines?.length) {
-        existing.cargoLines = aggregated.cargoLines;
-        existing.cargoDescription = aggregated.cargoDescription;
-        existing.totalGrossWeightKg = aggregated.totalGrossWeightKg;
-        existing.totalVolumeCbm = aggregated.totalVolumeCbm;
-        existing.totalPackages = aggregated.totalPackages;
+    if (data.shipperBookingIdsProvided) {
+      const nextIds = data.shipperBookingIds ?? [];
+      if (nextIds.length === 0) {
+        try {
+          linkChanges = applyShipperBookingLinkChanges({
+            existing,
+            previousIds,
+            previousRefsById,
+            nextIds: [],
+            shipperBookings: [],
+            refreshFromShipperBookings: data.refreshFromShipperBookings,
+            hasExplicitCargoLines: Array.isArray(req.body?.cargoLines),
+          });
+        } catch (err) {
+          return res.status(400).json({ error: "INVALID_INPUT", message: err.message });
+        }
+      } else {
+        const shipperBookings = await loadShipperBookingsForCompany(companyOid, nextIds);
+        if (shipperBookings.length !== nextIds.length) {
+          return res
+            .status(400)
+            .json({ error: "INVALID_INPUT", message: "One or more shipper bookings were not found." });
+        }
+        const oceanError = assertOceanShipperBookings(shipperBookings);
+        if (oceanError) {
+          return res.status(400).json({ error: "INVALID_INPUT", message: oceanError });
+        }
+        try {
+          linkChanges = applyShipperBookingLinkChanges({
+            existing,
+            previousIds,
+            previousRefsById,
+            nextIds,
+            shipperBookings,
+            refreshFromShipperBookings: data.refreshFromShipperBookings,
+            hasExplicitCargoLines: Array.isArray(req.body?.cargoLines),
+          });
+        } catch (err) {
+          return res.status(400).json({ error: "INVALID_INPUT", message: err.message });
+        }
       }
     }
 
@@ -388,6 +469,29 @@ export async function updateCarrierBooking(req, res) {
     assignCarrierBookingFields(existing, data);
 
     await existing.save();
+
+    if (linkChanges.linkedRefs.length > 0 || linkChanges.unlinkedRefs.length > 0) {
+      await logShipperBookingLinkEvents({
+        carrierBookingRequestId: existing._id,
+        companyOid,
+        actorUserId: req.user.id,
+        actorEmail: req.user.email ?? "",
+        linkedRefs: linkChanges.linkedRefs,
+        unlinkedRefs: linkChanges.unlinkedRefs,
+      });
+    }
+
+    if (before.status !== "draft") {
+      await logCarrierBookingEvent({
+        carrierBookingRequestId: existing._id,
+        companyId: companyOid,
+        kind: "note",
+        message: "Amendment saved locally — not sent to carrier yet.",
+        actorUserId: req.user.id,
+        actorEmail: req.user.email ?? "",
+        visibleToClient: false,
+      });
+    }
 
     await logCarrierBookingStatusChange({
       carrierBookingRequestId: existing._id,
@@ -517,10 +621,15 @@ export async function submitCarrierBookingHandler(req, res) {
     existing.payloadSnapshot = result.payload;
     existing.lastResponse = result.raw;
     existing.lastResponseSource = result.source;
+    if (Array.isArray(result.raw?.routingLegs) && result.raw.routingLegs.length > 0) {
+      existing.routingLegs = result.raw.routingLegs;
+    }
     existing.acknowledgedAt = mapped.acknowledgedAt ?? null;
     existing.confirmedAt = mapped.confirmedAt ?? null;
     existing.rejectedAt = mapped.rejectedAt ?? null;
     await existing.save();
+
+    await syncShipperBookingsFromCarrierBooking(companyOid, existing.toObject(), req.user);
 
     await logCarrierBookingStatusChange({
       carrierBookingRequestId: existing._id,
@@ -532,16 +641,27 @@ export async function submitCarrierBookingHandler(req, res) {
       meta: { source: result.source },
     });
 
+    const providerMessage =
+      mapped.rejectionReason?.trim() ||
+      (mapped.externalReference
+        ? `Provider acknowledged — ref ${mapped.externalReference}`
+        : "Provider response received.");
+
     await logCarrierBookingEvent({
       carrierBookingRequestId: existing._id,
       companyId: companyOid,
       kind: "provider_response",
-      message: mapped.externalReference
-        ? `Provider acknowledged — ref ${mapped.externalReference}`
-        : "Provider response received.",
+      message: providerMessage,
       actorUserId: req.user.id,
       actorEmail: req.user.email ?? "",
-      meta: { source: result.source, externalStatus: mapped.externalStatus },
+      visibleToClient: true,
+      meta: {
+        source: result.source,
+        externalStatus: mapped.externalStatus,
+        externalReference: mapped.externalReference,
+        inttraTransactionId: mapped.inttraTransactionId,
+        rejectionReason: mapped.rejectionReason ?? "",
+      },
     });
 
     await logWorkspaceActivity({

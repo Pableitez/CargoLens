@@ -17,6 +17,57 @@ function serializeCargoLine(line, sourceShipperBookingReference = "") {
   };
 }
 
+function normalizePartyKey(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeRouteKey(value) {
+  return String(value ?? "")
+    .trim()
+    .toUpperCase();
+}
+
+/**
+ * Ensure linked shipper bookings share customer and ocean route (POL/POD).
+ * @param {Record<string, unknown>[]} shipperBookings
+ * @returns {string|null}
+ */
+export function assertCompatibleShipperBookings(shipperBookings) {
+  if (!Array.isArray(shipperBookings) || shipperBookings.length <= 1) return null;
+
+  const primary = shipperBookings[0];
+  const primaryCustomer = normalizePartyKey(primary.customer);
+  const primaryPartyId = primary.contractualPartyId ? String(primary.contractualPartyId) : "";
+  const primaryPol = normalizeRouteKey(primary.portOfLoading);
+  const primaryPod = normalizeRouteKey(primary.portOfDischarge);
+
+  for (let i = 1; i < shipperBookings.length; i += 1) {
+    const sb = shipperBookings[i];
+    const customer = normalizePartyKey(sb.customer);
+    if (primaryCustomer && customer && customer !== primaryCustomer) {
+      return "Linked shipper bookings must belong to the same customer.";
+    }
+
+    const partyId = sb.contractualPartyId ? String(sb.contractualPartyId) : "";
+    if (primaryPartyId && partyId && partyId !== primaryPartyId) {
+      return "Linked shipper bookings must belong to the same contractual customer.";
+    }
+
+    const pol = normalizeRouteKey(sb.portOfLoading);
+    const pod = normalizeRouteKey(sb.portOfDischarge);
+    if (primaryPol && pol && pol !== primaryPol) {
+      return "Linked shipper bookings must share the same port of loading.";
+    }
+    if (primaryPod && pod && pod !== primaryPod) {
+      return "Linked shipper bookings must share the same port of discharge.";
+    }
+  }
+
+  return null;
+}
+
 /**
  * Build INTTRA-oriented defaults from one or more shipper bookings (SB → CB prefill).
  * @param {Record<string, unknown>[]} shipperBookings

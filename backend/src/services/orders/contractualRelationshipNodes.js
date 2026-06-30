@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { isValidPartyRole } from "../../../../shared/domain/tradeMasters.js";
 import { Party } from "../../models/Party.js";
+import { SupplyChain } from "../../models/SupplyChain.js";
 import {
   findContractualPartyById,
   resolvePrimaryContractualParty,
@@ -109,8 +110,30 @@ async function loadContractualHubParties(companyOid, clientRow) {
   }).lean();
 }
 
+async function nodesFromClientSupplyChains(companyOid, hubParties) {
+  const contractualIds = hubParties.map((hub) => hub._id);
+  if (contractualIds.length === 0) return [];
+
+  const chains = await SupplyChain.find({
+    companyId: companyOid,
+    contractualPartyId: { $in: contractualIds },
+  }).lean();
+
+  const nodes = [];
+  for (const chain of chains) {
+    if (chain.primaryPartyId && chain.primaryRole && isValidPartyRole(chain.primaryRole)) {
+      nodes.push({ partyId: String(chain.primaryPartyId), role: chain.primaryRole });
+    }
+    for (const node of chain.nodes ?? []) {
+      if (!isValidPartyRole(node.role)) continue;
+      nodes.push({ partyId: String(node.partyId), role: node.role });
+    }
+  }
+  return nodes;
+}
+
 /**
- * Shipper/consignee nodes for one contractual customer from party relationships only.
+ * Shipper/consignee nodes for one contractual customer from party relationships and supply chains.
  */
 export async function collectContractualRelationshipNodes(companyId, clientRow) {
   const companyOid = new mongoose.Types.ObjectId(companyId);
@@ -120,6 +143,8 @@ export async function collectContractualRelationshipNodes(companyId, clientRow) 
   for (const hub of hubParties) {
     allNodes.push(...(await nodesFromDirectHub(companyOid, hub)));
   }
+
+  allNodes.push(...(await nodesFromClientSupplyChains(companyOid, hubParties)));
 
   return { nodes: dedupeNodes(allNodes) };
 }
@@ -133,7 +158,17 @@ export async function loadContractualRelationshipLookup(companyId, clientRow, re
   );
   const nodeIds = (relationshipNodes ?? []).map((node) => String(node.partyId)).filter(Boolean);
   const hubIds = hubParties.map((hub) => String(hub._id));
-  const allIds = [...new Set([...hubIds, ...relatedIds, ...nodeIds])];
+  const chains = await SupplyChain.find({
+    companyId: companyOid,
+    contractualPartyId: { $in: hubParties.map((hub) => hub._id) },
+  })
+    .select("nodes primaryPartyId")
+    .lean();
+  const chainPartyIds = chains.flatMap((chain) => [
+    ...(chain.primaryPartyId ? [String(chain.primaryPartyId)] : []),
+    ...(chain.nodes ?? []).map((node) => String(node.partyId)),
+  ]);
+  const allIds = [...new Set([...hubIds, ...relatedIds, ...nodeIds, ...chainPartyIds])];
 
   const parties =
     allIds.length > 0

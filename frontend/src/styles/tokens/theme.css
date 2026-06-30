@@ -57,7 +57,6 @@
   --ui-inset-strong: rgba(26, 25, 23, 0.68);
   --ui-inset-medium: rgba(26, 25, 23, 0.62);
   --panel-dash-form-bg: var(--bg-elevated);
-  --map-leaflet-bg: #1a1917;
   --field-input-border: var(--ui-line-dashed);
   --search-input-bg: rgba(22, 21, 19, 0.92);
   --search-input-border: var(--ui-spinner);
@@ -94,7 +93,6 @@
   --shell-nav-radius: var(--radius-sm);
   --shell-nav-panel-radius: var(--shell-nav-radius);
   --shell-nav-item-radius: var(--shell-nav-radius);
-  --map-shell-bg: #141312;
   --footer-bg: rgba(18, 17, 16, 0.55);
   --selection-bg: rgba(166, 151, 136, 0.22);
   --sep-muted: rgba(154, 148, 140, 0.55);
@@ -157,7 +155,6 @@
   --ui-inset-strong: rgba(238, 240, 234, 0.95);
   --ui-inset-medium: rgba(253, 253, 252, 0.98);
   --panel-dash-form-bg: var(--bg-elevated);
-  --map-leaflet-bg: #e5e7e0;
   --field-input-border: var(--ui-line-dashed);
   --search-input-bg: #fdfdfc;
   --search-input-border: var(--ui-spinner);
@@ -184,7 +181,6 @@
   --shell-nav-pill-active-shadow: 0 1px 2px rgba(44, 42, 38, 0.04);
   --shell-nav-menu-shadow:
     var(--sidebar-section-inset), 0 1px 2px rgba(44, 42, 38, 0.03), 0 12px 32px rgba(44, 42, 38, 0.06);
-  --map-shell-bg: #eceae4;
   --footer-bg: rgba(247, 247, 244, 0.94);
   --selection-bg: rgba(232, 235, 227, 0.95);
   --sep-muted: rgba(168, 163, 154, 0.5);

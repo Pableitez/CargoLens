@@ -28,6 +28,14 @@ export type ShipperBookingLine = {
   commodityCode: string;
 };
 
+export type LinkedCarrierBookingSummary = {
+  carrierBookingId: string;
+  requestReference: string;
+  status: string;
+  externalReference: string;
+  count: number;
+};
+
 export type ShipperBooking = {
   id: string;
   bookingReference: string;
@@ -56,6 +64,7 @@ export type ShipperBooking = {
   status: ShipperBookingStatus;
   lines: ShipperBookingLine[];
   remarks: string;
+  linkedCarrierBookingSummary: LinkedCarrierBookingSummary | null;
   createdAt: string;
   updatedAt: string;
 };

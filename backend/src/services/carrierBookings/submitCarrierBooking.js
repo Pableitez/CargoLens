@@ -26,6 +26,7 @@ export async function submitCarrierBookingRequest(carrierRequest, env = {}) {
 
   const raw = buildMockInttraResponse(payload, {
     requestReference: carrierRequest.requestReference,
+    outcome: env.mockInttraOutcome,
   });
 
   return {

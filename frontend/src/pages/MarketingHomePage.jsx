@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { BrandMark } from "../components/BrandMark.jsx";
-import { PilotLeadForm } from "../components/PilotLeadForm.jsx";
 import { RevealOnScroll } from "../components/RevealOnScroll.jsx";
 import { MainLayout } from "../layouts/MainLayout.jsx";
 import { appName } from "../config/siteMeta.js";
@@ -16,21 +15,14 @@ const FLOW_STEPS = [
 
 const LIVE_MODULES = ["order", "shipperBooking", "carrierBooking", "tradeSetup"];
 
-const WHY_STEPS = ["step1", "step2", "step3"];
-
-const PRICING_PLANS = ["pilot", "starter", "growth"];
-
 const EXPLORE_LINKS = [
   { to: "/how-it-works/workspace", titleKey: "howItWorks", descKey: "howItWorksDesc" },
   { to: "/changelog", titleKey: "changelog", descKey: "changelogDesc" },
 ];
 
-const TRUST_ITEMS = ["item1", "item2", "item3"];
-
 const HERO_STATS = [
   { valueKey: "statModulesValue", labelKey: "statModulesLabel" },
-  { valueKey: "statOnboardingValue", labelKey: "statOnboardingLabel" },
-  { valueKey: "statPricingValue", labelKey: "statPricingLabel" },
+  { valueKey: "statFlowValue", labelKey: "statFlowLabel" },
 ];
 
 export function MarketingHomePage() {
@@ -47,13 +39,12 @@ export function MarketingHomePage() {
                 <BrandMark size={32} />
                 <p className="hero__eyebrow">{appName}</p>
               </div>
-              <p className="marketing-hero__launch-badge">{t("marketing.hero.launchBadge")}</p>
               <h1 className="hero__headline">{t("marketing.hero.title")}</h1>
               <p className="hero__sub hero__sub--pitch">{t("marketing.hero.lead")}</p>
               <div className="hero__cta-row">
-                <a href="#pilot-form" className="btn btn--primary btn--lg">
+                <Link to="/register" className="btn btn--primary btn--lg">
                   {t("marketing.hero.ctaPrimary")}
-                </a>
+                </Link>
                 <Link to="/login" className="btn btn--secondary btn--lg">
                   {t("marketing.hero.ctaSecondary")}
                 </Link>
@@ -92,20 +83,14 @@ export function MarketingHomePage() {
 
         <RevealOnScroll className="home-landing__panel home-landing__panel--narrow breakout" delayMs={40}>
           <div className="breakout__glow" aria-hidden />
-          <h2 className="home-landing__h home-landing__h--center">{t("marketing.statement.title")}</h2>
-          <p className="home-landing__lead home-landing__lead--center">{t("marketing.statement.lead")}</p>
-        </RevealOnScroll>
-
-        <RevealOnScroll className="home-landing__panel home-landing__panel--narrow breakout" delayMs={45}>
-          <div className="breakout__glow" aria-hidden />
-          <h2 className="home-landing__h home-landing__h--center">{t("marketing.trust.title")}</h2>
-          <ul className="marketing-benefits marketing-benefits--trust">
-            {TRUST_ITEMS.map((id) => (
-              <li key={id} className="marketing-benefits__item">
-                <p className="marketing-benefits__body">{t(`marketing.trust.${id}`)}</p>
-              </li>
-            ))}
-          </ul>
+          <blockquote className="marketing-brand-story">
+            <p>
+              {t("marketing.story.line1Lead")} <strong>{appName}</strong> {t("marketing.story.line1Tail")}
+            </p>
+            <p>
+              <strong>{appName}</strong> {t("marketing.story.line2Tail")}
+            </p>
+          </blockquote>
         </RevealOnScroll>
 
         <RevealOnScroll className="home-landing__panel breakout" delayMs={50}>
@@ -142,55 +127,24 @@ export function MarketingHomePage() {
           </ul>
         </RevealOnScroll>
 
-        <RevealOnScroll className="home-landing__panel breakout marketing-vision" delayMs={70}>
-          <div className="breakout__glow" aria-hidden />
-          <h2 className="home-landing__h home-landing__h--center">{t("marketing.why.title")}</h2>
-          <p className="home-landing__lead home-landing__lead--center">{t("marketing.why.lead")}</p>
-          <ol className="marketing-value-loop__steps">
-            {WHY_STEPS.map((id, index) => (
-              <li key={id} className="marketing-value-loop__step">
-                <span className="marketing-value-loop__index" aria-hidden>
-                  {index + 1}
-                </span>
-                <h3 className="marketing-value-loop__title">{t(`marketing.why.${id}Title`)}</h3>
-                <p className="marketing-value-loop__body">{t(`marketing.why.${id}Body`)}</p>
-              </li>
-            ))}
-          </ol>
-        </RevealOnScroll>
-
-        <RevealOnScroll className="home-landing__panel breakout" delayMs={80}>
-          <div className="breakout__glow" aria-hidden />
-          <h2 className="home-landing__h">{t("marketing.pricing.title")}</h2>
-          <p className="home-landing__lead">{t("marketing.pricing.lead")}</p>
-          <ul className="marketing-benefits">
-            {PRICING_PLANS.map((id) => (
-              <li key={id} className="marketing-benefits__item marketing-pillar">
-                <h3 className="marketing-benefits__title">
-                  {t(`marketing.pricing.${id}.name`)}{" "}
-                  <span className="marketing-pricing__price">
-                    {t(`marketing.pricing.${id}.price`)}
-                    <span className="marketing-pricing__period">{t(`marketing.pricing.${id}.period`)}</span>
-                  </span>
-                </h3>
-                <p className="marketing-benefits__body">{t(`marketing.pricing.${id}.body`)}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="marketing-platform__note">{t("marketing.pricing.note")}</p>
-        </RevealOnScroll>
-
         <RevealOnScroll
           className="home-landing__panel home-landing__panel--narrow breakout marketing-contact"
-          delayMs={90}
+          delayMs={70}
         >
           <div className="breakout__glow" aria-hidden />
           <h2 className="home-landing__h home-landing__h--center">{t("marketing.cta.title")}</h2>
           <p className="home-landing__lead home-landing__lead--center">{t("marketing.cta.lead")}</p>
-          <PilotLeadForm id="pilot-form" />
+          <div className="hero__cta-row home-guest-promo__actions">
+            <Link to="/register" className="btn btn--primary btn--lg">
+              {t("marketing.cta.primary")}
+            </Link>
+            <Link to="/how-it-works/workspace" className="btn btn--secondary btn--lg">
+              {t("marketing.cta.secondary")}
+            </Link>
+          </div>
         </RevealOnScroll>
 
-        <RevealOnScroll className="home-landing__panel breakout marketing-explore" delayMs={100}>
+        <RevealOnScroll className="home-landing__panel breakout marketing-explore" delayMs={80}>
           <div className="breakout__glow" aria-hidden />
           <h2 className="home-landing__h">{t("marketing.explore.title")}</h2>
           <ul className="marketing-explore__grid">

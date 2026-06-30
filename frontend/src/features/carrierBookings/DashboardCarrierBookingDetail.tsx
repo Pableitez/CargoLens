@@ -6,6 +6,7 @@ import { PageBreadcrumb } from "../../components/PageBreadcrumb.jsx";
 import { LocationCombobox } from "../../components/LocationCombobox";
 import { TimelineModal } from "../../components/TimelineModal";
 import { useAppToast } from "../../hooks/useAppToast";
+import { useIsClientPortal } from "../../hooks/useIsClientPortal";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import { messageFromApiErrorOrKey } from "../../i18n/apiMessage.js";
 import { resolveLocationCode } from "../../utils/locationUtils";
@@ -15,12 +16,21 @@ import { useOrderTradeContext } from "../orders/useOrderTradeContext";
 import type { OrderChainDefaults } from "../orders/useOrderTradeSetup";
 import { CarrierBookingTimeline } from "./CarrierBookingTimeline";
 import {
+  CarrierBookingShipperLinksEditor,
+  resolveShipperBookingSelectionChange,
+} from "./CarrierBookingShipperLinksEditor";
+import { CarrierBookingRoutingLegsEditor } from "./CarrierBookingRoutingLegsEditor";
+import { CarrierBookingRoutingLegsPanel } from "./CarrierBookingRoutingLegsPanel";
+import { CarrierBookingRoutingSummary } from "./CarrierBookingRoutingSummary";
+import { buildRoutingLegsFromRouting } from "./carrierBookingRoutingLegs";
+import {
   canDeleteCarrierBooking,
   canEditCarrierBooking,
   canSubmitCarrierBooking,
   carrierBookingStatusClass,
   carrierBookingStatusLabel,
-  formatCarrierBookingDate,
+  hasUnsentCarrierAmendments,
+  shipperBookingLinksFromCarrierRow,
 } from "./carrierBookingUtils";
 import {
   carrierBookingFormToPayload,
@@ -61,6 +71,7 @@ export function DashboardCarrierBookingDetail() {
   const [searchParams] = useSearchParams();
   const { t } = useAppTranslation();
   const { showToast } = useAppToast();
+  const isClientPortal = useIsClientPortal();
 
   const [form, setForm] = useState<CarrierBookingFormState>(emptyCarrierBookingForm());
   const [item, setItem] = useState<CarrierBookingRequest | null>(null);
@@ -74,6 +85,8 @@ export function DashboardCarrierBookingDetail() {
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [error, setError] = useState("");
   const [sbStepReady, setSbStepReady] = useState(createMode !== "from-sb");
+  const [refreshFromShipperBookings, setRefreshFromShipperBookings] = useState(false);
+  const [amending, setAmending] = useState(false);
   const [chainDefaults, setChainDefaults] = useState<OrderChainDefaults | null>(null);
 
   const { usesTradeMasters, loading: loadingTradeContext } = useOrderTradeContext();
@@ -133,23 +146,71 @@ export function DashboardCarrierBookingDetail() {
     }
   }, []);
 
-  const editable = isNew || (item ? canEditCarrierBooking(item.status) : false);
-  const submittable = item ? canSubmitCarrierBooking(item.status) : false;
-  const deletable = item ? canDeleteCarrierBooking(item.status) : false;
-  const hasShipperSelection = form.shipperBookingIds.length > 0;
-  const requiresShipperSelection = createMode === "from-sb";
-  const showInttraSections =
-    !isNew || createMode === "manual" || (createMode === "from-sb" && sbStepReady && hasShipperSelection);
-  const formLocked = !editable || (requiresShipperSelection && !hasShipperSelection);
-  const isDraft = isNew || item?.status === "draft";
-  const canSave = editable && isDraft && (!requiresShipperSelection || (sbStepReady && hasShipperSelection));
-
   const pageTitle = useMemo(() => {
     if (createMode === "manual") return t("carrierBookingsPage.createManualTitle");
     if (createMode === "from-sb") return t("carrierBookingsPage.createFromSbTitle");
     if (isNew) return t("carrierBookingsPage.createTitle");
-    return form.requestReference || t("carrierBookingsPage.detailTitle");
-  }, [createMode, form.requestReference, isNew, t]);
+    return t("carrierBookingsPage.detailTitle");
+  }, [createMode, isNew, t]);
+
+  const editable = !isClientPortal && (isNew || (item ? canEditCarrierBooking(item.status) : false));
+  const isDraftStatus = isNew || item?.status === "draft";
+  const formEditable = editable && (isDraftStatus || amending);
+  const submittable = !isClientPortal && (item ? canSubmitCarrierBooking(item.status) : false);
+  const deletable = !isClientPortal && (item ? canDeleteCarrierBooking(item.status) : false);
+  const hasShipperSelection = form.shipperBookingIds.length > 0;
+  const requiresShipperSelection = createMode === "from-sb";
+  const showInttraSections =
+    !isNew || createMode === "manual" || (createMode === "from-sb" && sbStepReady && hasShipperSelection);
+  const showShipperLinksSection =
+    !isNew || createMode === "manual" || (createMode === "from-sb" && sbStepReady);
+  const shipperBookingFallbackLinks = useMemo(
+    () => (item ? shipperBookingLinksFromCarrierRow(item) : []),
+    [item]
+  );
+  const breadcrumbLabel = isNew ? pageTitle : t("carrierBookingsPage.detailTitle");
+  const formLocked = !formEditable || (requiresShipperSelection && !hasShipperSelection);
+  const isDraft = isDraftStatus;
+  const unsentAmendments = item ? hasUnsentCarrierAmendments(item) : false;
+  const canSave = formEditable && (!requiresShipperSelection || (sbStepReady && hasShipperSelection));
+  const showAmend = editable && !isDraftStatus && !amending;
+  const showCancelAmend = editable && !isDraftStatus && amending;
+  const showSendToCarrier =
+    !isNew &&
+    submittable &&
+    (isDraftStatus ||
+      item?.status === "rejected" ||
+      item?.status === "failed" ||
+      amending ||
+      unsentAmendments);
+  const sendToCarrierLabel =
+    isDraft || item?.status === "rejected" || item?.status === "failed"
+      ? t("carrierBookingsPage.sendToCarrier")
+      : t("carrierBookingsPage.sendAmendmentToCarrier");
+  const saveLabel = isDraft
+    ? t("carrierBookingsPage.saveAsDraft")
+    : amending
+      ? t("carrierBookingsPage.saveAmendment")
+      : t("carrierBookingsPage.saveChanges");
+  const savingLabel = isDraft
+    ? t("carrierBookingsPage.savingDraft")
+    : amending
+      ? t("carrierBookingsPage.savingAmendment")
+      : t("carrierBookingsPage.savingChanges");
+
+  function handleStartAmend() {
+    setAmending(true);
+    setError("");
+  }
+
+  function handleCancelAmend() {
+    if (item) {
+      setForm(formFromCarrierBookingItem(item));
+    }
+    setAmending(false);
+    setRefreshFromShipperBookings(false);
+    setError("");
+  }
 
   const loadShipperBookings = useCallback(async () => {
     try {
@@ -164,8 +225,30 @@ export function DashboardCarrierBookingDetail() {
     (selectedIds: string[], rows = shipperBookings) => {
       const selected = rows.filter((row) => selectedIds.includes(row.id));
       setForm((prev) => prefillCarrierBookingFromShipperBookings(selected, prev));
+      setRefreshFromShipperBookings(selected.length > 0);
     },
     [shipperBookings]
+  );
+
+  const handleShipperBookingIdsChange = useCallback(
+    (nextIds: string[]) => {
+      let refreshFlag = false;
+      setForm((prev) => {
+        const selected = shipperBookings.filter((row) => nextIds.includes(row.id));
+        const result = resolveShipperBookingSelectionChange({
+          previousIds: prev.shipperBookingIds,
+          nextIds,
+          selectedBookings: selected,
+          previousForm: prev,
+          confirmRefresh: () => window.confirm(t("carrierBookingsPage.confirmSbLinkRefresh")),
+          confirmUnlinkKeepCargo: () => window.confirm(t("carrierBookingsPage.confirmSbUnlinkKeepCargo")),
+        });
+        refreshFlag = result.refreshFromShipperBookings;
+        return result.form;
+      });
+      setRefreshFromShipperBookings(refreshFlag);
+    },
+    [shipperBookings, t]
   );
 
   const load = useCallback(async () => {
@@ -177,12 +260,19 @@ export function DashboardCarrierBookingDetail() {
       setItem(loaded);
       setForm(formFromCarrierBookingItem(loaded));
       setEvents(timeline);
+      setAmending(false);
     } catch (err) {
       setError(messageFromApiErrorOrKey(err, t, "carrierBookingsPage.loadFailed"));
     } finally {
       setLoading(false);
     }
   }, [id, isNew, t]);
+
+  useEffect(() => {
+    if (isClientPortal && isNew) {
+      navigate(CARRIER_BOOKING_BASE, { replace: true });
+    }
+  }, [isClientPortal, isNew, navigate]);
 
   useEffect(() => {
     loadShipperBookings().catch(() => {});
@@ -233,7 +323,10 @@ export function DashboardCarrierBookingDetail() {
     setSaving(true);
     setError("");
     try {
-      const payload = carrierBookingFormToPayload(form, { usesTradeMasters: !!usesTradeMasters });
+      const payload = carrierBookingFormToPayload(form, {
+        usesTradeMasters: !!usesTradeMasters,
+        refreshFromShipperBookings,
+      });
       if (isNew) {
         const created = await carrierBookingsApi.createCarrierBooking(payload);
         const savedId = String(created.id ?? "");
@@ -242,7 +335,10 @@ export function DashboardCarrierBookingDetail() {
         }
         setItem(created);
         setForm(formFromCarrierBookingItem(created));
-        showToast({ message: t("carrierBookingsPage.savedDraft"), variant: "success" });
+        showToast({
+          message: isDraft ? t("carrierBookingsPage.savedDraft") : t("carrierBookingsPage.savedChanges"),
+          variant: "success",
+        });
         navigate(`${CARRIER_BOOKING_BASE}/${savedId}`, { replace: true });
         return;
       }
@@ -250,7 +346,21 @@ export function DashboardCarrierBookingDetail() {
       const updated = await carrierBookingsApi.updateCarrierBooking(id, payload);
       setItem(updated);
       setForm(formFromCarrierBookingItem(updated));
-      showToast({ message: t("carrierBookingsPage.savedDraft"), variant: "success" });
+      const wasAmending = amending;
+      showToast({
+        message: isDraft
+          ? t("carrierBookingsPage.savedDraft")
+          : wasAmending
+            ? t("carrierBookingsPage.savedAmendment")
+            : t("carrierBookingsPage.savedChanges"),
+        variant: "success",
+      });
+      const { events: timeline } = await carrierBookingsApi.fetchCarrierBooking(id);
+      setEvents(timeline);
+      setRefreshFromShipperBookings(false);
+      if (!wasAmending) {
+        setAmending(false);
+      }
     } catch (err) {
       const message = messageFromApiErrorOrKey(err, t, "carrierBookingsPage.saveFailed");
       setError(message);
@@ -270,9 +380,12 @@ export function DashboardCarrierBookingDetail() {
       setForm(formFromCarrierBookingItem(submitted));
       const { events: timeline } = await carrierBookingsApi.fetchCarrierBooking(id);
       setEvents(timeline);
+      setAmending(false);
       showToast({ message: t("carrierBookingsPage.submitted", { source }), variant: "success" });
     } catch (err) {
-      setError(messageFromApiErrorOrKey(err, t, "carrierBookingsPage.submitFailed"));
+      const message = messageFromApiErrorOrKey(err, t, "carrierBookingsPage.submitFailed");
+      setError(message);
+      showToast({ message, variant: "error" });
       await load();
     } finally {
       setSubmitting(false);
@@ -350,6 +463,8 @@ export function DashboardCarrierBookingDetail() {
           bookings={shipperBookings}
           selectedIds={form.shipperBookingIds}
           onChange={(selectedIds) => applyShipperSelection(selectedIds)}
+          searchOnly
+          maxResults={50}
         />
 
         <div className="dash-form__actions dash-form__actions--end">
@@ -375,20 +490,49 @@ export function DashboardCarrierBookingDetail() {
       aria-labelledby="carrier-booking-detail-heading"
     >
       <PageBreadcrumb
-        items={[
-          { label: t("modules.nav.home"), to: "/dashboard/home" },
-          { label: t("modules.transport.title"), to: TRANSPORT_HUB },
-          { label: t("modules.transport.carrierBooking"), to: CARRIER_BOOKING_BASE },
-          { label: pageTitle },
-        ]}
+        items={
+          isClientPortal
+            ? [
+                { label: t("modules.nav.home"), to: "/dashboard/home" },
+                { label: t("modules.transport.carrierBooking"), to: CARRIER_BOOKING_BASE },
+                { label: breadcrumbLabel },
+              ]
+            : [
+                { label: t("modules.nav.home"), to: "/dashboard/home" },
+                { label: t("modules.transport.title"), to: TRANSPORT_HUB },
+                { label: t("modules.transport.carrierBooking"), to: CARRIER_BOOKING_BASE },
+                { label: breadcrumbLabel },
+              ]
+        }
       />
 
       <div className="panel__head-row">
-        <h2 id="carrier-booking-detail-heading" className="panel__title panel__title--section">
-          {pageTitle}
-        </h2>
+        <div className="panel__title-group">
+          <div className="panel__title-row">
+            <h2 id="carrier-booking-detail-heading" className="panel__title panel__title--section">
+              {pageTitle}
+            </h2>
+            {!isNew && item ? (
+              <div className="panel__title-badges">
+                <span className={carrierBookingStatusClass(item.status)}>
+                  {carrierBookingStatusLabel(item.status, t)}
+                </span>
+                {amending ? (
+                  <span className="order-status order-status--submitted">
+                    {t("carrierBookingsPage.amendingBadge")}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
         {!isNew && (
           <div className="dash-form__actions dash-form__actions--start">
+            {showAmend ? (
+              <button type="button" className="btn btn--primary" onClick={() => handleStartAmend()}>
+                {t("carrierBookingsPage.startAmend")}
+              </button>
+            ) : null}
             <button type="button" className="btn btn--secondary" onClick={() => setTimelineOpen(true)}>
               {t("carrierBookingsPage.openTimeline")}
               {events.length > 0 && <span className="timeline-trigger__count">{events.length}</span>}
@@ -402,32 +546,18 @@ export function DashboardCarrierBookingDetail() {
         )}
       </div>
 
-      {!isNew && item && (
-        <p className="panel__subhead">
-          <strong className="order-code">{form.requestReference}</strong>
-          {item.shipperBookingReference ? ` · SB ${item.shipperBookingReference}` : ""}
-          {" · "}
-          <span className={carrierBookingStatusClass(item.status)}>
-            {carrierBookingStatusLabel(item.status, t)}
-          </span>
-          {item.externalReference ? ` · ${item.externalReference}` : ""}
-        </p>
-      )}
-
-      {isNew && (
-        <p className="panel__subhead">
-          <span className={carrierBookingStatusClass("draft")}>{carrierBookingStatusLabel("draft", t)}</span>
-        </p>
-      )}
-
       {error && (
         <p className="panel__error" role="alert">
           {error}
         </p>
       )}
 
-      <form className="order-form" noValidate onSubmit={handleSave}>
-        {!isNew && (
+      <form
+        className={`order-form${!formEditable && !isNew ? " order-form--readonly" : ""}`}
+        noValidate
+        onSubmit={handleSave}
+      >
+        {!isNew ? (
           <section className="order-section" aria-labelledby="cb-ref-heading">
             <h3 id="cb-ref-heading" className="order-section__title">
               {t("carrierBookingsPage.referenceSection")}
@@ -444,12 +574,28 @@ export function DashboardCarrierBookingDetail() {
                   readOnly
                 />
               </div>
+              <div className="field">
+                <label className="field__label" htmlFor="cb-carrier-confirmation">
+                  {t("carrierBookingsPage.carrierConfirmationNumberLabel")}
+                </label>
+                <input
+                  id="cb-carrier-confirmation"
+                  className="field__input order-code field__input--readonly"
+                  value={
+                    item?.externalReference?.trim() || t("carrierBookingsPage.carrierConfirmationPending")
+                  }
+                  readOnly
+                />
+              </div>
             </div>
           </section>
-        )}
+        ) : null}
 
-        {isNew && (
+        {isNew && (createMode === "manual" || (createMode === "from-sb" && sbStepReady)) ? (
           <section className="order-section" aria-labelledby="cb-ref-pending-heading">
+            <h3 id="cb-ref-pending-heading" className="order-section__title">
+              {t("carrierBookingsPage.referenceSection")}
+            </h3>
             <div className="order-section__grid">
               <div className="field">
                 <label className="field__label" htmlFor="cb-reference-pending">
@@ -465,28 +611,16 @@ export function DashboardCarrierBookingDetail() {
               </div>
             </div>
           </section>
-        )}
+        ) : null}
 
-        {createMode === "from-sb" && sbStepReady && hasShipperSelection && (
-          <SelectedShipperBookingsSummary
+        {showShipperLinksSection && (
+          <CarrierBookingShipperLinksEditor
             bookings={shipperBookings}
             selectedIds={form.shipperBookingIds}
-            onChangeSelection={() => setSbStepReady(false)}
+            fallbackLinks={shipperBookingFallbackLinks}
+            onChange={handleShipperBookingIdsChange}
+            disabled={formLocked || !formEditable}
           />
-        )}
-
-        {createMode === "manual" && (
-          <section className="order-section" aria-labelledby="cb-sb-heading">
-            <h3 id="cb-sb-heading" className="order-section__title">
-              {t("carrierBookingsPage.shipperBookingSectionOptional")}
-            </h3>
-            <ShipperBookingPicker
-              bookings={shipperBookings}
-              selectedIds={form.shipperBookingIds}
-              onChange={(selectedIds) => applyShipperSelection(selectedIds)}
-              disabled={!editable}
-            />
-          </section>
         )}
 
         {showInttraSections && (
@@ -682,17 +816,57 @@ export function DashboardCarrierBookingDetail() {
               <h3 id="cb-routing-heading" className="order-section__title">
                 {t("carrierBookingsPage.routingSection")}
               </h3>
-              <div className="order-section__grid">
-                <OrderLocationFields
-                  usesTradeMasters={!!usesTradeMasters}
-                  operatingShipperPartyId={form.operatingShipperPartyId}
-                  operatingConsigneePartyId={form.operatingConsigneePartyId}
-                  value={form}
-                  onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
-                  chainDefaults={chainDefaults}
-                  disabled={formLocked || saving}
-                />
-              </div>
+              {formEditable ? (
+                <>
+                  <div className="order-section__grid">
+                    <OrderLocationFields
+                      usesTradeMasters={!!usesTradeMasters}
+                      operatingShipperPartyId={form.operatingShipperPartyId}
+                      operatingConsigneePartyId={form.operatingConsigneePartyId}
+                      value={form}
+                      onChange={(patch) =>
+                        setForm((prev) => {
+                          const next = { ...prev, ...patch };
+                          if (
+                            prev.routingLegs.length === 0 &&
+                            (patch.placeOfReceipt !== undefined ||
+                              patch.portOfLoading !== undefined ||
+                              patch.portOfDischarge !== undefined ||
+                              patch.placeOfDelivery !== undefined)
+                          ) {
+                            next.routingLegs = buildRoutingLegsFromRouting({
+                              placeOfReceipt: next.placeOfReceipt,
+                              portOfLoading: next.portOfLoading,
+                              portOfDischarge: next.portOfDischarge,
+                              placeOfDelivery: next.placeOfDelivery,
+                            });
+                          }
+                          return next;
+                        })
+                      }
+                      chainDefaults={chainDefaults}
+                      disabled={formLocked || saving}
+                    />
+                  </div>
+                  <CarrierBookingRoutingLegsEditor
+                    legs={form.routingLegs}
+                    disabled={formLocked || saving}
+                    onChange={(routingLegs) => setForm((prev) => ({ ...prev, routingLegs }))}
+                  />
+                </>
+              ) : (
+                <>
+                  <CarrierBookingRoutingSummary
+                    placeOfReceipt={form.placeOfReceipt}
+                    portOfLoading={form.portOfLoading}
+                    portOfDischarge={form.portOfDischarge}
+                    placeOfDelivery={form.placeOfDelivery}
+                  />
+                  {form.routingLegs.length > 0 ? (
+                    <CarrierBookingRoutingLegsPanel legs={form.routingLegs} />
+                  ) : null}
+                </>
+              )}
             </section>
 
             <section className="order-section" aria-labelledby="cb-dates-heading">
@@ -970,6 +1144,7 @@ export function DashboardCarrierBookingDetail() {
                     <thead>
                       <tr>
                         <th scope="col">{t("carrierBookingsPage.thShipperBooking")}</th>
+                        <th scope="col">{t("carrierBookingsPage.thOrderNumber")}</th>
                         <th scope="col">{t("carrierBookingsPage.lineKeyLabel")}</th>
                         <th scope="col">{t("carrierBookingsPage.skuLabel")}</th>
                         <th scope="col">{t("carrierBookingsPage.qtyLabel")}</th>
@@ -980,6 +1155,7 @@ export function DashboardCarrierBookingDetail() {
                       {form.cargoLines.map((line) => (
                         <tr key={`${line.sourceShipperBookingReference}-${line.lineKey}-${line.sku}`}>
                           <td className="order-code">{line.sourceShipperBookingReference}</td>
+                          <td className="order-code">{line.orderNumber || "—"}</td>
                           <td>{line.lineKey}</td>
                           <td>{line.sku}</td>
                           <td>
@@ -1030,39 +1206,52 @@ export function DashboardCarrierBookingDetail() {
           </>
         )}
 
-        <div className="dash-form__actions dash-form__actions--end">
-          <Link to={CARRIER_BOOKING_BASE} className="btn btn--ghost">
-            {t("carrierBookingsPage.cancel")}
-          </Link>
-          {canSave && (
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={saving || submitting}
-              onClick={() => handleSave()}
-            >
-              {saving ? t("carrierBookingsPage.savingDraft") : t("carrierBookingsPage.saveAsDraft")}
-            </button>
-          )}
-          {!isNew && submittable && (
-            <button
-              type="button"
-              className="btn btn--secondary"
-              disabled={submitting || saving}
-              onClick={() => handleSubmitToInttra()}
-            >
-              {submitting ? t("carrierBookingsPage.submitting") : t("carrierBookingsPage.submitToInttra")}
-            </button>
-          )}
-        </div>
+        {(canSave || showSendToCarrier || showCancelAmend) && (
+          <div className="dash-form__actions dash-form__actions--end">
+            {showCancelAmend ? (
+              <button
+                type="button"
+                className="btn btn--ghost"
+                disabled={saving || submitting}
+                onClick={() => handleCancelAmend()}
+              >
+                {t("carrierBookingsPage.cancelAmend")}
+              </button>
+            ) : (
+              <Link to={CARRIER_BOOKING_BASE} className="btn btn--ghost">
+                {t("carrierBookingsPage.backToList")}
+              </Link>
+            )}
+            {canSave && (
+              <button
+                type="button"
+                className="btn btn--primary"
+                disabled={saving || submitting}
+                onClick={() => handleSave()}
+              >
+                {saving ? savingLabel : saveLabel}
+              </button>
+            )}
+            {showSendToCarrier && (
+              <button
+                type="button"
+                className="btn btn--secondary"
+                disabled={submitting || saving}
+                onClick={() => handleSubmitToInttra()}
+              >
+                {submitting ? t("carrierBookingsPage.submitting") : sendToCarrierLabel}
+              </button>
+            )}
+          </div>
+        )}
+        {!canSave && !showSendToCarrier && !showCancelAmend && !isNew ? (
+          <div className="dash-form__actions dash-form__actions--end">
+            <Link to={CARRIER_BOOKING_BASE} className="btn btn--ghost">
+              {t("carrierBookingsPage.backToList")}
+            </Link>
+          </div>
+        ) : null}
       </form>
-
-      {!isNew && item && (
-        <p className="panel__muted panel__muted--mt">
-          {t("carrierBookingsPage.submittedAtLabel")}: {formatCarrierBookingDate(item.submittedAt)} ·{" "}
-          {t("carrierBookingsPage.inttraTransactionLabel")}: {item.inttraTransactionId || "—"}
-        </p>
-      )}
 
       {!isNew && (
         <TimelineModal
@@ -1079,6 +1268,7 @@ export function DashboardCarrierBookingDetail() {
           onAddEvent={handleAddEvent}
           addingEvent={addingEvent}
           messageInputId="carrier-booking-event-message"
+          allowAddEvent={!isClientPortal}
         >
           <CarrierBookingTimeline events={events} emptyLabel={t("carrierBookingsPage.timelineEmpty")} />
         </TimelineModal>

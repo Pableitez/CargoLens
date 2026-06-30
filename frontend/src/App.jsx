@@ -285,22 +285,8 @@ function AppRoutes() {
             </StaffRoute>
           }
         />
-        <Route
-          path="operations/export/order/:id"
-          element={
-            <StaffRoute>
-              <DashboardOrderDetail />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="operations/export/order"
-          element={
-            <StaffRoute>
-              <DashboardOrders />
-            </StaffRoute>
-          }
-        />
+        <Route path="operations/export/order/:id" element={<DashboardOrderDetail />} />
+        <Route path="operations/export/order" element={<DashboardOrders />} />
         <Route
           path="operations/export/shipper-booking/import"
           element={
@@ -309,22 +295,8 @@ function AppRoutes() {
             </StaffRoute>
           }
         />
-        <Route
-          path="operations/export/shipper-booking/:id"
-          element={
-            <StaffRoute>
-              <DashboardShipperBookingDetail />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="operations/export/shipper-booking"
-          element={
-            <StaffRoute>
-              <DashboardShipperBookings />
-            </StaffRoute>
-          }
-        />
+        <Route path="operations/export/shipper-booking/:id" element={<DashboardShipperBookingDetail />} />
+        <Route path="operations/export/shipper-booking" element={<DashboardShipperBookings />} />
         <Route
           path="operations/transport"
           element={
@@ -357,22 +329,8 @@ function AppRoutes() {
             </StaffRoute>
           }
         />
-        <Route
-          path="operations/transport/carrier-booking/:id"
-          element={
-            <StaffRoute>
-              <DashboardCarrierBookingDetail />
-            </StaffRoute>
-          }
-        />
-        <Route
-          path="operations/transport/carrier-booking"
-          element={
-            <StaffRoute>
-              <DashboardCarrierBookings />
-            </StaffRoute>
-          }
-        />
+        <Route path="operations/transport/carrier-booking/:id" element={<DashboardCarrierBookingDetail />} />
+        <Route path="operations/transport/carrier-booking" element={<DashboardCarrierBookings />} />
         <Route
           path="operations/warehouse"
           element={

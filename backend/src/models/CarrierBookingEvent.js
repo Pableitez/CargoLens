@@ -16,7 +16,15 @@ const carrierBookingEventSchema = new mongoose.Schema(
     },
     kind: {
       type: String,
-      enum: ["created", "status_change", "note", "submission", "provider_response"],
+      enum: [
+        "created",
+        "status_change",
+        "note",
+        "submission",
+        "provider_response",
+        "sb_linked",
+        "sb_unlinked",
+      ],
       required: true,
       index: true,
     },

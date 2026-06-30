@@ -1,5 +1,7 @@
 import type { ShipperBooking } from "../shipperBookings/types";
 import { resolveLocationCode } from "../../utils/locationUtils";
+import { legsFromCarrierBookingItem } from "./carrierBookingRoutingLegForm";
+import { buildRoutingLegsFromRouting } from "./carrierBookingRoutingLegs";
 import type { CarrierBookingCargoLine, CarrierBookingFormState } from "./types";
 
 function toInputDate(value: string | null | undefined): string {
@@ -100,6 +102,12 @@ export function prefillCarrierBookingFromShipperBookings(
     portOfLoading: primary.portOfLoading || prev.portOfLoading,
     portOfDischarge: primary.portOfDischarge || prev.portOfDischarge,
     placeOfDelivery: primary.placeOfDelivery || prev.placeOfDelivery,
+    routingLegs: buildRoutingLegsFromRouting({
+      placeOfReceipt: primary.placeOfReceipt || prev.placeOfReceipt,
+      portOfLoading: primary.portOfLoading || prev.portOfLoading,
+      portOfDischarge: primary.portOfDischarge || prev.portOfDischarge,
+      placeOfDelivery: primary.placeOfDelivery || prev.placeOfDelivery,
+    }),
     cargoReadyDate: toInputDate(primary.cargoReadyDate) || prev.cargoReadyDate,
     expectedReceiptDate: toInputDate(primary.expectedReceiptDate) || prev.expectedReceiptDate,
     expectedDeliveryDate: toInputDate(primary.expectedDeliveryDate) || prev.expectedDeliveryDate,
@@ -145,6 +153,7 @@ export function formFromCarrierBookingItem(
     portOfDischarge: item.portOfDischarge,
     placeOfReceipt: item.placeOfReceipt,
     placeOfDelivery: item.placeOfDelivery,
+    routingLegs: legsFromCarrierBookingItem(item),
     cargoReadyDate: toInputDate(item.cargoReadyDate),
     expectedReceiptDate: toInputDate(item.expectedReceiptDate),
     expectedDeliveryDate: toInputDate(item.expectedDeliveryDate),
@@ -168,10 +177,11 @@ export function formFromCarrierBookingItem(
 
 export function carrierBookingFormToPayload(
   form: CarrierBookingFormState,
-  options?: { usesTradeMasters?: boolean }
+  options?: { usesTradeMasters?: boolean; refreshFromShipperBookings?: boolean }
 ): Record<string, unknown> {
   const base: Record<string, unknown> = {
     shipperBookingIds: form.shipperBookingIds,
+    refreshFromShipperBookings: options?.refreshFromShipperBookings === true,
     carrierScac: form.carrierScac,
     environment: form.environment,
     provider: form.provider,
@@ -195,6 +205,18 @@ export function carrierBookingFormToPayload(
     cargoLines: form.cargoLines,
     specialInstructions: form.specialInstructions,
     remarks: form.remarks,
+    routingLegs: form.routingLegs.map((leg) => ({
+      sequence: leg.sequence,
+      transportMode: leg.transportMode,
+      originCode: resolveLocationCode(leg.originCode || leg.portOfLoading || ""),
+      destinationCode: resolveLocationCode(leg.destinationCode || leg.portOfDischarge || ""),
+      portOfLoading: resolveLocationCode(leg.portOfLoading || leg.originCode || ""),
+      portOfDischarge: resolveLocationCode(leg.portOfDischarge || leg.destinationCode || ""),
+      vesselName: (leg.vesselName ?? "").trim(),
+      voyageNumber: (leg.voyageNumber ?? "").trim(),
+      etd: leg.etd || null,
+      eta: leg.eta || null,
+    })),
     equipment: form.equipment.map((row) => ({
       quantity: row.quantity,
       equipmentType: row.equipmentType,

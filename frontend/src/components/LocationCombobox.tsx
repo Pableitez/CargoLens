@@ -14,9 +14,18 @@ type LocationComboboxProps = {
   onChange: (code: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  /** Inline expanding list — avoids clipping inside tables/modals. */
+  listMode?: "dropdown" | "panel";
 };
 
-export function LocationCombobox({ id, value, onChange, disabled, placeholder }: LocationComboboxProps) {
+export function LocationCombobox({
+  id,
+  value,
+  onChange,
+  disabled,
+  placeholder,
+  listMode = "dropdown",
+}: LocationComboboxProps) {
   const { t } = useAppTranslation();
   const listId = useId();
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -55,10 +64,31 @@ export function LocationCombobox({ id, value, onChange, disabled, placeholder }:
   const showList = open && !disabled;
   const noMatches = showList && query.trim().length > 0 && results.length === 0;
 
+  const optionsList = (
+    <ul id={listId} className="location-combobox__list" role="listbox">
+      {results.map((location) => (
+        <li key={location.code} role="option" aria-selected={location.code === value}>
+          <button
+            type="button"
+            className="location-combobox__option"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => pick(location.code)}
+          >
+            <span className="location-combobox__option-name">{location.name}</span>
+            <span className="location-combobox__option-meta">
+              <span className="location-combobox__option-code">{location.code}</span>
+              <span className="location-combobox__option-country">{location.country}</span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <div
       ref={anchorRef}
-      className={`location-combobox${open ? " location-combobox--open" : ""}${disabled ? " location-combobox--disabled" : ""}`}
+      className={`location-combobox${open ? " location-combobox--open" : ""}${disabled ? " location-combobox--disabled" : ""}${listMode === "panel" ? " location-combobox--panel" : ""}`}
     >
       <div className="location-combobox__control">
         <input
@@ -95,28 +125,20 @@ export function LocationCombobox({ id, value, onChange, disabled, placeholder }:
         </button>
       </div>
 
-      {showList && (
-        <ul id={listId} className="location-combobox__list" role="listbox">
-          {results.map((location) => (
-            <li key={location.code} role="option" aria-selected={location.code === value}>
-              <button
-                type="button"
-                className="location-combobox__option"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => pick(location.code)}
-              >
-                <span className="location-combobox__option-name">{location.name}</span>
-                <span className="location-combobox__option-meta">
-                  <span className="location-combobox__option-code">{location.code}</span>
-                  <span className="location-combobox__option-country">{location.country}</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {showList && listMode === "panel" ? (
+        <div className="location-combobox__dropdown location-combobox__dropdown--panel">
+          {optionsList}
+          {noMatches ? (
+            <p className="location-combobox__empty" role="status">
+              {t("components.locationCombobox.noMatch")}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
-      {noMatches ? (
+      {showList && listMode === "dropdown" ? optionsList : null}
+
+      {noMatches && listMode === "dropdown" ? (
         <p className="location-combobox__empty" role="status">
           {t("components.locationCombobox.noMatch")}
         </p>

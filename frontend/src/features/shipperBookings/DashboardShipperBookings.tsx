@@ -4,6 +4,7 @@ import * as shipperBookingsApi from "../../api/shipperBookings";
 import { LocationCell } from "../../components/LocationCombobox";
 import { ModuleListPage } from "../../components/ModuleListPage";
 import { useModuleListPage } from "../../hooks/useModuleListPage";
+import { useIsClientPortal } from "../../hooks/useIsClientPortal";
 import { useAppTranslation } from "../../i18n/useAppTranslation";
 import type { ColumnFilterDef } from "../../utils/facetFilters";
 import {
@@ -30,6 +31,7 @@ function formatBookingField(value: string): string {
 
 export function DashboardShipperBookings() {
   const { t } = useAppTranslation();
+  const isClientPortal = useIsClientPortal();
   const fetchItems = useCallback(() => shipperBookingsApi.fetchShipperBookings(), []);
 
   const filterColumns = useMemo<ColumnFilterDef<ShipperBooking>[]>(
@@ -110,7 +112,7 @@ export function DashboardShipperBookings() {
     <ModuleListPage
       headingId="shipper-bookings-heading"
       title={t("shipperBookingsPage.title")}
-      lead={t("shipperBookingsPage.lead")}
+      lead={isClientPortal ? t("shipperBookingsPage.leadPortal") : t("shipperBookingsPage.lead")}
       panelClassName="panel--orders"
       searchPlaceholder={t("shipperBookingsPage.searchPlaceholder")}
       wideTable
@@ -121,24 +123,28 @@ export function DashboardShipperBookings() {
       filterColumns={filterColumns}
       list={list}
       trailingActions={
-        <>
-          <Link to={`${BOOKING_BASE}/import`} className="btn btn--ghost btn--sm">
-            {t("shipperBookingsPage.importExcel")}
-          </Link>
-          <Link to={`${BOOKING_BASE}/new`} className="btn btn--primary btn--sm">
-            {t("shipperBookingsPage.newBooking")}
-          </Link>
-        </>
+        isClientPortal ? null : (
+          <>
+            <Link to={`${BOOKING_BASE}/import`} className="btn btn--ghost btn--sm">
+              {t("shipperBookingsPage.importExcel")}
+            </Link>
+            <Link to={`${BOOKING_BASE}/new`} className="btn btn--primary btn--sm">
+              {t("shipperBookingsPage.newBooking")}
+            </Link>
+          </>
+        )
       }
       emptyActions={
-        <>
-          <Link to={`${BOOKING_BASE}/new`} className="btn btn--primary">
-            {t("shipperBookingsPage.newBooking")}
-          </Link>
-          <Link to={`${BOOKING_BASE}/import`} className="btn btn--ghost">
-            {t("shipperBookingsPage.importExcel")}
-          </Link>
-        </>
+        isClientPortal ? null : (
+          <>
+            <Link to={`${BOOKING_BASE}/new`} className="btn btn--primary">
+              {t("shipperBookingsPage.newBooking")}
+            </Link>
+            <Link to={`${BOOKING_BASE}/import`} className="btn btn--ghost">
+              {t("shipperBookingsPage.importExcel")}
+            </Link>
+          </>
+        )
       }
       tableHead={
         <>

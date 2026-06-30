@@ -40,6 +40,15 @@ export function getWorkspaceTitles(pathname, isClientPortal, t) {
   }
 
   if (isClientPortal) {
+    if (pathname.startsWith("/dashboard/operations/export/order")) {
+      return titleFromKey(t, "modules.export.order");
+    }
+    if (pathname.startsWith("/dashboard/operations/export/shipper-booking")) {
+      return titleFromKey(t, "modules.export.shipperBooking");
+    }
+    if (pathname.startsWith("/dashboard/operations/transport/carrier-booking")) {
+      return titleFromKey(t, "modules.transport.carrierBooking");
+    }
     if (pathname.startsWith("/dashboard/trade-setup")) {
       return titleFromKey(t, "modules.clientAccount.tradeSetup");
     }

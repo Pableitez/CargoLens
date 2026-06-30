@@ -16,6 +16,7 @@ import {
   logShipperBookingChanges,
   logShipperBookingEvent,
 } from "../services/shipperBookings/shipperBookingEvents.js";
+import { resolveLinkedCarrierBookingSummary } from "../services/shipperBookings/linkedCarrierBookingSummary.js";
 import { serializeShipperBooking } from "../services/shipperBookings/serializeShipperBooking.js";
 import { validateShipperBookingInput } from "../services/shipperBookings/shipperBookingValidation.js";
 import { validateBookingLinesAgainstOrders } from "../services/orders/orderLineAvailability.js";
@@ -94,7 +95,14 @@ export async function getShipperBooking(req, res) {
     }
 
     const events = await listShipperBookingEvents(row._id);
-    return res.json({ item: serializeShipperBooking(row), events });
+    const linkedCarrierBookingSummary = await resolveLinkedCarrierBookingSummary(
+      companyObjectId(req.user.companyId),
+      row._id
+    );
+    return res.json({
+      item: serializeShipperBooking(row, { linkedCarrierBookingSummary }),
+      events,
+    });
   } catch (err) {
     devError(err);
     return res.status(500).json({ error: "SERVER_ERROR", message: "Failed to load shipper booking." });

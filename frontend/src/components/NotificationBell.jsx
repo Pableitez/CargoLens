@@ -85,8 +85,7 @@ export function NotificationBell() {
           const list = await activityApi.fetchWorkspaceActivity({ limit: 8 });
           if (!cancelled) setItems(list);
         } catch (e) {
-          if (!cancelled)
-            setError(messageFromApiErrorOrKey(e, tRef.current, "dashboardPage.activity.loadFailed"));
+          if (!cancelled) setError(messageFromApiErrorOrKey(e, tRef.current, "notifications.loadFailed"));
         }
       })();
     };
